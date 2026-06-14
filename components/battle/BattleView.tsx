@@ -12,9 +12,9 @@ import { useTypingEngine } from "@/hooks/useTypingEngine"
 import Link from "next/link"
 
 /**
- * BattleView orchestrates the full racing flow.
- * Toggles difficulty configurations, triggers active racing countdowns,
- * drives the 100ms simulated opponent intervals, and reveals winner messages.
+ * BattleView handles difficulty selections, countdown sweeps,
+ * opponent ticks, and results layouts.
+ * Redesigned to use whitespace and floating stats rather than border containers.
  */
 export default function BattleView() {
   const {
@@ -40,11 +40,10 @@ export default function BattleView() {
 
   const { wpm, accuracy } = useTypingEngine()
 
-  // Countdown timer logic
+  // Countdown clock sync
   useEffect(() => {
     if (battleStatus !== "countdown") return
 
-    // Pre-initialize standard word count mode typing array
     initSession({ mode: "words", wordCount: battleConfig.wordCount })
 
     const interval = setInterval(() => {
@@ -62,7 +61,7 @@ export default function BattleView() {
     return () => clearInterval(interval)
   }, [battleStatus, setCountdown, setBattleStatus, initSession, startSession, battleConfig.wordCount])
 
-  // AI simulated typing progress interval (updates every 100ms)
+  // AI progress simulator loop (100ms ticks)
   useEffect(() => {
     if (battleStatus !== "racing") return
 
@@ -106,44 +105,42 @@ export default function BattleView() {
   }
 
   return (
-    <div className="w-full min-h-[500px] flex flex-col items-center justify-center p-6 bg-surface/10 border border-border rounded-2xl relative">
-      {/* 1. Selector view */}
+    <div className="w-full min-h-[400px] flex flex-col items-center justify-center p-2 relative select-none">
+      {/* 1. Selection State */}
       {battleStatus === "selecting" && (
         <DifficultySelector onSelect={handleSelectDifficulty} />
       )}
 
-      {/* 2. Countdown view */}
+      {/* 2. Count down State */}
       {battleStatus === "countdown" && (
-        <div className="text-center py-12">
-          <span className="block text-sm uppercase tracking-widest text-text-muted font-heading font-bold mb-4 animate-pulse">
-            Establishing Secure Bletchley Connection
+        <div className="text-center py-16">
+          <span className="block text-[10px] uppercase tracking-widest text-text-muted font-heading font-bold mb-4 animate-pulse">
+            Establishing Secure Intercept
           </span>
-          <span className="text-7xl font-heading font-extrabold text-accent">
+          <span className="text-8xl font-heading font-extrabold text-text-primary leading-none">
             {countdown}
           </span>
         </div>
       )}
 
-      {/* 3. Racing tracks & active interface */}
+      {/* 3. Racing State */}
       {(battleStatus === "racing" || battleStatus === "finished") && (
-        <div className="w-full max-w-2xl">
-          {/* Header information */}
-          <div className="flex justify-between items-center mb-6 border-b border-border/50 pb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase font-heading font-bold tracking-widest bg-accent-soft text-accent px-2.5 py-1 rounded-md">
-                Enigma Race: {battleConfig.difficulty}
-              </span>
-            </div>
+        <div className="w-full max-w-xl">
+          {/* Header Controls */}
+          <div className="flex justify-between items-center mb-8 pb-3 border-b border-border/40">
+            <span className="text-[10px] uppercase font-heading font-bold tracking-widest text-text-secondary">
+              Race vs Enigma ({battleConfig.difficulty})
+            </span>
             <button
               onClick={handleRestart}
-              className="text-xs font-heading font-bold uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+              className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors cursor-pointer"
             >
-              Reset Match
+              Reset Race
             </button>
           </div>
 
-          {/* Tracks layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6 bg-surface/50 border border-border/50 p-6 rounded-xl">
+          {/* Tracks grid */}
+          <div className="flex flex-col gap-4 mb-8">
             <BattleTrack
               label="You"
               progress={playerProgress}
@@ -151,14 +148,14 @@ export default function BattleView() {
               isPlayer={true}
             />
             <BattleTrack
-              label="Enigma Machine"
+              label="Enigma AI"
               progress={aiProgress}
               wpm={battleConfig.aiWpm}
               isPlayer={false}
             />
           </div>
 
-          {/* Typing field */}
+          {/* Live Race Typing Canvas */}
           {battleStatus === "racing" && (
             <>
               <TypingArea />
@@ -171,28 +168,28 @@ export default function BattleView() {
             </>
           )}
 
-          {/* 4. Results Overlay */}
+          {/* 4. Post-race Results view */}
           {battleStatus === "finished" && (
-            <div className="text-center py-8 bg-surface border border-border rounded-xl p-8 shadow-lg">
-              <span className="block text-xs uppercase tracking-widest text-text-muted font-heading font-semibold mb-2">
-                Transmission Resolved
+            <div className="text-center py-10 border-t border-border mt-8">
+              <span className="block text-[10px] uppercase tracking-widest text-text-muted font-heading font-bold mb-2">
+                Decryption Intercept Complete
               </span>
               <h3
-                className={`text-4xl font-heading font-bold mb-4 ${
+                className={`text-3xl font-heading font-bold mb-3 ${
                   winner === "player" ? "text-correct" : "text-incorrect"
                 }`}
               >
-                {winner === "player" ? "You Outsmarted Enigma!" : "Enigma Machine Intercepted!"}
+                {winner === "player" ? "Decryption Successful" : "Rotor Sync Lockout"}
               </h3>
-              <p className="text-sm text-text-secondary mb-6 leading-relaxed">
+              <p className="text-xs text-text-secondary mb-8 leading-relaxed max-w-sm mx-auto">
                 {winner === "player"
-                  ? `Congratulations! You decrypted the code grid before the Enigma rotors synced at ${battleConfig.aiWpm} WPM.`
-                  : `Enigma machine completed the encryption calculation first. Keep practicing your decryption speed, codebreaker.`}
+                  ? `Decrypted message grids before the Enigma rotors completed calculations at ${battleConfig.aiWpm} WPM.`
+                  : `Enigma machine resolved encryption values first. Sector synchronization locked you out.`}
               </p>
-              <div className="flex gap-4 justify-center">
+              <div className="flex gap-6 justify-center">
                 <button
                   onClick={handleRestart}
-                  className="px-6 py-2.5 rounded-lg bg-accent text-bg hover:opacity-90 font-heading font-bold text-sm shadow-md transition-all cursor-pointer"
+                  className="px-6 py-2 rounded-lg bg-text-primary text-bg hover:opacity-90 font-heading font-semibold text-xs transition-all cursor-pointer shadow-sm animate-fade-in"
                 >
                   Race Again
                 </button>
@@ -202,7 +199,7 @@ export default function BattleView() {
                     resetBattle()
                     initSession({ mode: "words", wordCount: 25 })
                   }}
-                  className="px-6 py-2.5 rounded-lg border border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-hover font-heading font-bold text-sm transition-all cursor-pointer"
+                  className="px-6 py-2 rounded-lg border border-border bg-transparent text-text-secondary hover:text-text-primary font-heading font-semibold text-xs transition-all cursor-pointer"
                 >
                   Return Home
                 </Link>

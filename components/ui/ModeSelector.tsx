@@ -12,7 +12,7 @@ interface ModeSelectorProps {
 
 /**
  * Centered selector tabs for choosing Words mode or Timed mode.
- * Supports hotkeys 1, 2, and 3 when not in active typing sessions.
+ * Styled without numbers for shortcut hints to keep visual weight light.
  */
 export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorProps) {
   const status = useTypingStore((s) => s.status)
@@ -22,7 +22,6 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
     if (!isInactive) return
 
     const handleKeyPress = (e: KeyboardEvent) => {
-      // Avoid firing when modifiers are pressed
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
       const key = e.key
@@ -52,14 +51,14 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
   }, [currentConfig, onSelect, isInactive])
 
   return (
-    <div className="flex flex-col items-center gap-4 py-2">
+    <div className="flex flex-col items-center gap-6 py-2">
       {/* Mode Tabs */}
-      <div className="flex bg-surface border border-border rounded-lg p-1">
+      <div className="flex bg-transparent border border-border rounded-lg p-0.5">
         <button
           onClick={() => onSelect({ mode: "words", wordCount: 25 })}
-          className={`px-4 py-1.5 rounded-md text-xs font-heading font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+          className={`px-4 py-1 rounded-md text-[10px] font-heading font-semibold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
             currentConfig.mode === "words"
-              ? "bg-accent text-bg"
+              ? "bg-text-primary text-bg"
               : "text-text-secondary hover:text-text-primary"
           }`}
         >
@@ -67,9 +66,9 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
         </button>
         <button
           onClick={() => onSelect({ mode: "timed", duration: 60 })}
-          className={`px-4 py-1.5 rounded-md text-xs font-heading font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+          className={`px-4 py-1 rounded-md text-[10px] font-heading font-semibold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
             currentConfig.mode === "timed"
-              ? "bg-accent text-bg"
+              ? "bg-text-primary text-bg"
               : "text-text-secondary hover:text-text-primary"
           }`}
         >
@@ -78,33 +77,33 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
       </div>
 
       {/* Suboptions buttons */}
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         {currentConfig.mode === "words" ? (
-          WORD_COUNT_OPTIONS.map((count, idx) => (
+          WORD_COUNT_OPTIONS.map((count) => (
             <button
               key={count}
               onClick={() => onSelect({ mode: "words", wordCount: count })}
-              className={`px-4 py-1 text-sm font-mono rounded-md border transition-all cursor-pointer ${
+              className={`text-sm font-mono transition-all cursor-pointer ${
                 currentConfig.wordCount === count
-                  ? "bg-accent-soft border-accent text-accent font-bold"
-                  : "bg-surface border-border text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                  ? "text-accent font-bold scale-105"
+                  : "text-text-muted hover:text-text-secondary"
               }`}
             >
-              <span className="text-xs opacity-60 mr-1">({idx + 1})</span> {count}
+              {count}
             </button>
           ))
         ) : (
-          TIME_DURATION_OPTIONS.map((duration, idx) => (
+          TIME_DURATION_OPTIONS.map((duration) => (
             <button
               key={duration}
               onClick={() => onSelect({ mode: "timed", duration: duration })}
-              className={`px-4 py-1 text-sm font-mono rounded-md border transition-all cursor-pointer ${
+              className={`text-sm font-mono transition-all cursor-pointer ${
                 currentConfig.duration === duration
-                  ? "bg-accent-soft border-accent text-accent font-bold"
-                  : "bg-surface border-border text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+                  ? "text-accent font-bold scale-105"
+                  : "text-text-muted hover:text-text-secondary"
               }`}
             >
-              <span className="text-xs opacity-60 mr-1">({idx + 1})</span> {duration / 60}:00
+              {duration / 60}:00
             </button>
           ))
         )}

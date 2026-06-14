@@ -23,41 +23,41 @@
 }
 
 :root {
-  /* Light mode - warm paper / Bletchley style */
-  --color-bg: #F5F3EF;
+  /* Light mode - clean neutral canvas, minimal visual noise */
+  --color-bg: #FAFAFA;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #F0EDE8;
-  --color-border: #E2DFD8;
-  --color-text-primary: #1A1A1A;
-  --color-text-secondary: #6B6560;
-  --color-text-muted: #9C9690;
-  --color-accent: #B8860B;
-  --color-accent-soft: rgba(184, 134, 11, 0.1);
-  --color-correct: #16A34A;
-  --color-correct-soft: rgba(22, 163, 74, 0.1);
-  --color-incorrect: #DC2626;
-  --color-incorrect-soft: rgba(220, 38, 38, 0.1);
-  --color-pending: #9C9690;
-  --color-caret: #B8860B;
+  --color-surface-hover: #F4F4F5;
+  --color-border: rgba(0, 0, 0, 0.06);
+  --color-text-primary: #18181B;
+  --color-text-secondary: #71717A;
+  --color-text-muted: #D4D4D8;
+  --color-accent: #E67E22;      /* refined warmer orange accent */
+  --color-accent-soft: rgba(230, 126, 34, 0.08);
+  --color-correct: #10B981;    /* clean modern emerald green */
+  --color-correct-soft: rgba(16, 185, 129, 0.08);
+  --color-incorrect: #EF4444;  /* clean modern red */
+  --color-incorrect-soft: rgba(239, 68, 68, 0.08);
+  --color-pending: #D4D4D8;
+  --color-caret: #E67E22;
 }
 
 .dark {
-  /* Dark mode - radar screen / green phosphor vibe */
-  --color-bg: #0A0A0B;
-  --color-surface: #141415;
-  --color-surface-hover: #1C1C1E;
-  --color-border: #2A2A2C;
-  --color-text-primary: #E8E4DE;
-  --color-text-secondary: #8A857E;
-  --color-text-muted: #5A5550;
-  --color-accent: #D4A843;
-  --color-accent-soft: rgba(212, 168, 67, 0.1);
-  --color-correct: #4ADE80;
-  --color-correct-soft: rgba(74, 222, 128, 0.1);
+  /* Dark mode - sleek space gray / charcoal background */
+  --color-bg: #09090B;
+  --color-surface: #18181B;
+  --color-surface-hover: #27272A;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-text-primary: #F4F4F5;
+  --color-text-secondary: #A1A1AA;
+  --color-text-muted: #3F3F46;
+  --color-accent: #F39C12;      /* clear amber/orange */
+  --color-accent-soft: rgba(243, 156, 18, 0.08);
+  --color-correct: #34D399;
+  --color-correct-soft: rgba(52, 211, 153, 0.08);
   --color-incorrect: #F87171;
-  --color-incorrect-soft: rgba(248, 113, 113, 0.1);
-  --color-pending: #5A5550;
-  --color-caret: #D4A843;
+  --color-incorrect-soft: rgba(248, 113, 113, 0.08);
+  --color-pending: #3F3F46;
+  --color-caret: #F39C12;
 }
 
 body {
@@ -70,9 +70,9 @@ body {
 /* Custom typing classes */
 .label-style {
   font-family: var(--font-inter);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
 }

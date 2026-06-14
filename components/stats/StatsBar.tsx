@@ -13,8 +13,8 @@ interface StatsBarProps {
 }
 
 /**
- * StatsBar displays live WPM, Accuracy, and Time metrics.
- * Triggers subtle pop animations using framer-motion key triggers.
+ * StatsBar displays live metrics during typing tests.
+ * Floating clean text metrics without borders and background panels.
  */
 export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
   const status = useTypingStore((s) => s.status)
@@ -44,65 +44,62 @@ export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex justify-center items-center gap-12 py-3 bg-surface/50 border border-border/50 rounded-xl max-w-lg mx-auto my-4 shadow-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex justify-center items-center gap-16 py-4 max-w-lg mx-auto my-4 text-center select-none"
     >
       {/* Time Metric */}
-      <div className="flex flex-col items-center">
-        <span className="text-[10px] font-heading font-semibold uppercase tracking-widest text-text-muted">
-          {mode === "timed" ? "Time Left" : "Time"}
+      <div className="flex flex-col">
+        <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
+          {mode === "timed" ? "Remaining" : "Time"}
         </span>
         <motion.span
           key={displayTime}
-          initial={{ scale: 0.95, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="font-mono text-2xl text-text-primary font-bold"
+          initial={{ opacity: 0.8 }}
+          animate={{ opacity: 1 }}
+          className="font-mono text-xl text-text-primary"
         >
           {displayTime}
         </motion.span>
       </div>
 
       {/* WPM Metric */}
-      <div className="flex flex-col items-center">
-        <span className="text-[10px] font-heading font-semibold uppercase tracking-widest text-text-muted">
+      <div className="flex flex-col">
+        <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
           WPM
         </span>
         <motion.span
           key={wpm}
-          initial={{ scale: 0.95, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="font-mono text-2xl text-text-primary font-bold"
+          initial={{ opacity: 0.8 }}
+          animate={{ opacity: 1 }}
+          className="font-mono text-xl text-accent"
         >
           {wpm}
         </motion.span>
       </div>
 
       {/* Accuracy Metric */}
-      <div className="flex flex-col items-center">
-        <span className="text-[10px] font-heading font-semibold uppercase tracking-widest text-text-muted">
+      <div className="flex flex-col">
+        <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
           Accuracy
         </span>
         <motion.span
           key={accuracy}
-          initial={{ scale: 0.95, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          className="font-mono text-2xl text-text-primary font-bold"
+          initial={{ opacity: 0.8 }}
+          animate={{ opacity: 1 }}
+          className="font-mono text-xl text-text-primary"
         >
           {accuracy}%
         </motion.span>
       </div>
 
-      {/* Progress Metric (only in words mode) */}
+      {/* Progress Metric */}
       {mode === "words" && (
-        <div className="flex flex-col items-center">
-          <span className="text-[10px] font-heading font-semibold uppercase tracking-widest text-text-muted">
+        <div className="flex flex-col">
+          <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
             Progress
           </span>
-          <span className="font-mono text-2xl text-text-primary font-bold">
+          <span className="font-mono text-xl text-text-primary">
             {currentWordIndex}/{words.length}
           </span>
         </div>

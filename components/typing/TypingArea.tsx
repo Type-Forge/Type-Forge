@@ -11,15 +11,14 @@ import { useKeyboardHandler } from "@/hooks/useKeyboardHandler"
 
 /**
  * TypingArea wraps the typing interface.
- * Implements click-to-focus events, handles unfocused cover cards,
- * and tracks layout scroll heights dynamically to shift typed lines out of view.
+ * Uses clean design lines and subtle borders, following Emil's philosophy.
  */
 export default function TypingArea() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [scrollY, setScrollY] = useState(0)
 
-  const { words, currentWordIndex, currentLetterIndex, status, resetSession } = useTypingStore()
+  const { words, currentWordIndex, currentLetterIndex, status } = useTypingStore()
   const { handleKeyDown } = useTypingEngine()
 
   // Attach keydown listener to the container when focused
@@ -51,9 +50,7 @@ export default function TypingArea() {
 
     if (activeWordEl) {
       const offsetTop = activeWordEl.offsetTop
-      // A standard line height is ~40px.
-      // If the active word moves to the 3rd line (offsetTop >= 80px),
-      // we translate the words view container upwards to keep it aligned to the 2nd line.
+      // standard line height shifts
       if (offsetTop >= 80) {
         setScrollY(-(offsetTop - 40))
       } else {
@@ -72,30 +69,30 @@ export default function TypingArea() {
   }, [status])
 
   return (
-    <div className="relative w-full my-8">
-      {/* Click-to-focus overlay */}
+    <div className="relative w-full my-12">
+      {/* Click-to-focus overlay - minimal overlay */}
       {!isFocused && (
         <div
           onClick={focusContainer}
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-bg/85 backdrop-blur-[2px] rounded-xl border border-border cursor-pointer transition-all hover:bg-bg/90"
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-bg/50 backdrop-blur-[1px] cursor-pointer rounded-xl transition-all"
         >
-          <span className="text-sm font-heading font-semibold uppercase tracking-widest text-accent animate-pulse">
-            Click or press any key to focus
+          <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-accent/80 hover:text-accent transition-colors">
+            Press any key to focus
           </span>
         </div>
       )}
 
-      {/* Typing box */}
+      {/* Typing box - clean padding, border-free / very low opacity border */}
       <div
         ref={containerRef}
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full min-h-[160px] max-h-[160px] overflow-hidden p-6 bg-surface border border-border rounded-xl focus:outline-none focus:ring-1 focus:ring-accent relative font-mono text-[22px] leading-[1.8] tracking-[0.05em] select-none"
+        className="w-full min-h-[160px] max-h-[160px] overflow-hidden py-4 px-2 bg-transparent border-b border-border/40 focus:outline-none relative font-mono text-[22px] leading-[1.8] tracking-[0.04em] select-none"
       >
         <motion.div
           animate={{ y: scrollY }}
-          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+          transition={{ type: "spring", stiffness: 350, damping: 32 }}
           className="w-full flex flex-wrap"
         >
           <WordDisplay words={words} currentWordIndex={currentWordIndex} />
@@ -109,9 +106,9 @@ export default function TypingArea() {
 
       {/* Helper tips when running */}
       {status === "running" && (
-        <div className="flex justify-between mt-2 px-1 text-[10px] uppercase font-semibold text-text-muted font-heading tracking-widest">
-          <span>Press Esc or Tab to restart</span>
-          <span>Decode substitution cipher</span>
+        <div className="flex justify-between mt-3 px-1 text-[9px] uppercase font-bold text-text-muted font-heading tracking-widest">
+          <span>Esc / Tab to restart</span>
+          <span>Bletchley Decrypt Mode</span>
         </div>
       )}
     </div>
