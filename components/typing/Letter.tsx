@@ -11,8 +11,8 @@ interface LetterProps {
 }
 
 /**
- * Letter component displaying readable letters in the foreground and a faint
- * cipher character in the background. Flips to reveal the decoded letter.
+ * Letter component with foreground/background layers.
+ * Correct letters are styled as primary text color (no green) for a clean monochrome layout.
  */
 export const Letter = memo(
   function Letter({ letter, wordIndex, letterIndex }: LetterProps) {
@@ -21,7 +21,6 @@ export const Letter = memo(
 
     useEffect(() => {
       if (state === "correct") {
-        // Play flip transition: start at cipher representation, midpoint swaps to real letter
         setDisplayedChar(cipherChar)
         const timer = setTimeout(() => {
           setDisplayedChar(char)
@@ -32,29 +31,30 @@ export const Letter = memo(
       }
     }, [state, char, cipherChar])
 
+    // Minimal color states
     let colorClass = "text-text-muted"
     if (state === "active") {
-      colorClass = "text-text-primary font-medium"
+      colorClass = "text-text-secondary"
     } else if (state === "correct") {
       colorClass = "text-text-primary"
     } else if (state === "incorrect") {
       colorClass = "text-incorrect"
     } else if (state === "extra") {
-      colorClass = "text-incorrect opacity-70"
+      colorClass = "text-incorrect opacity-50"
     }
 
     const isCorrect = state === "correct"
 
     return (
       <span className="relative inline-block select-none font-mono px-[1px]">
-        {/* Subtle, faint background layer showing cipher text flavor */}
+        {/* Subtle, faint background cipher grid text */}
         {(state === "pending" || state === "active") && (
-          <span className="absolute inset-0 text-[10px] text-accent/15 flex items-center justify-center font-mono select-none pointer-events-none transform -translate-y-[2px]">
+          <span className="absolute inset-0 text-[10px] text-accent/10 flex items-center justify-center font-mono select-none pointer-events-none transform -translate-y-[2px]">
             {cipherChar}
           </span>
         )}
 
-        {/* Readable text character */}
+        {/* Foreground letter */}
         <motion.span
           data-word-index={wordIndex}
           data-letter-index={letterIndex}

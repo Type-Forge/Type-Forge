@@ -20,9 +20,9 @@ export const Word = memo(
     return (
       <span
         data-word-index={word.index}
-        className={`inline-block relative py-0.5 mx-1 transition-all duration-200 ${
+        className={`inline-block relative py-0.5 mx-1 transition-[border-color] duration-150 ${
           isIncorrectAndCompleted
-            ? "border-b-2 border-incorrect/80 border-dashed"
+            ? "border-b-2 border-incorrect/80"
             : ""
         }`}
       >

@@ -11,8 +11,9 @@ interface ModeSelectorProps {
 }
 
 /**
- * Centered selector tabs for choosing Words mode or Timed mode.
- * Styled without numbers for shortcut hints to keep visual weight light.
+ * Minimalist ModeSelector component.
+ * Features lowercase text options, no background containers or buttons borders,
+ * and tabular numbers for visual precision.
  */
 export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorProps) {
   const status = useTypingStore((s) => s.status)
@@ -50,42 +51,58 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
     return () => window.removeEventListener("keydown", handleKeyPress)
   }, [currentConfig, onSelect, isInactive])
 
+  const selectMode = (mode: "words" | "timed") => {
+    if (mode === "words") {
+      onSelect({ mode: "words", wordCount: 25 })
+    } else {
+      onSelect({ mode: "timed", duration: 60 })
+    }
+  }
+
+  const selectWordOption = (count: 25 | 50 | 75) => {
+    onSelect({ mode: "words", wordCount: count })
+  }
+
+  const selectTimeOption = (duration: 60 | 180 | 300) => {
+    onSelect({ mode: "timed", duration })
+  }
+
   return (
-    <div className="flex flex-col items-center gap-6 py-2">
-      {/* Mode Tabs */}
-      <div className="flex bg-transparent border border-border rounded-lg p-0.5">
+    <div className="flex flex-col items-center gap-4 py-2 select-none">
+      {/* Mode Tabs - Plain text colors only, no boundary container */}
+      <div className="flex items-center justify-center gap-6 mb-2">
         <button
-          onClick={() => onSelect({ mode: "words", wordCount: 25 })}
-          className={`px-4 py-1 rounded-md text-[10px] font-heading font-semibold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+          onClick={() => selectMode("words")}
+          className={`text-sm font-medium transition-colors duration-150 cursor-pointer ${
             currentConfig.mode === "words"
-              ? "bg-text-primary text-bg"
-              : "text-text-secondary hover:text-text-primary"
+              ? "text-text-primary"
+              : "text-text-muted hover:text-text-secondary"
           }`}
         >
-          Words
+          words
         </button>
         <button
-          onClick={() => onSelect({ mode: "timed", duration: 60 })}
-          className={`px-4 py-1 rounded-md text-[10px] font-heading font-semibold uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+          onClick={() => selectMode("timed")}
+          className={`text-sm font-medium transition-colors duration-150 cursor-pointer ${
             currentConfig.mode === "timed"
-              ? "bg-text-primary text-bg"
-              : "text-text-secondary hover:text-text-primary"
+              ? "text-text-primary"
+              : "text-text-muted hover:text-text-secondary"
           }`}
         >
-          Timed
+          timed
         </button>
       </div>
 
-      {/* Suboptions buttons */}
-      <div className="flex gap-4">
+      {/* Suboptions configuration - no borders, clean tabular values */}
+      <div className="flex items-center justify-center gap-4">
         {currentConfig.mode === "words" ? (
           WORD_COUNT_OPTIONS.map((count) => (
             <button
               key={count}
-              onClick={() => onSelect({ mode: "words", wordCount: count })}
-              className={`text-sm font-mono transition-all cursor-pointer ${
+              onClick={() => selectWordOption(count as 25 | 50 | 75)}
+              className={`text-sm font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
                 currentConfig.wordCount === count
-                  ? "text-accent font-bold scale-105"
+                  ? "text-accent font-semibold"
                   : "text-text-muted hover:text-text-secondary"
               }`}
             >
@@ -96,14 +113,14 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
           TIME_DURATION_OPTIONS.map((duration) => (
             <button
               key={duration}
-              onClick={() => onSelect({ mode: "timed", duration: duration })}
-              className={`text-sm font-mono transition-all cursor-pointer ${
+              onClick={() => selectTimeOption(duration as 60 | 180 | 300)}
+              className={`text-sm font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
                 currentConfig.duration === duration
-                  ? "text-accent font-bold scale-105"
+                  ? "text-accent font-semibold"
                   : "text-text-muted hover:text-text-secondary"
               }`}
             >
-              {duration / 60}:00
+              {duration}
             </button>
           ))
         )}

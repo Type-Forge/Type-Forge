@@ -13,8 +13,7 @@ interface StatsBarProps {
 }
 
 /**
- * StatsBar displays live metrics during typing tests.
- * Floating clean text metrics without borders and background panels.
+ * Floating StatsBar below typing area, containing zero background boundaries.
  */
 export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
   const status = useTypingStore((s) => s.status)
@@ -23,7 +22,6 @@ export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
   const words = useTypingStore((s) => s.words)
   const [elapsed, setElapsed] = useState(0)
 
-  // Live timer for words mode (showing elapsed seconds)
   useEffect(() => {
     if (status !== "running" || !startTime) {
       setElapsed(0)
@@ -39,71 +37,37 @@ export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
 
   if (status !== "running") return null
 
-  // Format time remaining for timed mode, or elapsed time for words mode
   const displayTime = mode === "timed" ? formatTime(time ?? 0) : formatTime(elapsed)
+
+  // Array map representation
+  const statsList = [
+    { label: mode === "timed" ? "remaining" : "time", value: displayTime },
+    { label: "wpm", value: wpm },
+    { label: "accuracy", value: `${accuracy}%` },
+    ...(mode === "words" ? [{ label: "progress", value: `${currentWordIndex}/${words.length}` }] : []),
+  ]
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex justify-center items-center gap-16 py-4 max-w-lg mx-auto my-4 text-center select-none"
+      className="flex items-center justify-center gap-8 mt-8 select-none"
     >
-      {/* Time Metric */}
-      <div className="flex flex-col">
-        <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
-          {mode === "timed" ? "Remaining" : "Time"}
-        </span>
-        <motion.span
-          key={displayTime}
-          initial={{ opacity: 0.8 }}
-          animate={{ opacity: 1 }}
-          className="font-mono text-xl text-text-primary"
-        >
-          {displayTime}
-        </motion.span>
-      </div>
-
-      {/* WPM Metric */}
-      <div className="flex flex-col">
-        <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
-          WPM
-        </span>
-        <motion.span
-          key={wpm}
-          initial={{ opacity: 0.8 }}
-          animate={{ opacity: 1 }}
-          className="font-mono text-xl text-accent"
-        >
-          {wpm}
-        </motion.span>
-      </div>
-
-      {/* Accuracy Metric */}
-      <div className="flex flex-col">
-        <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
-          Accuracy
-        </span>
-        <motion.span
-          key={accuracy}
-          initial={{ opacity: 0.8 }}
-          animate={{ opacity: 1 }}
-          className="font-mono text-xl text-text-primary"
-        >
-          {accuracy}%
-        </motion.span>
-      </div>
-
-      {/* Progress Metric */}
-      {mode === "words" && (
-        <div className="flex flex-col">
-          <span className="text-[9px] font-heading font-bold uppercase tracking-wider text-text-muted mb-1">
-            Progress
-          </span>
-          <span className="font-mono text-xl text-text-primary">
-            {currentWordIndex}/{words.length}
+      {statsList.map(({ label, value }) => (
+        <div key={label} className="flex flex-col items-center gap-1 text-center">
+          <motion.span
+            key={value}
+            initial={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
+            className="text-2xl font-mono tabular-nums text-text-primary"
+          >
+            {value}
+          </motion.span>
+          <span className="text-[10px] uppercase tracking-[0.1em] text-text-muted font-heading font-semibold">
+            {label}
           </span>
         </div>
-      )}
+      ))}
     </motion.div>
   )
 }

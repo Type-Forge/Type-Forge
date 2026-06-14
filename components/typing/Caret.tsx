@@ -11,8 +11,7 @@ interface CaretProps {
 
 /**
  * Caret cursor absolute overlay.
- * Uses hardware-accelerated transforms for spring movement follow.
- * Automatically switches to a 1s blink cycle when idle for more than 2 seconds.
+ * Uses hardware-accelerated transforms for spring movement follow, animating only transform and opacity.
  */
 export default function Caret({ position }: CaretProps) {
   const status = useTypingStore((s) => s.status)
@@ -37,22 +36,19 @@ export default function Caret({ position }: CaretProps) {
 
   return (
     <motion.div
-      className="absolute w-[2px] bg-caret z-10 pointer-events-none"
+      className="absolute w-[2.5px] rounded-full bg-caret z-10 pointer-events-none"
       animate={{
-        x: position.left,
-        y: position.top,
-        height: position.height,
+        transform: `translate(${position.left}px, ${position.top}px)`,
         opacity: shouldBlink ? [1, 0, 1] : 1,
       }}
       transition={{
-        x: { type: "spring", stiffness: 500, damping: 30, mass: 0.5 },
-        y: { type: "spring", stiffness: 500, damping: 30, mass: 0.5 },
-        height: { type: "spring", stiffness: 500, damping: 30, mass: 0.5 },
+        transform: { type: "spring", stiffness: 500, damping: 30, mass: 0.5 },
         opacity: shouldBlink
           ? { duration: 1.0, repeat: Infinity, ease: "linear" as const }
           : { duration: 0.1 },
       }}
       style={{
+        height: position.height,
         transformOrigin: "center left",
       }}
     />

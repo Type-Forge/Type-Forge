@@ -5,20 +5,19 @@ import { useTheme } from "@/components/providers/ThemeProvider"
 import { useEffect, useState } from "react"
 
 /**
- * Animated Theme toggle switch between dark and light modes.
- * Uses spring physics for a quick responsive rotate animation.
+ * Clean borderless ThemeToggle button.
+ * Reveals a surface background only on hover, sizing SVG icons to a compact 16x16px.
  */
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  // Ensure mounting completes to prevent server-side hydration mismatches
   useEffect(() => {
     setMounted(true)
   }, [])
 
   if (!mounted) {
-    return <div className="w-9 h-9" />
+    return <div className="w-8 h-8" />
   }
 
   const isDark = theme === "dark"
@@ -26,10 +25,13 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-surface-hover transition-colors border border-border focus:outline-none cursor-pointer"
+      className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent
+                 text-text-muted hover:text-text-secondary hover:bg-surface-hover
+                 transition-colors duration-150 active:scale-[0.95] cursor-pointer focus:outline-none"
       aria-label="Toggle theme"
     >
       <motion.div
+        className="w-4 h-4 flex items-center justify-center"
         animate={{ rotate: isDark ? 0 : 180 }}
         transition={{ type: "spring", stiffness: 200, damping: 12 }}
       >
@@ -42,7 +44,7 @@ export default function ThemeToggle() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-5 h-5 text-accent"
+            className="w-4 h-4"
           >
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
           </svg>
@@ -55,7 +57,7 @@ export default function ThemeToggle() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-5 h-5 text-accent"
+            className="w-4 h-4"
           >
             <circle cx="12" cy="12" r="4" />
             <path d="M12 2v2" />

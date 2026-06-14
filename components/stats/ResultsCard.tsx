@@ -10,8 +10,8 @@ interface ResultsCardProps {
 }
 
 /**
- * ResultsCard reveals WPM, accuracy, durations, and key metrics.
- * Styled following the craft aesthetic (no heavy borders, clean spacings).
+ * ResultsCard displays final speed metrics and decryption review data.
+ * Adheres to Emil's philosophy of tactile micro-scales and quiet borders.
  */
 export default function ResultsCard({ result, onRestart, onNewSession }: ResultsCardProps) {
   const containerVariants = {
@@ -19,94 +19,86 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
+        staggerChildren: 0.06,
       },
     },
   } as const
 
   const itemVariants = {
-    hidden: { y: 15, opacity: 0 },
+    hidden: { y: 10, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.25, ease: "easeOut" },
+      transition: { duration: 0.2, ease: "easeOut" },
     },
   } as const
+
+  const total = result.totalKeystrokes
+  const correct = result.correctKeystrokes
 
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="w-full max-w-xl mx-auto p-10 bg-transparent relative select-none"
+      className="mx-auto w-full max-w-md rounded-xl border border-border bg-surface p-8 shadow-sm select-none"
     >
-      {/* Hero WPM */}
-      <motion.div variants={itemVariants} className="text-center mb-10">
-        <h2 className="text-[10px] uppercase tracking-widest text-text-muted font-heading font-bold mb-3">
-          Decryption Completed
-        </h2>
-        <div className="flex justify-center items-baseline gap-2">
-          <span className="text-7xl font-heading font-extrabold text-accent leading-none tracking-tighter">
-            {result.wpm}
-          </span>
-          <span className="text-sm text-text-secondary font-mono">WPM</span>
-        </div>
+      {/* Hero stat */}
+      <motion.div variants={itemVariants} className="text-center mb-6">
+        <span className="text-5xl font-heading font-bold tabular-nums text-text-primary leading-none">
+          {result.wpm}
+        </span>
+        <span className="block text-[10px] uppercase tracking-[0.15em] text-text-muted mt-2">
+          words per minute
+        </span>
       </motion.div>
 
-      {/* Stats Table Grid - Clean border separations */}
+      {/* Secondary stats — horizontal row */}
       <motion.div
         variants={itemVariants}
-        className="grid grid-cols-2 gap-y-8 gap-x-6 mb-10 border-t border-b border-border py-8"
+        className="flex justify-center gap-8 py-4 border-t border-border"
       >
-        <div className="text-center">
-          <span className="block text-[9px] uppercase tracking-wider text-text-muted font-heading font-bold mb-1">
-            Accuracy
-          </span>
-          <span className="text-2xl font-mono text-text-primary">
+        <div className="flex flex-col items-center">
+          <span className="text-sm font-mono tabular-nums text-text-primary font-semibold">
             {result.accuracy}%
           </span>
-        </div>
-        <div className="text-center">
-          <span className="block text-[9px] uppercase tracking-wider text-text-muted font-heading font-bold mb-1">
-            Time Taken
+          <span className="text-[9px] uppercase tracking-[0.1em] text-text-muted mt-1">
+            accuracy
           </span>
-          <span className="text-2xl font-mono text-text-primary">
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-sm font-mono tabular-nums text-text-primary font-semibold">
             {result.duration.toFixed(1)}s
           </span>
-        </div>
-        <div className="text-center">
-          <span className="block text-[9px] uppercase tracking-wider text-text-muted font-heading font-bold mb-1">
-            Keystrokes
-          </span>
-          <span className="text-lg font-mono text-text-primary">
-            <span className="text-correct font-semibold">{result.correctKeystrokes}</span>
-            <span className="text-text-muted mx-1">/</span>
-            <span className="text-text-secondary">{result.totalKeystrokes}</span>
+          <span className="text-[9px] uppercase tracking-[0.1em] text-text-muted mt-1">
+            time
           </span>
         </div>
-        <div className="text-center">
-          <span className="block text-[9px] uppercase tracking-wider text-text-muted font-heading font-bold mb-1">
-            Words Decoded
+        <div className="flex flex-col items-center">
+          <span className="text-sm font-mono tabular-nums text-text-primary font-semibold">
+            {correct}/{total}
           </span>
-          <span className="text-2xl font-mono text-text-primary">
-            {result.wordsCompleted}
+          <span className="text-[9px] uppercase tracking-[0.1em] text-text-muted mt-1">
+            correct
           </span>
         </div>
       </motion.div>
 
-      {/* Buttons */}
-      <motion.div variants={itemVariants} className="flex gap-6 justify-center">
+      {/* Action buttons with press visual responses */}
+      <motion.div variants={itemVariants} className="flex gap-3 mt-6">
         <button
           onClick={onRestart}
-          className="px-6 py-2 rounded-lg bg-text-primary text-bg hover:opacity-90 transition-all font-heading font-semibold text-xs cursor-pointer shadow-sm"
+          className="flex-1 h-9 rounded-lg bg-accent text-bg text-sm font-medium hover:opacity-95
+                     transition-transform duration-150 active:scale-[0.97] cursor-pointer"
         >
-          Try Again
+          try again
         </button>
         <button
           onClick={onNewSession}
-          className="px-6 py-2 rounded-lg border border-border bg-transparent text-text-secondary hover:text-text-primary transition-all font-heading font-semibold text-xs cursor-pointer"
+          className="flex-1 h-9 rounded-lg border border-border text-sm text-text-secondary bg-transparent
+                     hover:bg-surface-hover hover:text-text-primary transition-[transform,colors,background-color] duration-150 active:scale-[0.97] cursor-pointer"
         >
-          New Session
+          new session
         </button>
       </motion.div>
     </motion.div>

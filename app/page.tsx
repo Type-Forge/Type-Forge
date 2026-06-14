@@ -89,9 +89,9 @@ export default function Home() {
   return (
     <Container className="flex flex-col flex-1 max-w-3xl">
       {/* Tagline header */}
-      <div className="text-center my-4">
-        <p className="text-xs font-heading font-semibold text-text-secondary uppercase tracking-widest">
-          Decode. Type. Break the cipher.
+      <div className="text-center mb-8">
+        <p className="text-center text-xs tracking-[0.15em] text-text-muted uppercase">
+          decode · type · break the cipher
         </p>
       </div>
 

@@ -10,8 +10,8 @@ import { useTypingEngine } from "@/hooks/useTypingEngine"
 import { useKeyboardHandler } from "@/hooks/useKeyboardHandler"
 
 /**
- * TypingArea wraps the typing interface.
- * Uses clean design lines and subtle borders, following Emil's philosophy.
+ * TypingArea wraps the typing canvas.
+ * Floats words in space with zero borders, backgrounds, or shadows.
  */
 export default function TypingArea() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -21,25 +21,25 @@ export default function TypingArea() {
   const { words, currentWordIndex, currentLetterIndex, status } = useTypingStore()
   const { handleKeyDown } = useTypingEngine()
 
-  // Attach keydown listener to the container when focused
+  // Intercept keyboard events
   useKeyboardHandler(containerRef, handleKeyDown, isFocused)
 
-  // Track caret position relative to the container
+  // Track coordinates of caret position
   const caretPosition = useCaret(containerRef, currentWordIndex, currentLetterIndex)
 
-  // Focus utility
+  // Focus trigger
   const focusContainer = () => {
     containerRef.current?.focus()
   }
 
-  // Auto-focus on mount and session reset
+  // Auto focus triggers
   useEffect(() => {
     if (status === "ready" || status === "idle") {
       focusContainer()
     }
   }, [status])
 
-  // Manage scrolling logic when the active word index shifts
+  // Scroll logic for shifting rows
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -50,7 +50,6 @@ export default function TypingArea() {
 
     if (activeWordEl) {
       const offsetTop = activeWordEl.offsetTop
-      // standard line height shifts
       if (offsetTop >= 80) {
         setScrollY(-(offsetTop - 40))
       } else {
@@ -61,7 +60,7 @@ export default function TypingArea() {
     }
   }, [currentWordIndex])
 
-  // Reset scroll when session resets
+  // Reset scroll position on new sessions
   useEffect(() => {
     if (status === "ready") {
       setScrollY(0)
@@ -69,26 +68,27 @@ export default function TypingArea() {
   }, [status])
 
   return (
-    <div className="relative w-full my-12">
-      {/* Click-to-focus overlay - minimal overlay */}
+    <div className="relative w-full my-8">
+      {/* Focus lock overlay */}
       {!isFocused && (
         <div
           onClick={focusContainer}
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-bg/50 backdrop-blur-[1px] cursor-pointer rounded-xl transition-all"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-bg/60 backdrop-blur-[2px] rounded-xl cursor-pointer transition-opacity duration-200"
         >
-          <span className="text-[10px] font-heading font-bold uppercase tracking-widest text-accent/80 hover:text-accent transition-colors">
-            Press any key to focus
+          <span className="text-sm text-text-muted">
+            click to focus
           </span>
         </div>
       )}
 
-      {/* Typing box - clean padding, border-free / very low opacity border */}
+      {/* Invisible text box container */}
       <div
         ref={containerRef}
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full min-h-[160px] max-h-[160px] overflow-hidden py-4 px-2 bg-transparent border-b border-border/40 focus:outline-none relative font-mono text-[22px] leading-[1.8] tracking-[0.04em] select-none"
+        className="w-full min-h-[180px] max-h-[180px] overflow-hidden py-8 px-4 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-mono text-[22px] leading-[1.8] tracking-[0.04em] select-none cursor-text"
+        onClick={focusContainer}
       >
         <motion.div
           animate={{ y: scrollY }}
@@ -98,17 +98,17 @@ export default function TypingArea() {
           <WordDisplay words={words} currentWordIndex={currentWordIndex} />
         </motion.div>
 
-        {/* Dynamic Caret */}
+        {/* Floating Caret */}
         {isFocused && status !== "finished" && (
           <Caret position={caretPosition} />
         )}
       </div>
 
-      {/* Helper tips when running */}
+      {/* Footer tips */}
       {status === "running" && (
-        <div className="flex justify-between mt-3 px-1 text-[9px] uppercase font-bold text-text-muted font-heading tracking-widest">
-          <span>Esc / Tab to restart</span>
-          <span>Bletchley Decrypt Mode</span>
+        <div className="flex justify-between mt-4 px-1 text-[9px] uppercase font-semibold text-text-muted font-heading tracking-widest">
+          <span>esc / tab to restart</span>
+          <span>bletchley decrypt mode</span>
         </div>
       )}
     </div>
