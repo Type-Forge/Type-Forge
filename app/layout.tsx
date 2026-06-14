@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter, Manrope, JetBrains_Mono } from "next/font/google"
+import { Inter, Lora, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import Logo from "@/components/ui/Logo"
 import ThemeToggle from "@/components/ui/ThemeToggle"
@@ -8,7 +8,7 @@ import Link from "next/link"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" })
+const lora = Lora({ subsets: ["latin"], variable: "--font-lora" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
@@ -24,12 +24,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${manrope.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text-primary transition-colors duration-150">
         <ThemeProvider>
           {/* Glassmorphic Fixed Navbar */}
-          <nav className="fixed top-0 left-0 right-0 z-50 bg-bg/80 backdrop-blur-xl">
+          <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/80 backdrop-blur-xl">
             <div className="mx-auto max-w-3xl flex items-center justify-between h-14 px-6">
               {/* Logo left */}
               <Logo />
@@ -38,7 +38,7 @@ export default function RootLayout({
               <div className="flex items-center gap-6">
                 <Link
                   href="/battle"
-                  className="text-sm font-heading font-medium tracking-wide text-text-secondary hover:text-text-primary transition-colors duration-150 cursor-pointer"
+                  className="text-sm font-sans font-medium tracking-wide text-text-secondary hover:text-text-primary transition-colors duration-150 cursor-pointer animate-fade-in"
                 >
                   Battle
                 </Link>

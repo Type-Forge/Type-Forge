@@ -11,9 +11,8 @@ interface ModeSelectorProps {
 }
 
 /**
- * Minimalist ModeSelector component.
- * Features lowercase text options, no background containers or buttons borders,
- * and tabular numbers for visual precision.
+ * Centered selector tabs for choosing Words mode or Timed mode.
+ * Styled with larger text sizes (text-base) for better readability and tap targets.
  */
 export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorProps) {
   const status = useTypingStore((s) => s.status)
@@ -68,14 +67,14 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 py-2 select-none">
-      {/* Mode Tabs - Plain text colors only, no boundary container */}
-      <div className="flex items-center justify-center gap-6 mb-2">
+    <div className="flex flex-col items-center gap-5 py-3 select-none">
+      {/* Mode Switcher Tabs - Sized to text-base for readable presence */}
+      <div className="flex items-center justify-center gap-8 mb-1">
         <button
           onClick={() => selectMode("words")}
-          className={`text-sm font-medium transition-colors duration-150 cursor-pointer ${
+          className={`text-base font-medium transition-colors duration-150 cursor-pointer ${
             currentConfig.mode === "words"
-              ? "text-text-primary"
+              ? "text-text-primary font-semibold"
               : "text-text-muted hover:text-text-secondary"
           }`}
         >
@@ -83,9 +82,9 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
         </button>
         <button
           onClick={() => selectMode("timed")}
-          className={`text-sm font-medium transition-colors duration-150 cursor-pointer ${
+          className={`text-base font-medium transition-colors duration-150 cursor-pointer ${
             currentConfig.mode === "timed"
-              ? "text-text-primary"
+              ? "text-text-primary font-semibold"
               : "text-text-muted hover:text-text-secondary"
           }`}
         >
@@ -93,14 +92,14 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
         </button>
       </div>
 
-      {/* Suboptions configuration - no borders, clean tabular values */}
-      <div className="flex items-center justify-center gap-4">
+      {/* count limit configurations */}
+      <div className="flex items-center justify-center gap-6">
         {currentConfig.mode === "words" ? (
           WORD_COUNT_OPTIONS.map((count) => (
             <button
               key={count}
               onClick={() => selectWordOption(count as 25 | 50 | 75)}
-              className={`text-sm font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
+              className={`text-[15px] font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
                 currentConfig.wordCount === count
                   ? "text-accent font-semibold"
                   : "text-text-muted hover:text-text-secondary"
@@ -114,7 +113,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
             <button
               key={duration}
               onClick={() => selectTimeOption(duration as 60 | 180 | 300)}
-              className={`text-sm font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
+              className={`text-[15px] font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
                 currentConfig.duration === duration
                   ? "text-accent font-semibold"
                   : "text-text-muted hover:text-text-secondary"
