@@ -38,7 +38,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   ...initialState,
 
   initSession: (config) => {
-    const wordCount = config.mode === "words"
+    const wordCount = (config.mode === "words" || config.mode === "battle")
       ? (config.wordCount ?? 25)
       : 200 // generate extra words for timed mode
     const rawWords = getRandomWords(wordCount)
@@ -66,6 +66,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
   handleKeyPress: (_key) => {
     // This is a thin setter. Actual processing handles inputs via hook useTypingEngine.
+    void _key
   },
 
   finishSession: () => {

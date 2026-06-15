@@ -18,11 +18,11 @@ export default function BattleTrack({ label, progress, wpm, isPlayer }: BattleTr
     <div className="w-full font-sans mb-6 select-none">
       <div className="flex justify-between items-center mb-2 px-0.5">
         <span
-          className={`text-[10px] uppercase tracking-widest font-heading font-bold ${
+          className={`text-xs font-semibold ${
             isPlayer ? "text-accent" : "text-text-secondary"
           }`}
         >
-          {label}
+          {label.charAt(0).toUpperCase() + label.slice(1)}
         </span>
         {wpm !== undefined && (
           <span className="text-[10px] font-mono text-text-muted">{wpm} WPM</span>
@@ -30,11 +30,30 @@ export default function BattleTrack({ label, progress, wpm, isPlayer }: BattleTr
       </div>
 
       {/* Progress Track Line - 4px thickness */}
-      <div className="h-1 w-full rounded-full bg-border">
+      <div className="h-1 w-full rounded-full bg-border relative">
         <motion.div
-          className={`h-full rounded-full ${isPlayer ? "bg-accent" : "bg-text-muted"}`}
+          className={`h-full rounded-full ${isPlayer ? "bg-accent" : "bg-text-secondary"}`}
+          initial={{ width: "0%" }}
           animate={{ width: `${progress * 100}%` }}
-          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          transition={
+            isPlayer
+              ? { type: "spring", stiffness: 100, damping: 20 }
+              : { type: "tween", ease: "linear", duration: 0.1 }
+          }
+        />
+        {/* Sliding cursor indicator dot (neutral shade for AI) */}
+        <motion.div
+          className={`absolute top-1/2 w-2.5 h-2.5 rounded-full border border-surface shadow-[0_1px_3px_rgba(0,0,0,0.15)] ${
+            isPlayer ? "bg-accent" : "bg-text-tertiary"
+          }`}
+          initial={{ left: "0%" }}
+          animate={{ left: `${progress * 100}%` }}
+          transition={
+            isPlayer
+              ? { type: "spring", stiffness: 100, damping: 20 }
+              : { type: "tween", ease: "linear", duration: 0.1 }
+          }
+          style={{ transform: "translate(-50%, -50%)" }}
         />
       </div>
 

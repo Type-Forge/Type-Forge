@@ -15,6 +15,7 @@ interface WordProps {
  */
 export const Word = memo(
   function Word({ word, isCurrent }: WordProps) {
+    void isCurrent
     const isIncorrectAndCompleted = word.state === "incorrect"
 
     return (

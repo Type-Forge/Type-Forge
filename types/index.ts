@@ -29,14 +29,15 @@ export interface WordData {
 }
 
 // ===== SESSION =====
-export type SessionMode = "words" | "timed"
+export type SessionMode = "words" | "timed" | "battle"
 export type WordCount = 25 | 50 | 75
 export type TimeDuration = 60 | 180 | 300
 
 export interface SessionConfig {
   mode: SessionMode
-  wordCount?: WordCount        // only if mode === "words"
+  wordCount?: WordCount        // only if mode === "words" or "battle"
   duration?: TimeDuration      // only if mode === "timed"
+  difficulty?: BattleDifficulty // only if mode === "battle"
 }
 
 export type SessionStatus = "idle" | "ready" | "running" | "finished"

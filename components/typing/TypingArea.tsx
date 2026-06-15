@@ -8,6 +8,56 @@ import { useTypingStore } from "@/stores/typing-store"
 import { useCaret } from "@/hooks/useCaret"
 import { useTypingEngine } from "@/hooks/useTypingEngine"
 import { useKeyboardHandler } from "@/hooks/useKeyboardHandler"
+import { useBattleStore } from "@/stores/battle-store"
+
+interface AiCaretProps {
+  containerRef: React.RefObject<HTMLDivElement | null>
+  wordIndex: number
+  letterIndex: number
+}
+
+/**
+ * AI Caret rendering. Positions a neutral-shade gray caret mapping to opponent progress.
+ */
+function AiCaret({ containerRef, wordIndex, letterIndex }: AiCaretProps) {
+  const position = useCaret(containerRef, wordIndex, letterIndex)
+  
+  return (
+    <motion.div
+      className="absolute top-0 left-0 w-[3px] rounded-full bg-text-tertiary opacity-45 z-10 pointer-events-none"
+      animate={{
+        transform: `translate(${position.left}px, ${position.top}px)`,
+      }}
+      transition={{
+        transform: { type: "spring", stiffness: 500, damping: 30, mass: 0.5 },
+      }}
+      style={{
+        height: position.height,
+        transformOrigin: "center left",
+      }}
+    />
+  )
+}
+
+function getAiPosition(words: any[], progress: number) {
+  if (!words || words.length === 0) return { wordIndex: 0, letterIndex: 0 }
+
+  const positions: { wordIndex: number; letterIndex: number }[] = []
+  words.forEach((word) => {
+    word.letters.forEach((_: any, lIdx: number) => {
+      positions.push({ wordIndex: word.index, letterIndex: lIdx })
+    })
+    positions.push({ wordIndex: word.index, letterIndex: word.letters.length })
+  })
+
+  if (positions.length === 0) return { wordIndex: 0, letterIndex: 0 }
+
+  const targetIdx = Math.min(
+    Math.floor(progress * positions.length),
+    positions.length - 1
+  )
+  return positions[targetIdx]
+}
 
 /**
  * TypingArea wraps the typing canvas.
@@ -20,6 +70,10 @@ export default function TypingArea() {
 
   const { words, currentWordIndex, currentLetterIndex, status } = useTypingStore()
   const { handleKeyDown } = useTypingEngine()
+
+  const battleStatus = useBattleStore((s) => s.status)
+  const aiProgress = useBattleStore((s) => s.aiProgress)
+  const isBattleMode = battleStatus === "racing" || battleStatus === "finished"
 
   // Intercept keyboard events
   useKeyboardHandler(containerRef, handleKeyDown, isFocused)
@@ -50,8 +104,19 @@ export default function TypingArea() {
 
     if (activeWordEl) {
       const offsetTop = activeWordEl.offsetTop
-      if (offsetTop >= 80) {
-        setScrollY(-(offsetTop - 40))
+      const wrapperEl = container.querySelector("[data-word-index]")?.parentElement as HTMLElement | null
+      const wrapperHeight = wrapperEl ? wrapperEl.clientHeight : 0
+
+      // If the entire text content fits within the container height (168px inner), keep it fixed!
+      if (wrapperHeight <= 168) {
+        setScrollY(0)
+        return
+      }
+
+      // Row height is exactly 84.2px (72.2px line height + 4px word padding + 8px flex gap)
+      const lineIndex = Math.round(offsetTop / 84.2)
+      if (lineIndex > 0) {
+        setScrollY(-lineIndex * 84.2)
       } else {
         setScrollY(0)
       }
@@ -63,19 +128,19 @@ export default function TypingArea() {
   // Reset scroll position on new sessions
   useEffect(() => {
     if (status === "ready") {
-      setScrollY(0)
+      requestAnimationFrame(() => setScrollY(0))
     }
   }, [status])
 
   return (
-    <div className="relative w-full my-8">
+    <div className="relative w-full my-8 bg-surface border border-border rounded-[32px] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-12">
       {/* Focus lock overlay */}
-      {!isFocused && (
+      {!isFocused && status !== "finished" && (
         <div
           onClick={focusContainer}
-          className="absolute inset-0 z-20 flex items-center justify-center bg-bg/60 backdrop-blur-[2px] rounded-xl cursor-pointer transition-opacity duration-200"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-surface/80 backdrop-blur-[4px] rounded-[32px] cursor-pointer transition-opacity duration-200"
         >
-          <span className="text-sm text-text-muted">
+          <span className="text-sm font-sans font-semibold text-text-secondary tracking-wide">
             click to focus
           </span>
         </div>
@@ -87,12 +152,12 @@ export default function TypingArea() {
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full min-h-[180px] max-h-[180px] overflow-hidden py-8 px-4 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-mono text-[22px] leading-[1.8] tracking-[0.04em] select-none cursor-text"
+        className="w-full min-h-[200px] max-h-[200px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans text-[38px] font-medium leading-[1.9] tracking-[-0.03em] select-none cursor-text"
         onClick={focusContainer}
       >
         <motion.div
           animate={{ y: scrollY }}
-          transition={{ type: "spring", stiffness: 350, damping: 32 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="w-full flex flex-wrap"
         >
           <WordDisplay words={words} currentWordIndex={currentWordIndex} />
@@ -102,13 +167,22 @@ export default function TypingArea() {
         {isFocused && status !== "finished" && (
           <Caret position={caretPosition} />
         )}
+
+        {/* AI Caret (Battle Mode) */}
+        {isBattleMode && status !== "finished" && (
+          <AiCaret
+            containerRef={containerRef}
+            wordIndex={getAiPosition(words, aiProgress).wordIndex}
+            letterIndex={getAiPosition(words, aiProgress).letterIndex}
+          />
+        )}
       </div>
 
       {/* Footer tips */}
       {status === "running" && (
-        <div className="flex justify-between mt-4 px-1 text-[9px] uppercase font-semibold text-text-muted font-heading tracking-widest">
-          <span>esc / tab to restart</span>
-          <span>bletchley decrypt mode</span>
+        <div className="flex justify-between mt-6 px-1 text-xs font-medium text-text-tertiary font-sans">
+          <span>Press Esc / Tab to restart</span>
+          <span>Bletchley decrypt mode</span>
         </div>
       )}
     </div>

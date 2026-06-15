@@ -13,6 +13,7 @@ import ResultsCard from "@/components/stats/ResultsCard"
 import StatsHistory from "@/components/stats/StatsHistory"
 import { countCorrectChars } from "@/engine/typing-engine"
 import { calculateWpm, calculateAccuracy, generateId } from "@/lib/utils"
+import BattleView from "@/components/battle/BattleView"
 
 /**
  * Main Home Page Dashboard.
@@ -90,23 +91,28 @@ export default function Home() {
     <Container className="flex flex-col flex-1 max-w-3xl">
       {/* Tagline header */}
       <div className="text-center mb-8">
-        <p className="text-center text-xs tracking-[0.15em] text-text-muted uppercase">
-          decode · type · break the cipher
+        <p className="text-center text-xs text-text-muted font-sans font-medium tracking-wide">
+          Decode · Type · Break the cipher
         </p>
       </div>
 
       {/* Mode configurations selector */}
-      {status !== "finished" && (
-        <div ref={selectorRef} className="mb-2">
-          <ModeSelector onSelect={initSession} currentConfig={config} />
-        </div>
-      )}
+      <div
+        ref={selectorRef}
+        className={`mb-2 transition-opacity duration-300 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
+      >
+        <ModeSelector onSelect={initSession} currentConfig={config} />
+      </div>
 
       {/* Play area */}
-      {status !== "finished" && <TypingArea />}
+      <div
+        className={`transition-opacity duration-300 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
+      >
+        {config.mode === "battle" ? <BattleView /> : <TypingArea />}
+      </div>
 
       {/* Live ticking stats bar */}
-      {status === "running" && (
+      {status === "running" && config.mode !== "battle" && (
         <StatsBar
           wpm={wpm}
           accuracy={accuracy}
@@ -116,7 +122,7 @@ export default function Home() {
       )}
 
       {/* Post-session results display */}
-      {status === "finished" && latestResult && (
+      {status === "finished" && config.mode !== "battle" && latestResult && (
         <ResultsCard
           result={latestResult}
           onRestart={handleRestart}

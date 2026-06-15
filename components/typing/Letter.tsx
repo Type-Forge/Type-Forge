@@ -31,25 +31,25 @@ export const Letter = memo(
       }
     }, [state, char, cipherChar])
 
-    // Minimal color states
-    let colorClass = "text-text-muted"
+    // Minimal opacity-driven color states
+    let colorClass = "text-text-primary opacity-[0.28]"
     if (state === "active") {
-      colorClass = "text-text-secondary"
+      colorClass = "text-text-primary opacity-[0.60]"
     } else if (state === "correct") {
-      colorClass = "text-text-primary"
+      colorClass = "text-text-primary opacity-100"
     } else if (state === "incorrect") {
-      colorClass = "text-incorrect"
+      colorClass = "text-incorrect opacity-100"
     } else if (state === "extra") {
-      colorClass = "text-incorrect opacity-50"
+      colorClass = "text-incorrect opacity-100"
     }
 
     const isCorrect = state === "correct"
 
     return (
-      <span className="relative inline-block select-none font-mono px-[1px]">
+      <span className="relative inline-block select-none font-sans px-[0.5px]">
         {/* Subtle, faint background cipher grid text */}
         {(state === "pending" || state === "active") && (
-          <span className="absolute inset-0 text-[10px] text-accent/10 flex items-center justify-center font-mono select-none pointer-events-none transform -translate-y-[2px]">
+          <span className="absolute inset-0 text-[16px] text-accent/10 flex items-center justify-center font-sans select-none pointer-events-none transform -translate-y-[2px]">
             {cipherChar}
           </span>
         )}
@@ -58,7 +58,7 @@ export const Letter = memo(
         <motion.span
           data-word-index={wordIndex}
           data-letter-index={letterIndex}
-          className={`inline-block transition-colors duration-150 ${colorClass}`}
+          className={`inline-block transition-all duration-150 ${colorClass}`}
           animate={isCorrect ? { rotateX: [0, 90, 0] } : { rotateX: 0 }}
           transition={{ duration: 0.16, ease: "easeInOut" }}
           style={{ transformStyle: "preserve-3d" }}

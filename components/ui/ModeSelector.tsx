@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import type { SessionConfig } from "@/types"
 import { WORD_COUNT_OPTIONS, TIME_DURATION_OPTIONS } from "@/lib/constants"
 import { useTypingStore } from "@/stores/typing-store"
+import { useBattleStore } from "@/stores/battle-store"
+import { motion } from "motion/react"
 
 interface ModeSelectorProps {
   onSelect: (config: SessionConfig) => void
@@ -11,7 +13,7 @@ interface ModeSelectorProps {
 }
 
 /**
- * Centered selector tabs for choosing Words mode or Timed mode.
+ * Centered selector tabs for choosing Words mode, Timed mode, or Battle mode.
  * Styled with larger text sizes (text-base) for better readability and tap targets.
  */
 export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorProps) {
@@ -28,19 +30,19 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
       if (key === "1") {
         if (currentConfig.mode === "words") {
           onSelect({ mode: "words", wordCount: 25 })
-        } else {
+        } else if (currentConfig.mode === "timed") {
           onSelect({ mode: "timed", duration: 60 })
         }
       } else if (key === "2") {
         if (currentConfig.mode === "words") {
           onSelect({ mode: "words", wordCount: 50 })
-        } else {
+        } else if (currentConfig.mode === "timed") {
           onSelect({ mode: "timed", duration: 180 })
         }
       } else if (key === "3") {
         if (currentConfig.mode === "words") {
           onSelect({ mode: "words", wordCount: 75 })
-        } else {
+        } else if (currentConfig.mode === "timed") {
           onSelect({ mode: "timed", duration: 300 })
         }
       }
@@ -50,11 +52,14 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
     return () => window.removeEventListener("keydown", handleKeyPress)
   }, [currentConfig, onSelect, isInactive])
 
-  const selectMode = (mode: "words" | "timed") => {
+  const selectMode = (mode: "words" | "timed" | "battle") => {
     if (mode === "words") {
       onSelect({ mode: "words", wordCount: 25 })
-    } else {
+    } else if (mode === "timed") {
       onSelect({ mode: "timed", duration: 60 })
+    } else {
+      onSelect({ mode: "battle", wordCount: 25 })
+      useBattleStore.getState().resetBattle()
     }
   }
 
@@ -68,62 +73,99 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
 
   return (
     <div className="flex flex-col items-center gap-5 py-3 select-none">
-      {/* Mode Switcher Tabs - Sized to text-base for readable presence */}
-      <div className="flex items-center justify-center gap-8 mb-1">
+      {/* iOS Segmented Pill Switcher with spring layout indicator */}
+      <div className="bg-surface-secondary p-1 rounded-full flex items-center justify-center gap-0.5 border border-border/20 relative">
         <button
           onClick={() => selectMode("words")}
-          className={`text-base font-medium transition-colors duration-150 cursor-pointer ${
+          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
             currentConfig.mode === "words"
-              ? "text-text-primary font-semibold"
-              : "text-text-muted hover:text-text-secondary"
+              ? "text-text-primary"
+              : "text-text-tertiary hover:text-text-secondary"
           }`}
         >
-          words
+          {currentConfig.mode === "words" && (
+            <motion.div
+              layoutId="active-mode-bg"
+              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              style={{ zIndex: 1 }}
+            />
+          )}
+          <span className="relative z-10">Words</span>
         </button>
+
         <button
           onClick={() => selectMode("timed")}
-          className={`text-base font-medium transition-colors duration-150 cursor-pointer ${
+          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
             currentConfig.mode === "timed"
-              ? "text-text-primary font-semibold"
-              : "text-text-muted hover:text-text-secondary"
+              ? "text-text-primary"
+              : "text-text-tertiary hover:text-text-secondary"
           }`}
         >
-          timed
+          {currentConfig.mode === "timed" && (
+            <motion.div
+              layoutId="active-mode-bg"
+              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              style={{ zIndex: 1 }}
+            />
+          )}
+          <span className="relative z-10">Timed</span>
+        </button>
+
+        <button
+          onClick={() => selectMode("battle")}
+          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
+            currentConfig.mode === "battle"
+              ? "text-text-primary"
+              : "text-text-tertiary hover:text-text-secondary"
+          }`}
+        >
+          {currentConfig.mode === "battle" && (
+            <motion.div
+              layoutId="active-mode-bg"
+              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              style={{ zIndex: 1 }}
+            />
+          )}
+          <span className="relative z-10">Battle</span>
         </button>
       </div>
 
-      {/* count limit configurations */}
-      <div className="flex items-center justify-center gap-6">
+      {/* count limit configurations - Styled as clean sans-serif */}
+      <div className="flex items-center justify-center gap-6 min-h-[20px]">
         {currentConfig.mode === "words" ? (
           WORD_COUNT_OPTIONS.map((count) => (
             <button
               key={count}
               onClick={() => selectWordOption(count as 25 | 50 | 75)}
-              className={`text-[15px] font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-colors duration-150 cursor-pointer ${
                 currentConfig.wordCount === count
-                  ? "text-accent font-semibold"
-                  : "text-text-muted hover:text-text-secondary"
+                  ? "text-accent font-bold"
+                  : "text-text-tertiary hover:text-text-secondary"
               }`}
             >
               {count}
             </button>
           ))
-        ) : (
+        ) : currentConfig.mode === "timed" ? (
           TIME_DURATION_OPTIONS.map((duration) => (
             <button
               key={duration}
               onClick={() => selectTimeOption(duration as 60 | 180 | 300)}
-              className={`text-[15px] font-mono tabular-nums transition-colors duration-150 cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-colors duration-150 cursor-pointer ${
                 currentConfig.duration === duration
-                  ? "text-accent font-semibold"
-                  : "text-text-muted hover:text-text-secondary"
+                  ? "text-accent font-bold"
+                  : "text-text-tertiary hover:text-text-secondary"
               }`}
             >
-              {duration}
+              {duration}s
             </button>
           ))
-        )}
+        ) : null}
       </div>
     </div>
   )
 }
+

@@ -14,8 +14,8 @@ export function useKeyboardHandler(
     if (!container || !active) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Allow standard browser modifier actions (e.g., Ctrl+R, Cmd+T, Ctrl+C)
-      if (e.ctrlKey || e.metaKey || e.altKey) return
+      // Allow standard browser modifier actions (e.g., Ctrl+R, Cmd+T, Ctrl+C), EXCEPT Backspace
+      if ((e.ctrlKey || e.metaKey || e.altKey) && e.key !== "Backspace") return
 
       const key = e.key
 

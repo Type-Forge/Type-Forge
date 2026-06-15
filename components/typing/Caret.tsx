@@ -19,24 +19,33 @@ export default function Caret({ position }: CaretProps) {
   const [isTyping, setIsTyping] = useState(false)
 
   useEffect(() => {
+    let active = true
+
     if (status !== "running") {
-      setIsTyping(false)
+      requestAnimationFrame(() => {
+        if (active) setIsTyping(false)
+      })
       return
     }
 
-    setIsTyping(true)
+    requestAnimationFrame(() => {
+      if (active) setIsTyping(true)
+    })
     const timeout = setTimeout(() => {
-      setIsTyping(false)
+      if (active) setIsTyping(false)
     }, 2000)
 
-    return () => clearTimeout(timeout)
+    return () => {
+      active = false
+      clearTimeout(timeout)
+    }
   }, [totalKeystrokes, status])
 
   const shouldBlink = status === "ready" || status === "idle" || !isTyping
 
   return (
     <motion.div
-      className="absolute w-[2.5px] rounded-full bg-caret z-10 pointer-events-none"
+      className="absolute top-0 left-0 w-[3px] rounded-full bg-caret z-10 pointer-events-none"
       animate={{
         transform: `translate(${position.left}px, ${position.top}px)`,
         opacity: shouldBlink ? [1, 0, 1] : 1,

@@ -20,7 +20,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem("turing-type-theme") as Theme | null
     const currentTheme = saved || "dark"
-    setTheme(currentTheme)
+    
+    requestAnimationFrame(() => {
+      setTheme(currentTheme)
+    })
     
     if (currentTheme === "dark") {
       document.documentElement.classList.add("dark")

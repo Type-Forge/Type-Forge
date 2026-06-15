@@ -185,6 +185,37 @@ export function processBackspace(
 }
 
 /**
+ * Process a word delete keystroke (Ctrl+Backspace / Option+Backspace).
+ * Resets the current word's letters to "pending" and clears all extras.
+ * Sets the first letter of the current word to "active".
+ * Returns updated words array and sets newLetterIndex to 0.
+ */
+export function processWordDelete(
+  words: WordData[],
+  wordIndex: number
+): { words: WordData[]; newLetterIndex: number } {
+  const updatedWords = words.map((w) => ({
+    ...w,
+    letters: w.letters.map((l) => ({ ...l })),
+    extras: w.extras.map((l) => ({ ...l })),
+  }))
+
+  const word = updatedWords[wordIndex]
+  if (!word) return { words: updatedWords, newLetterIndex: 0 }
+
+  // Reset all letters to pending
+  word.letters.forEach((l, idx) => {
+    l.state = idx === 0 ? "active" : "pending"
+  })
+
+  // Clear extras
+  word.extras = []
+
+  return { words: updatedWords, newLetterIndex: 0 }
+}
+
+
+/**
  * Check if all words are completed (for word-count mode end condition).
  */
 export function isSessionComplete(words: WordData[], wordIndex: number): boolean {

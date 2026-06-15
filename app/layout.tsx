@@ -29,26 +29,20 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-bg text-text-primary transition-colors duration-150">
         <ThemeProvider>
           {/* Glassmorphic Fixed Navbar */}
-          <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-bg/80 backdrop-blur-xl">
-            <div className="mx-auto max-w-3xl flex items-center justify-between h-14 px-6">
+          <nav className="fixed top-0 left-0 right-0 z-50 apple-navbar">
+            <div className="mx-auto max-w-3xl flex items-center justify-between h-16 px-6">
               {/* Logo left */}
               <Logo />
 
               {/* Navigation links & theme toggle right */}
               <div className="flex items-center gap-6">
-                <Link
-                  href="/battle"
-                  className="text-sm font-sans font-medium tracking-wide text-text-secondary hover:text-text-primary transition-colors duration-150 cursor-pointer animate-fade-in"
-                >
-                  Battle
-                </Link>
                 <ThemeToggle />
               </div>
             </div>
           </nav>
           
           {/* Main Layout Content - Offset by fixed nav height */}
-          <main className="flex-1 flex flex-col pt-14 pb-8">
+          <main className="flex-1 flex flex-col pt-16 pb-8">
             {children}
           </main>
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useTypingStore } from "@/stores/typing-store"
 
 /**
@@ -13,6 +13,11 @@ export function useCountdown(
   const timeRemaining = useTypingStore((s) => s.timeRemaining)
   const setTimeRemaining = useTypingStore((s) => s.setTimeRemaining)
 
+  const onFinishRef = useRef(onFinish)
+  useEffect(() => {
+    onFinishRef.current = onFinish
+  }, [onFinish])
+
   useEffect(() => {
     if (!isRunning) return
 
@@ -23,14 +28,14 @@ export function useCountdown(
       if (current <= 1) {
         setTimeRemaining(0)
         clearInterval(timer)
-        onFinish()
+        onFinishRef.current()
       } else {
         setTimeRemaining(current - 1)
       }
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [isRunning, onFinish, setTimeRemaining])
+  }, [isRunning, setTimeRemaining])
 
   return timeRemaining ?? initialSeconds
 }

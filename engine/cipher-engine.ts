@@ -6,7 +6,7 @@
  */
 export function generateCipherMap(): Record<string, string> {
   const alphabet = "abcdefghijklmnopqrstuvwxyz".split("")
-  let shuffled = [...alphabet]
+  const shuffled = [...alphabet]
   
   // Shuffle and try to avoid self-mapping for better cipher effect
   let attempts = 0

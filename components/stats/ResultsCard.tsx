@@ -10,97 +10,124 @@ interface ResultsCardProps {
 }
 
 /**
- * ResultsCard displays final speed metrics and decryption review data.
- * Adheres to Emil's philosophy of tactile micro-scales and quiet borders.
+ * ResultsCard redesigned as a premium iPhone-style bottom sheet drawer.
+ * Slides up smoothly using spring physics, rendering stats inside a clean bento grid.
  */
 export default function ResultsCard({ result, onRestart, onNewSession }: ResultsCardProps) {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.06,
-      },
-    },
-  } as const
-
-  const itemVariants = {
-    hidden: { y: 10, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.2, ease: "easeOut" },
-    },
-  } as const
-
-  const total = result.totalKeystrokes
   const correct = result.correctKeystrokes
+  const total = result.totalKeystrokes
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="mx-auto w-full max-w-md rounded-xl border border-border bg-surface p-8 shadow-sm select-none"
-    >
-      {/* Hero stat */}
-      <motion.div variants={itemVariants} className="text-center mb-6">
-        <span className="text-5xl font-heading font-bold tabular-nums text-text-primary leading-none">
-          {result.wpm}
-        </span>
-        <span className="block text-[10px] uppercase tracking-[0.15em] text-text-muted mt-2">
-          words per minute
-        </span>
-      </motion.div>
-
-      {/* Secondary stats — horizontal row */}
+    <div className="fixed inset-0 z-50 flex flex-col justify-end pointer-events-none">
+      {/* Semi-transparent Backdrop Overlay */}
       <motion.div
-        variants={itemVariants}
-        className="flex justify-center gap-8 py-4 border-t border-border"
-      >
-        <div className="flex flex-col items-center">
-          <span className="text-sm font-mono tabular-nums text-text-primary font-semibold">
-            {result.accuracy}%
-          </span>
-          <span className="text-[9px] uppercase tracking-[0.1em] text-text-muted mt-1">
-            accuracy
-          </span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-sm font-mono tabular-nums text-text-primary font-semibold">
-            {result.duration.toFixed(1)}s
-          </span>
-          <span className="text-[9px] uppercase tracking-[0.1em] text-text-muted mt-1">
-            time
-          </span>
-        </div>
-        <div className="flex flex-col items-center">
-          <span className="text-sm font-mono tabular-nums text-text-primary font-semibold">
-            {correct}/{total}
-          </span>
-          <span className="text-[9px] uppercase tracking-[0.1em] text-text-muted mt-1">
-            correct
-          </span>
-        </div>
-      </motion.div>
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-[4px] pointer-events-auto"
+        onClick={onNewSession}
+      />
 
-      {/* Action buttons with press visual responses */}
-      <motion.div variants={itemVariants} className="flex gap-3 mt-6">
-        <button
-          onClick={onRestart}
-          className="flex-1 h-9 rounded-lg bg-accent text-bg text-sm font-medium hover:opacity-95
-                     transition-transform duration-150 active:scale-[0.97] cursor-pointer"
-        >
-          try again
-        </button>
+      {/* iOS Slide-up Drawer Container */}
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 280, mass: 0.8 }}
+        className="relative w-full max-w-xl mx-auto bg-surface/80 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto flex flex-col select-none"
+      >
+        {/* iOS Drag Handle Indicator */}
+        <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-6 mt-1 cursor-grab active:cursor-grabbing" />
+
+        {/* Circular Close Button */}
         <button
           onClick={onNewSession}
-          className="flex-1 h-9 rounded-lg border border-border text-sm text-text-secondary bg-transparent
-                     hover:bg-surface-hover hover:text-text-primary transition-[transform,colors,background-color] duration-150 active:scale-[0.97] cursor-pointer"
+          className="absolute top-6 right-6 w-8 h-8 rounded-full bg-surface-hover/80 hover:bg-surface-hover text-text-muted hover:text-text-primary flex items-center justify-center transition-colors active:scale-95 cursor-pointer focus:outline-none"
+          aria-label="Close"
         >
-          new session
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
+
+        {/* Header Title */}
+        <div className="text-center mt-2 mb-2">
+          <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1">
+            Decryption report
+          </span>
+        </div>
+
+        {/* Hero WPM Speed */}
+        <div className="text-center my-6">
+          <div className="relative inline-block">
+            <span className="text-8xl font-heading font-extrabold text-text-primary leading-none tracking-tight">
+              {result.wpm}
+            </span>
+          </div>
+          <span className="block text-xs text-text-secondary font-sans font-medium mt-3">
+            Words per minute
+          </span>
+        </div>
+
+        {/* Bento Grid layout for secondary stats */}
+        <div className="grid grid-cols-3 gap-3 w-full my-6">
+          {/* Accuracy card */}
+          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-surface-hover/50 border border-border/40">
+            <span className="text-2xl font-mono tabular-nums text-text-primary font-bold">
+              {result.accuracy}%
+            </span>
+            <span className="text-[11px] font-medium text-text-secondary mt-1.5">
+              Accuracy
+            </span>
+          </div>
+
+          {/* Time duration card */}
+          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-surface-hover/50 border border-border/40">
+            <span className="text-2xl font-mono tabular-nums text-text-primary font-bold">
+              {result.duration.toFixed(1)}s
+            </span>
+            <span className="text-[11px] font-medium text-text-secondary mt-1.5">
+              Time taken
+            </span>
+          </div>
+
+          {/* Characters correctness card */}
+          <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-surface-hover/50 border border-border/40">
+            <span className="text-2xl font-mono tabular-nums text-text-primary font-bold">
+              {correct}/{total}
+            </span>
+            <span className="text-[11px] font-medium text-text-secondary mt-1.5">
+              Correct keys
+            </span>
+          </div>
+        </div>
+
+        {/* Decryption status review subtext */}
+        <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 mb-6">
+          {result.accuracy >= 95 
+            ? "Rotor configuration synchronized. Decryption completed with extreme precision." 
+            : "Decryption completed successfully, with mild cryptographic interference."}
+        </div>
+
+        {/* iOS-like CTAs layout */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+          <button
+            onClick={onRestart}
+            className="flex-1 h-13 rounded-2xl bg-accent hover:opacity-90 text-white text-sm font-semibold
+                       transition-transform duration-150 active:scale-[0.98] cursor-pointer focus:outline-none shadow-sm font-sans"
+          >
+            Try again
+          </button>
+          <button
+            onClick={onNewSession}
+            className="flex-1 h-13 rounded-2xl border border-border bg-surface-hover/80 text-text-primary text-sm font-semibold
+                       hover:bg-surface-hover hover:text-text-primary transition-[transform,colors] duration-150 active:scale-[0.98] cursor-pointer focus:outline-none font-sans"
+          >
+            New session
+          </button>
+        </div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
