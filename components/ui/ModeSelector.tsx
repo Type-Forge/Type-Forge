@@ -52,14 +52,16 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
     return () => window.removeEventListener("keydown", handleKeyPress)
   }, [currentConfig, onSelect, isInactive])
 
-  const selectMode = (mode: "words" | "timed" | "battle") => {
+  const selectMode = (mode: "words" | "timed" | "battle" | "drill") => {
     if (mode === "words") {
       onSelect({ mode: "words", wordCount: 25 })
     } else if (mode === "timed") {
       onSelect({ mode: "timed", duration: 60 })
-    } else {
+    } else if (mode === "battle") {
       onSelect({ mode: "battle", wordCount: 25 })
       useBattleStore.getState().resetBattle()
+    } else {
+      onSelect({ mode: "drill", difficulty: "easy" })
     }
   }
 
@@ -131,6 +133,25 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
           )}
           <span className="relative z-10">Battle</span>
         </button>
+
+        <button
+          onClick={() => selectMode("drill")}
+          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
+            currentConfig.mode === "drill"
+              ? "text-text-primary"
+              : "text-text-tertiary hover:text-text-secondary"
+          }`}
+        >
+          {currentConfig.mode === "drill" && (
+            <motion.div
+              layoutId="active-mode-bg"
+              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              style={{ zIndex: 1 }}
+            />
+          )}
+          <span className="relative z-10">Drill</span>
+        </button>
       </div>
 
       {/* count limit configurations - Styled as clean sans-serif */}
@@ -161,6 +182,20 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
               }`}
             >
               {duration}s
+            </button>
+          ))
+        ) : currentConfig.mode === "drill" ? (
+          (["easy", "medium", "hard"] as const).map((diff) => (
+            <button
+              key={diff}
+              onClick={() => onSelect({ ...currentConfig, difficulty: diff })}
+              className={`text-sm font-semibold tracking-wide transition-colors duration-150 cursor-pointer capitalize ${
+                currentConfig.difficulty === diff
+                  ? "text-accent font-bold"
+                  : "text-text-tertiary hover:text-text-secondary"
+              }`}
+            >
+              {diff}
             </button>
           ))
         ) : null}

@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState, useEffect } from "react"
+import { useCallback, useMemo, useState, useEffect, useRef } from "react"
 import { useTypingStore } from "@/stores/typing-store"
 import { useStatsStore } from "@/stores/stats-store"
 import { useBattleStore } from "@/stores/battle-store"
+import { useDrillStore } from "@/stores/drill-store"
 import {
   processCharacter,
   processSpace,
@@ -42,9 +43,35 @@ export function useTypingEngine() {
 
   const addResult = useStatsStore((s) => s.addResult)
 
+  const keystrokesLogRef = useRef<{ char: string; expectedChar: string; time: number; isCorrect: boolean }[]>([])
+  const recordedRef = useRef(false)
+
+  useEffect(() => {
+    if (status === "ready" || status === "idle") {
+      keystrokesLogRef.current = []
+      recordedRef.current = false
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (status === "finished" && !recordedRef.current) {
+      recordedRef.current = true
+      useDrillStore.getState().recordSessionStats(
+        keystrokesLogRef.current,
+        startTime || Date.now()
+      )
+    }
+  }, [status, startTime])
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (status === "finished") return
+
+      // Ignore keypresses when typing in input or textarea elements
+      const target = e.target as HTMLElement
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+        return
+      }
 
       // Prevent modifier combos (like browser refresh, inspect, etc.), EXCEPT Backspace
       if ((e.ctrlKey || e.metaKey || e.altKey) && e.key !== "Backspace") return
@@ -73,6 +100,8 @@ export function useTypingEngine() {
           return
         }
 
+        const expectedChar = words[currentWordIndex]?.letters[currentLetterIndex]?.char || ""
+
         const { words: nextWords, newLetterIndex, isCorrect } = processCharacter(
           words,
           currentWordIndex,
@@ -89,9 +118,24 @@ export function useTypingEngine() {
             incrementIncorrect()
             setWords(nextWords)
             setCurrentLetterIndex(newLetterIndex)
+            // Log first key press even if incorrect
+            keystrokesLogRef.current.push({
+              char: typed,
+              expectedChar,
+              time: Date.now(),
+              isCorrect: false,
+            })
             return
           }
         }
+
+        // Log keystroke
+        keystrokesLogRef.current.push({
+          char: typed,
+          expectedChar,
+          time: Date.now(),
+          isCorrect,
+        })
 
         // Increment store counts
         if (isCorrect) {
@@ -103,9 +147,9 @@ export function useTypingEngine() {
         setWords(nextWords)
         setCurrentLetterIndex(newLetterIndex)
 
-        // Check for session completion in normal words mode or battle mode
-        const isWordsOrBattle = config.mode === "words" || config.mode === "battle"
-        if (isWordsOrBattle && isSessionComplete(nextWords, currentWordIndex)) {
+        // Check for session completion in normal words mode or battle mode or drill mode
+        const isWordsOrBattleOrDrill = config.mode === "words" || config.mode === "battle" || config.mode === "drill"
+        if (isWordsOrBattleOrDrill && isSessionComplete(nextWords, currentWordIndex)) {
           const finalWords = nextWords
           const finalCorrect = countCorrectChars(finalWords)
           const finalElapsed = Date.now() - (startTime || Date.now())
@@ -150,6 +194,15 @@ export function useTypingEngine() {
 
         if (spaceResult) {
           const { words: nextWords, newWordIndex, newLetterIndex } = spaceResult
+          
+          // Log correct space transition
+          keystrokesLogRef.current.push({
+            char: " ",
+            expectedChar: " ",
+            time: Date.now(),
+            isCorrect: true,
+          })
+
           setWords(nextWords)
           setCurrentWordIndex(newWordIndex)
           setCurrentLetterIndex(newLetterIndex)

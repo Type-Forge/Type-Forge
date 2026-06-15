@@ -9,7 +9,7 @@ interface StatsBarProps {
   wpm: number
   accuracy: number
   time: number | null
-  mode: "words" | "timed" | "battle"
+  mode: "words" | "timed" | "battle" | "drill"
 }
 
 /**
@@ -37,14 +37,15 @@ export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
 
   if (status !== "running") return null
 
-  const displayTime = mode === "timed" ? formatTime(time ?? 0) : formatTime(elapsed)
+  const isTimed = mode === "timed" || (mode === "drill" && time !== null)
+  const displayTime = isTimed ? formatTime(time ?? 0) : formatTime(elapsed)
 
   // Array map representation
   const statsList = [
-    { label: mode === "timed" ? "remaining" : "time", value: displayTime },
+    { label: isTimed ? "remaining" : "time", value: displayTime },
     { label: "wpm", value: wpm },
     { label: "accuracy", value: `${accuracy}%` },
-    ...(mode === "words" || mode === "battle" ? [{ label: "progress", value: `${currentWordIndex}/${words.length}` }] : []),
+    ...(mode === "words" || mode === "battle" || mode === "drill" ? [{ label: "progress", value: `${currentWordIndex}/${words.length}` }] : []),
   ]
 
   return (

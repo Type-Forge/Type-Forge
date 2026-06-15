@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTypingStore } from "@/stores/typing-store"
 import { useStatsStore } from "@/stores/stats-store"
 import { useTypingEngine } from "@/hooks/useTypingEngine"
@@ -14,6 +14,8 @@ import StatsHistory from "@/components/stats/StatsHistory"
 import { countCorrectChars } from "@/engine/typing-engine"
 import { calculateWpm, calculateAccuracy, generateId } from "@/lib/utils"
 import BattleView from "@/components/battle/BattleView"
+import DrillDashboard from "@/components/drill/DrillDashboard"
+import DrillResults from "@/components/drill/DrillResults"
 
 /**
  * Main Home Page Dashboard.
@@ -37,21 +39,31 @@ export default function Home() {
 
   const addResult = useStatsStore((s) => s.addResult)
   const selectorRef = useRef<HTMLDivElement>(null)
+  
+  // Track whether an active drill is ongoing (showing typing area vs dashboard)
+  const [isDrillActive, setIsDrillActive] = useState(false)
 
   // Initialize default session on mount
   useEffect(() => {
     initSession({ mode: "words", wordCount: 25 })
   }, [initSession])
 
+  // Reset drill active state if mode is switched
+  useEffect(() => {
+    if (config.mode !== "drill") {
+      setIsDrillActive(false)
+    }
+  }, [config.mode])
+
   // Bind key capture events and fetch metrics
   const { wpm, accuracy } = useTypingEngine()
 
-  // Track timed mode countdown
+  // Track timed mode countdown (supports standard timed mode & timed drill mode)
   useCountdown(
-    config.duration ?? 60,
+    config.mode === "timed" ? (config.duration ?? 60) : (config.targetDuration ?? 60),
     () => {
       const finalCorrect = countCorrectChars(words)
-      const durationSecs = config.duration ?? 60
+      const durationSecs = config.mode === "timed" ? (config.duration ?? 60) : (config.targetDuration ?? 60)
       const wpmVal = calculateWpm(finalCorrect, durationSecs * 1000)
       const accVal = calculateAccuracy(correctKeystrokes, totalKeystrokes)
 
@@ -70,7 +82,7 @@ export default function Home() {
         wordsCompleted: currentWordIndex,
       })
     },
-    status === "running" && config.mode === "timed"
+    status === "running" && (config.mode === "timed" || (config.mode === "drill" && !!config.targetDuration))
   )
 
   const handleRestart = () => {
@@ -79,6 +91,7 @@ export default function Home() {
 
   const handleNewSession = () => {
     resetSession()
+    setIsDrillActive(false)
     setTimeout(() => {
       selectorRef.current?.scrollIntoView({ behavior: "smooth" })
     }, 100)
@@ -108,7 +121,13 @@ export default function Home() {
       <div
         className={`transition-opacity duration-300 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
       >
-        {config.mode === "battle" ? <BattleView /> : <TypingArea />}
+        {config.mode === "battle" ? (
+          <BattleView />
+        ) : config.mode === "drill" && !isDrillActive ? (
+          <DrillDashboard onStartDrill={() => setIsDrillActive(true)} />
+        ) : (
+          <TypingArea />
+        )}
       </div>
 
       {/* Live ticking stats bar */}
@@ -123,11 +142,19 @@ export default function Home() {
 
       {/* Post-session results display */}
       {status === "finished" && config.mode !== "battle" && latestResult && (
-        <ResultsCard
-          result={latestResult}
-          onRestart={handleRestart}
-          onNewSession={handleNewSession}
-        />
+        config.mode === "drill" ? (
+          <DrillResults
+            result={latestResult}
+            onRestart={handleRestart}
+            onNewSession={handleNewSession}
+          />
+        ) : (
+          <ResultsCard
+            result={latestResult}
+            onRestart={handleRestart}
+            onNewSession={handleNewSession}
+          />
+        )
       )}
 
       {/* Persistent historical records logs */}

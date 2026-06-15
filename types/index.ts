@@ -29,7 +29,7 @@ export interface WordData {
 }
 
 // ===== SESSION =====
-export type SessionMode = "words" | "timed" | "battle"
+export type SessionMode = "words" | "timed" | "battle" | "drill"
 export type WordCount = 25 | 50 | 75
 export type TimeDuration = 60 | 180 | 300
 
@@ -37,10 +37,56 @@ export interface SessionConfig {
   mode: SessionMode
   wordCount?: WordCount        // only if mode === "words" or "battle"
   duration?: TimeDuration      // only if mode === "timed"
-  difficulty?: BattleDifficulty // only if mode === "battle"
+  difficulty?: BattleDifficulty | "custom" // only if mode === "battle" or "drill"
+  targetKeys?: string[]        // only if mode === "drill"
+  targetBigrams?: string[]     // only if mode === "drill"
+  targetTrigrams?: string[]    // only if mode === "drill"
+  targetWpm?: number           // only if mode === "drill" (custom builder)
+  targetDuration?: number      // only if mode === "drill" (custom builder, in seconds)
 }
 
 export type SessionStatus = "idle" | "ready" | "running" | "finished"
+
+// ===== DRILL STATS =====
+export interface KeyStats {
+  key: string
+  totalAttempts: number
+  totalCorrect: number
+  totalIncorrect: number
+  totalReactionTime: number
+  averageReactionTime: number
+}
+
+export interface BigramStats {
+  pair: string
+  attempts: number
+  mistakes: number
+  averageTransitionTime: number
+}
+
+export interface TrigramStats {
+  sequence: string
+  attempts: number
+  mistakes: number
+  averageTransitionTime: number
+}
+
+export interface MistakeRecord {
+  expected: string
+  actual: string
+  timestamp: number
+}
+
+export interface DrillHistoryEntry {
+  id: string
+  timestamp: number
+  difficulty: "easy" | "medium" | "hard" | "custom"
+  beforeAccuracy: number
+  afterAccuracy: number
+  improvement: number
+  reactionTimeImprovement: number
+  weakKeysImproved: string[]
+}
 
 export interface SessionState {
   config: SessionConfig

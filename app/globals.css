@@ -72,7 +72,8 @@ h1, h2, h3, h4, h5, h6 {
   height: 64px;
   backdrop-filter: blur(20px);
   background: rgba(0, 0, 0, 0.72); /* fallback */
-  border-bottom: 1px solid var(--border);
+  box-shadow: none !important;
+  border-bottom: none !important;
 }
 
 .dark .apple-navbar {
