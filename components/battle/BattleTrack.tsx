@@ -18,14 +18,14 @@ export default function BattleTrack({ label, progress, wpm, isPlayer }: BattleTr
     <div className="w-full font-sans mb-6 select-none">
       <div className="flex justify-between items-center mb-2 px-0.5">
         <span
-          className={`text-xs font-semibold ${
+          className={`text-[13px] font-semibold ${
             isPlayer ? "text-accent" : "text-text-secondary"
           }`}
         >
           {label.charAt(0).toUpperCase() + label.slice(1)}
         </span>
         {wpm !== undefined && (
-          <span className="text-[10px] font-mono text-text-muted">{wpm} WPM</span>
+          <span className="text-[13px] font-sans font-medium text-text-muted tabular-nums">{wpm} WPM</span>
         )}
       </div>
 
@@ -58,7 +58,7 @@ export default function BattleTrack({ label, progress, wpm, isPlayer }: BattleTr
       </div>
 
       {/* Track Stats */}
-      <div className="flex justify-end mt-1 px-0.5 text-[9px] font-heading font-bold text-text-muted">
+      <div className="flex justify-end mt-1 px-0.5 text-[13px] font-sans font-medium text-text-muted tabular-nums">
         <span>{Math.round(progress * 100)}%</span>
       </div>
     </div>

@@ -2,20 +2,25 @@
 
 import { motion } from "motion/react"
 import type { SessionResult } from "@/types"
+import { useBattleStore } from "@/stores/battle-store"
+import { AI_WPM_MAP } from "@/lib/constants"
 
-interface ResultsCardProps {
+interface BattleResultsProps {
   result: SessionResult
   onRestart: () => void
   onNewSession: () => void
 }
 
 /**
- * ResultsCard redesigned as a premium iPhone-style bottom sheet drawer.
- * Slides up smoothly using spring physics, rendering stats inside a clean bento grid.
+ * BattleResults drawer sheet styled as a premium iOS bottom sheet card.
+ * Consistent with ResultsCard and DrillResults.
  */
-export default function ResultsCard({ result, onRestart, onNewSession }: ResultsCardProps) {
-  const correct = result.correctKeystrokes
-  const total = result.totalKeystrokes
+export default function BattleResults({ result, onRestart, onNewSession }: BattleResultsProps) {
+  const winner = useBattleStore((s) => s.winner)
+  const difficulty = result.config.difficulty && result.config.difficulty !== "custom" ? result.config.difficulty : "medium"
+  const aiWpm = AI_WPM_MAP[difficulty]
+
+  const playerWon = winner === "player"
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end pointer-events-none">
@@ -37,7 +42,7 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
         transition={{ type: "spring", damping: 30, stiffness: 280, mass: 0.8 }}
         className="relative w-full max-w-xl mx-auto bg-surface/80 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto flex flex-col select-none"
       >
-        {/* iOS Drag Handle Indicator */}
+        {/* iOS Drag Handle */}
         <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-6 mt-1 cursor-grab active:cursor-grabbing" />
 
         {/* Circular Close Button */}
@@ -53,47 +58,61 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
 
         {/* Header Title */}
         <div className="text-center mt-2 mb-2">
-          <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1">
-            Decryption report
+          <span className="text-[12px] font-bold tracking-wide text-accent font-sans uppercase block mb-1">
+            Battle Outcome Report
           </span>
         </div>
 
-        {/* Hero WPM Speed */}
-        <div className="text-center my-6">
-          <div className="relative inline-block">
-            <span className="text-[48px] font-sans font-bold text-text-primary leading-none tracking-tight">
-              {result.wpm}
-            </span>
-          </div>
+        {/* Hero Status Title */}
+        <div className="text-center my-4">
+          <h3
+            className={`text-[28px] font-sans font-bold leading-none tracking-tight mb-2 ${
+              playerWon ? "text-correct" : "text-incorrect"
+            }`}
+          >
+            {playerWon ? "Decryption Successful" : "Rotor Lockout"}
+          </h3>
           <span className="block text-xs text-text-secondary font-sans font-medium mt-3">
-            Words per minute
+            Race status details below
           </span>
         </div>
 
         {/* Grouped List layout for secondary stats */}
-        <div className="w-full my-6 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans">
+        <div className="w-full my-4 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans">
+          {/* Winner Row */}
+          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+            <span className="text-text-secondary font-medium">Winner</span>
+            <span className={`font-bold ${playerWon ? "text-correct" : "text-incorrect"}`}>
+              {playerWon ? "You" : "Enigma Machine"}
+            </span>
+          </div>
+          {/* WPM Row */}
+          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+            <span className="text-text-secondary font-medium">Your Speed</span>
+            <span className="text-text-primary font-semibold tabular-nums">{result.wpm} WPM</span>
+          </div>
+          {/* Opponent WPM Row */}
+          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+            <span className="text-text-secondary font-medium">Enigma Speed</span>
+            <span className="text-text-primary font-semibold tabular-nums">{aiWpm} WPM</span>
+          </div>
           {/* Accuracy Row */}
           <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Accuracy</span>
+            <span className="text-text-secondary font-medium">Your Accuracy</span>
             <span className="text-text-primary font-semibold tabular-nums">{result.accuracy}%</span>
           </div>
-          {/* Time Duration Row */}
+          {/* Time taken Row */}
           <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Time Taken</span>
+            <span className="text-text-secondary font-medium">Race Duration</span>
             <span className="text-text-primary font-semibold tabular-nums">{result.duration.toFixed(1)}s</span>
-          </div>
-          {/* Characters Correctness Row */}
-          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Correct Keys</span>
-            <span className="text-text-primary font-semibold tabular-nums">{correct} / {total}</span>
           </div>
         </div>
 
         {/* Decryption status review subtext */}
-        <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 mb-6">
-          {result.accuracy >= 95 
-            ? "Rotor configuration synchronized. Decryption completed with extreme precision." 
-            : "Decryption completed successfully, with mild cryptographic interference."}
+        <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 my-4 font-sans">
+          {playerWon
+            ? `Decrypted the code grid before the Enigma rotors fully synced at ${result.config.difficulty} speed.`
+            : `Enigma machine resolved encryption values first. Rotor synchronization locked you out.`}
         </div>
 
         {/* iOS-like CTAs layout */}
@@ -103,14 +122,14 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
             className="flex-1 h-13 rounded-2xl bg-accent hover:opacity-90 text-white text-sm font-semibold
                        transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm font-sans"
           >
-            Try again
+            Race again
           </button>
           <button
             onClick={onNewSession}
             className="flex-1 h-13 rounded-2xl border border-border bg-surface-hover/80 text-text-primary text-sm font-semibold
                        hover:bg-surface-hover hover:text-text-primary transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none font-sans"
           >
-            New session
+            New race
           </button>
         </div>
       </motion.div>

@@ -52,26 +52,28 @@ export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex items-center justify-center gap-4 mt-8 select-none flex-wrap"
+      className="flex items-center justify-center mt-8 select-none font-sans"
     >
-      {statsList.map(({ label, value }) => (
-        <div
-          key={label}
-          className="w-[140px] h-[84px] rounded-[24px] bg-surface border border-border flex flex-col items-center justify-center text-center shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-colors duration-150 animate-fade-in"
-        >
-          <motion.span
-            key={value}
-            initial={{ opacity: 0.8 }}
-            animate={{ opacity: 1 }}
-            className="text-[34px] font-sans font-bold tracking-tight leading-none text-text-primary tabular-nums"
-          >
-            {value}
-          </motion.span>
-          <span className="text-[13px] font-sans font-medium text-text-secondary mt-1">
-            {label}
-          </span>
-        </div>
-      ))}
+      <div className="flex items-center justify-center flex-wrap">
+        {statsList.map(({ label, value }, idx) => (
+          <div key={label} className="flex items-center">
+            {idx > 0 && <div className="h-4 w-px bg-border/20 mx-5" />}
+            <div className="flex items-baseline gap-1.5">
+              <motion.span
+                key={value}
+                initial={{ opacity: 0.8 }}
+                animate={{ opacity: 1 }}
+                className="text-[20px] font-bold text-text-primary tabular-nums leading-none"
+              >
+                {value}
+              </motion.span>
+              <span className="text-[13px] font-medium text-text-tertiary lowercase">
+                {label}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </motion.div>
   )
 }

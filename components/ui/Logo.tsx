@@ -6,11 +6,11 @@ import Link from "next/link"
  */
 export default function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-0 hover:opacity-90 transition-opacity cursor-pointer">
-      <span className="font-heading text-base font-semibold text-accent">
+    <Link href="/" className="flex items-center gap-0 hover:opacity-90 active:scale-[0.97] transition-all cursor-pointer">
+      <span className="font-sans text-base font-semibold text-accent">
         Turing
       </span>
-      <span className="font-heading text-base font-semibold text-text-primary">
+      <span className="font-sans text-base font-semibold text-text-primary">
         Type
       </span>
     </Link>

@@ -75,11 +75,11 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
 
   return (
     <div className="flex flex-col items-center gap-5 py-3 select-none">
-      {/* iOS Segmented Pill Switcher with spring layout indicator */}
-      <div className="bg-surface-secondary p-1 rounded-full flex items-center justify-center gap-0.5 border border-border/20 relative">
+      {/* iOS Segmented Control with spring layout indicator */}
+      <div className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10 relative">
         <button
           onClick={() => selectMode("words")}
-          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
+          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
             currentConfig.mode === "words"
               ? "text-text-primary"
               : "text-text-tertiary hover:text-text-secondary"
@@ -88,7 +88,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
           {currentConfig.mode === "words" && (
             <motion.div
               layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
               style={{ zIndex: 1 }}
             />
@@ -98,7 +98,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
 
         <button
           onClick={() => selectMode("timed")}
-          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
+          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
             currentConfig.mode === "timed"
               ? "text-text-primary"
               : "text-text-tertiary hover:text-text-secondary"
@@ -107,7 +107,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
           {currentConfig.mode === "timed" && (
             <motion.div
               layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
               style={{ zIndex: 1 }}
             />
@@ -117,7 +117,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
 
         <button
           onClick={() => selectMode("battle")}
-          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
+          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
             currentConfig.mode === "battle"
               ? "text-text-primary"
               : "text-text-tertiary hover:text-text-secondary"
@@ -126,7 +126,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
           {currentConfig.mode === "battle" && (
             <motion.div
               layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
               style={{ zIndex: 1 }}
             />
@@ -136,7 +136,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
 
         <button
           onClick={() => selectMode("drill")}
-          className={`text-xs font-bold px-6 py-1.5 rounded-full transition-colors duration-200 cursor-pointer relative ${
+          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
             currentConfig.mode === "drill"
               ? "text-text-primary"
               : "text-text-tertiary hover:text-text-secondary"
@@ -145,7 +145,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
           {currentConfig.mode === "drill" && (
             <motion.div
               layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
               style={{ zIndex: 1 }}
             />
@@ -161,7 +161,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
             <button
               key={count}
               onClick={() => selectWordOption(count as 25 | 50 | 75)}
-              className={`text-sm font-semibold tracking-wide transition-colors duration-150 cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                 currentConfig.wordCount === count
                   ? "text-accent font-bold"
                   : "text-text-tertiary hover:text-text-secondary"
@@ -175,7 +175,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
             <button
               key={duration}
               onClick={() => selectTimeOption(duration as 60 | 180 | 300)}
-              className={`text-sm font-semibold tracking-wide transition-colors duration-150 cursor-pointer ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                 currentConfig.duration === duration
                   ? "text-accent font-bold"
                   : "text-text-tertiary hover:text-text-secondary"
@@ -189,7 +189,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
             <button
               key={diff}
               onClick={() => onSelect({ ...currentConfig, difficulty: diff })}
-              className={`text-sm font-semibold tracking-wide transition-colors duration-150 cursor-pointer capitalize ${
+              className={`text-sm font-semibold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer capitalize ${
                 currentConfig.difficulty === diff
                   ? "text-accent font-bold"
                   : "text-text-tertiary hover:text-text-secondary"

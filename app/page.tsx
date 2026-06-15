@@ -16,6 +16,8 @@ import { calculateWpm, calculateAccuracy, generateId } from "@/lib/utils"
 import BattleView from "@/components/battle/BattleView"
 import DrillDashboard from "@/components/drill/DrillDashboard"
 import DrillResults from "@/components/drill/DrillResults"
+import BattleResults from "@/components/battle/BattleResults"
+import { useBattleStore } from "@/stores/battle-store"
 
 /**
  * Main Home Page Dashboard.
@@ -104,8 +106,8 @@ export default function Home() {
     <Container className="flex flex-col flex-1 max-w-3xl">
       {/* Tagline header */}
       <div className="text-center mb-8">
-        <p className="text-center text-xs text-text-muted font-sans font-medium tracking-wide">
-          Decode · Type · Break the cipher
+        <p className="text-center text-[13px] text-text-tertiary font-sans font-medium uppercase tracking-wider">
+          Decode &middot; Type &middot; Break the cipher
         </p>
       </div>
 
@@ -141,12 +143,25 @@ export default function Home() {
       )}
 
       {/* Post-session results display */}
-      {status === "finished" && config.mode !== "battle" && latestResult && (
+      {status === "finished" && latestResult && (
         config.mode === "drill" ? (
           <DrillResults
             result={latestResult}
             onRestart={handleRestart}
             onNewSession={handleNewSession}
+          />
+        ) : config.mode === "battle" ? (
+          <BattleResults
+            result={latestResult}
+            onRestart={() => {
+              resetSession()
+              const battleState = useBattleStore.getState()
+              battleState.initBattle(battleState.config.difficulty, battleState.config.wordCount)
+            }}
+            onNewSession={() => {
+              resetSession()
+              useBattleStore.getState().resetBattle()
+            }}
           />
         ) : (
           <ResultsCard
@@ -159,7 +174,7 @@ export default function Home() {
 
       {/* Persistent historical records logs */}
       {(status === "idle" || status === "ready") && (
-        <div className="mt-8 border-t border-border/40 pt-8">
+        <div className="mt-8 pt-8">
           <StatsHistory />
         </div>
       )}

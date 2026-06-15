@@ -14,6 +14,9 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
   const { keyStats, bigramStats, mistakeRecords, resetStats } = useDrillStore()
   const { initSession } = useTypingStore()
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState<"adaptive" | "custom">("adaptive")
+
   // Custom Builder State
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
   const [selectedBigrams, setSelectedBigrams] = useState<string[]>([])
@@ -143,11 +146,12 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto py-4 animate-fade-in font-sans">
+      {/* Title Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/20 pb-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-text-primary">Adaptive Training</h2>
           <p className="text-xs text-text-tertiary mt-1">
-            Drill mode analyzes your historical keyboard mistakes and targets your muscle memory flaws.
+            Drill mode analyzes your typing errors and builds custom target training.
           </p>
         </div>
         {(focusAreas.length > 0 || mistakePatterns.length > 0) && (
@@ -157,317 +161,381 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                 resetStats()
               }
             }}
-            className="text-xs font-semibold text-danger/80 hover:text-danger hover:underline cursor-pointer active:scale-95 transition-transform"
+            className="text-xs font-semibold text-danger/80 hover:text-danger hover:underline cursor-pointer active:scale-[0.97] transition-transform"
           >
             Clear Profile
           </button>
         )}
       </div>
 
-      {/* Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* Left Column: Focus Areas & Mistake Patterns */}
-        <div className="md:col-span-5 space-y-4 flex flex-col">
-          {/* Focus Areas Card */}
-          <div className="flex-1 bg-surface/50 border border-border/40 rounded-3xl p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-bold tracking-wider text-accent uppercase font-mono">
-                  Focus Areas
-                </span>
-                {focusAreas.length > 0 && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-accent/10 text-accent font-semibold">
-                    Live profile
-                  </span>
-                )}
-              </div>
-
-              {focusAreas.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <span className="text-2xl mb-2">🎯</span>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    No weak keys analyzed yet.
-                  </p>
-                  <p className="text-[10px] text-text-tertiary mt-1 leading-normal max-w-xs">
-                    Complete standard Words, Timed, or Battle sessions to generate typing profiles.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {focusAreas.map((area, idx) => {
-                    // Decide color indicator
-                    const accColor =
-                      area.accuracy >= 90
-                        ? "bg-success"
-                        : area.accuracy >= 80
-                        ? "bg-amber-500"
-                        : "bg-danger"
-
-                    return (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between bg-surface-secondary/40 border border-border/20 rounded-2xl px-4 py-2.5"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-sm font-extrabold text-text-primary tracking-wide">
-                            {area.label}
-                          </span>
-                          <span className="text-[10px] text-text-tertiary font-medium capitalize">
-                            ({area.type})
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-text-secondary font-bold">
-                            {area.accuracy}%
-                          </span>
-                          <span className={`w-2 h-2 rounded-full ${accColor}`} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-            {focusAreas.length > 0 && (
-              <p className="text-[10px] text-text-tertiary leading-normal mt-4">
-                * Weakness is calculated using combined accuracy penalties and character key release reaction latency.
-              </p>
-            )}
-          </div>
-
-          {/* Mistake Patterns Card */}
-          <div className="flex-1 bg-surface/50 border border-border/40 rounded-3xl p-5 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-bold tracking-wider text-accent uppercase font-mono">
-                  Typo & Swap Patterns
-                </span>
-              </div>
-
-              {mistakePatterns.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <span className="text-2xl mb-2">⚡</span>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    Zero confusion patterns.
-                  </p>
-                  <p className="text-[10px] text-text-tertiary mt-1 leading-normal max-w-xs">
-                    Your mistakes (like key swaps `ie` to `ei`) will populate here as you type.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {mistakePatterns.map((pat, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between bg-surface-secondary/40 border border-border/20 rounded-2xl px-4 py-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-danger/90 font-mono">
-                          {pat.expected}
-                        </span>
-                        <span className="text-[10px] text-text-tertiary">→</span>
-                        <span className="text-xs font-bold text-text-secondary font-mono">
-                          {pat.actual}
-                        </span>
-                      </div>
-                      <span className="text-[10px] font-semibold text-text-tertiary">
-                        {pat.count} {pat.count === 1 ? "time" : "times"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {mistakePatterns.length > 0 && (
-              <p className="text-[10px] text-text-tertiary leading-normal mt-4">
-                * Detecting sequence order inversion swaps helps target letter transition blocks.
-              </p>
-            )}
-          </div>
+      {/* Segmented Switcher for Tab Mode Selection */}
+      <div className="flex justify-center my-4 select-none">
+        <div className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10 relative">
+          <button
+            onClick={() => setActiveTab("adaptive")}
+            className={`text-[13px] font-semibold px-4 py-1.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+              activeTab === "adaptive"
+                ? "text-text-primary bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
+                : "text-text-tertiary hover:text-text-secondary"
+            }`}
+          >
+            Intelligent Trainer
+          </button>
+          <button
+            onClick={() => setActiveTab("custom")}
+            className={`text-[13px] font-semibold px-4 py-1.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+              activeTab === "custom"
+                ? "text-text-primary bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
+                : "text-text-tertiary hover:text-text-secondary"
+            }`}
+          >
+            Custom Drill Builder
+          </button>
         </div>
+      </div>
 
-        {/* Right Column: Suggested Drills & Custom Builder */}
-        <div className="md:col-span-7 space-y-4">
-          {/* Suggested Drills Card */}
-          <div className="bg-surface/50 border border-border/40 rounded-3xl p-5">
-            <span className="text-[10px] font-bold tracking-wider text-accent uppercase font-mono block mb-4">
-              Suggested Drills
-            </span>
+      {/* Tabs Content */}
+      <AnimatePresence mode="wait">
+        {activeTab === "adaptive" ? (
+          <motion.div
+            key="adaptive"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15 }}
+            className="space-y-6"
+          >
+            {/* Typing Profile Analysis Card */}
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5">
+              <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-4">
+                Weakness Analysis Profile
+              </span>
 
-            <div className="space-y-3">
-              {suggestions.map((drill) => (
-                <div
-                  key={drill.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-surface-secondary/50 border border-border/20 hover:border-accent/30 transition-all duration-200"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-xs font-extrabold text-text-primary tracking-wide">
-                        {drill.title}
-                      </h4>
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-accent/10 text-accent">
-                        {drill.difficulty}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-text-secondary leading-normal max-w-md">
-                      {drill.description}
-                    </p>
+              {focusAreas.length === 0 && mistakePatterns.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <p className="text-sm text-text-secondary font-medium leading-relaxed">
+                    No weakness metrics analyzed yet
+                  </p>
+                  <p className="text-[12px] text-text-tertiary mt-1 leading-normal max-w-sm">
+                    Complete standard sessions (Words, Timed, or Battle modes) to generate typing data.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Focus Areas List */}
+                  <div>
+                    <h4 className="text-[13px] font-semibold text-text-secondary mb-3">Slowest Keys / Transitions</h4>
+                    {focusAreas.length === 0 ? (
+                      <p className="text-xs text-text-tertiary">No weak keys detected yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {focusAreas.map((area, idx) => {
+                          const accColor =
+                            area.accuracy >= 90
+                              ? "bg-success"
+                              : area.accuracy >= 80
+                              ? "bg-amber-500"
+                              : "bg-danger"
+
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between bg-surface-secondary/55 border border-border/10 rounded-xl px-3.5 py-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-text-primary">
+                                  {area.label}
+                                </span>
+                                <span className="text-[12px] text-text-tertiary font-medium capitalize">
+                                  ({area.type})
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-sans text-text-secondary font-bold tabular-nums">
+                                  {area.accuracy}%
+                                </span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${accColor}`} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={() => handleStartSuggestedDrill(drill)}
-                    className="h-8 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-transform cursor-pointer active:scale-95 select-none shrink-0"
-                  >
-                    Start
-                  </button>
+
+                  {/* Mistake Patterns List */}
+                  <div>
+                    <h4 className="text-[13px] font-semibold text-text-secondary mb-3">Frequent Typo Patterns</h4>
+                    {mistakePatterns.length === 0 ? (
+                      <p className="text-xs text-text-tertiary">No typo trends detected yet.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {mistakePatterns.map((pat, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between bg-surface-secondary/55 border border-border/10 rounded-xl px-3.5 py-2"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-danger/90 font-sans">
+                                {pat.expected}
+                              </span>
+                              <span className="text-[12px] text-text-tertiary">→</span>
+                              <span className="text-xs font-bold text-text-secondary font-sans">
+                                {pat.actual}
+                              </span>
+                            </div>
+                            <span className="text-[12px] font-semibold text-text-tertiary">
+                              {pat.count} {pat.count === 1 ? "time" : "times"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom Drill Builder Card */}
-          <div className="bg-surface/50 border border-border/40 rounded-3xl p-5 space-y-4">
-            <span className="text-[10px] font-bold tracking-wider text-accent uppercase font-mono block">
-              Custom Drill Builder
-            </span>
-
-            {/* Target Keys Selection */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold text-text-secondary">Focus Letters</label>
-              <div className="flex flex-wrap gap-1.5">
-                {commonKeysPreset.map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => toggleKey(key)}
-                    className={`h-7 px-3 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer select-none active:scale-95 ${
-                      selectedKeys.includes(key)
-                        ? "bg-accent border-accent text-white"
-                        : "bg-surface-secondary border-border/30 text-text-secondary hover:text-text-primary"
-                    }`}
-                  >
-                    {key.toUpperCase()}
-                  </button>
-                ))}
-              </div>
+              )}
             </div>
 
-            {/* Target Bigrams Selection */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-bold text-text-secondary">Focus Transitions</label>
-              <div className="flex flex-wrap gap-1.5">
-                {commonBigramsPreset.map((bigram) => (
-                  <button
-                    key={bigram}
-                    onClick={() => toggleBigram(bigram)}
-                    className={`h-7 px-3 rounded-full border text-[11px] font-extrabold transition-all cursor-pointer select-none active:scale-95 ${
-                      selectedBigrams.includes(bigram)
-                        ? "bg-accent border-accent text-white"
-                        : "bg-surface-secondary border-border/30 text-text-secondary hover:text-text-primary"
-                    }`}
+            {/* Suggested Drills Card */}
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5">
+              <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-4">
+                Recommended Training Drills
+              </span>
+
+              <div className="space-y-3">
+                {suggestions.map((drill) => (
+                  <div
+                    key={drill.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-surface-secondary/55 border border-border/10 hover:border-accent/30 transition-all duration-200"
                   >
-                    {bigram.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Manual input */}
-            <div className="flex items-center gap-2 max-w-sm">
-              <input
-                type="text"
-                maxLength={2}
-                value={customInput}
-                onChange={(e) => setCustomInput(e.target.value.toLowerCase())}
-                onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
-                placeholder="Custom character or bigram (e.g. th)"
-                className="flex-1 h-8 bg-surface-secondary/80 border border-border/30 rounded-xl px-3 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
-              />
-              <button
-                onClick={handleAddCustom}
-                className="h-8 px-3 rounded-xl border border-border bg-surface-secondary text-text-secondary text-xs font-semibold hover:text-text-primary cursor-pointer active:scale-95 select-none"
-              >
-                Add
-              </button>
-            </div>
-
-            {/* Selected Lists Summary */}
-            {(selectedKeys.length > 0 || selectedBigrams.length > 0) && (
-              <div className="flex items-center gap-2 flex-wrap text-xs text-text-secondary bg-surface-secondary/40 border border-border/10 rounded-2xl p-3">
-                <span className="font-bold">Focus:</span>
-                {selectedKeys.map((k) => (
-                  <span
-                    key={k}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-surface border border-border/35 text-[10px] font-bold text-accent"
-                  >
-                    {k.toUpperCase()}
-                    <button onClick={() => toggleKey(k)} className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold">×</button>
-                  </span>
-                ))}
-                {selectedBigrams.map((b) => (
-                  <span
-                    key={b}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-surface border border-border/35 text-[10px] font-bold text-accent"
-                  >
-                    {b.toUpperCase()}
-                    <button onClick={() => toggleBigram(b)} className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold">×</button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Dynamic Weights Sliders / Control Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border/20 pt-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-text-secondary">
-                  <span>Target WPM</span>
-                  <span className="text-accent font-mono">{targetWpm} WPM</span>
-                </div>
-                <input
-                  type="range"
-                  min={30}
-                  max={120}
-                  step={5}
-                  value={targetWpm}
-                  onChange={(e) => setTargetWpm(Number(e.target.value))}
-                  className="w-full h-1 bg-surface-secondary rounded-lg appearance-none cursor-pointer accent-accent"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-text-secondary">
-                  <span>Target Duration</span>
-                  <span className="text-accent font-mono">
-                    {targetDuration === 30 ? "30 sec" : `${targetDuration / 60} min`}
-                  </span>
-                </div>
-                {/* iOS segment control for duration */}
-                <div className="bg-surface-secondary p-0.5 rounded-xl flex items-center justify-between border border-border/10">
-                  {([30, 60, 120, 180] as const).map((secs) => (
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-xs font-bold text-text-primary tracking-wide">
+                          {drill.title}
+                        </h4>
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-accent/10 text-accent">
+                          {drill.difficulty}
+                        </span>
+                      </div>
+                      <p className="text-[12px] text-text-secondary leading-normal max-w-md">
+                        {drill.description}
+                      </p>
+                    </div>
                     <button
-                      key={secs}
-                      onClick={() => setTargetDuration(secs)}
-                      className={`flex-1 text-[10px] font-bold py-1 rounded-lg transition-all cursor-pointer select-none ${
-                        targetDuration === secs
-                          ? "bg-surface text-accent shadow-sm"
-                          : "text-text-tertiary hover:text-text-secondary"
+                      onClick={() => handleStartSuggestedDrill(drill)}
+                      className="h-8 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all cursor-pointer active:scale-[0.97] select-none shrink-0"
+                    >
+                      Start
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="custom"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15 }}
+          >
+            {/* Custom Drill Builder Card */}
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5 space-y-4">
+              <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-2">
+                Custom Drill Builder
+              </span>
+              <p className="text-xs text-text-secondary leading-normal">
+                Select your focus targets, manually add custom combinations, and set speed parameters.
+              </p>
+
+              {/* Target Bigrams Selection */}
+              <div className="space-y-2">
+                <label className="text-[12px] font-bold text-text-secondary">Focus Transitions</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {commonBigramsPreset.map((bigram) => (
+                    <button
+                      key={bigram}
+                      onClick={() => toggleBigram(bigram)}
+                      className={`h-7 px-3 rounded-full border text-[12px] font-bold transition-all cursor-pointer select-none active:scale-[0.97] ${
+                        selectedBigrams.includes(bigram)
+                          ? "bg-accent border-accent text-white"
+                          : "bg-surface-secondary border-border/30 text-text-secondary hover:text-text-primary"
                       }`}
                     >
-                      {secs === 30 ? "30s" : secs === 60 ? "1m" : secs === 120 ? "2m" : "3m"}
+                      {bigram.toUpperCase()}
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
 
-            <button
-              onClick={handleStartCustomDrill}
-              disabled={selectedKeys.length === 0 && selectedBigrams.length === 0}
-              className="w-full h-11 rounded-2xl bg-accent text-white font-semibold text-xs transition-all active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none font-sans shadow-sm"
-            >
-              Generate & Start Custom Drill
-            </button>
-          </div>
-        </div>
-      </div>
+              {/* Target Keys Virtual Keyboard Selection */}
+              <div className="space-y-2 select-none pt-2">
+                <label className="text-[12px] font-bold text-text-secondary">Focus Letters</label>
+                
+                {/* Virtual Mac Keyboard Container */}
+                <div className="bg-surface-secondary border border-border/10 p-3 sm:p-4 rounded-[12px] max-w-xl mx-auto flex flex-col gap-1 sm:gap-1.5 items-center">
+                  {/* Row 1 */}
+                  <div className="flex gap-1 sm:gap-1.5 w-full justify-center">
+                    {["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"].map((key) => {
+                      const active = selectedKeys.includes(key)
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => toggleKey(key)}
+                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-[6px] text-[12px] sm:text-[14px] font-bold transition-all cursor-pointer select-none active:scale-[0.93] flex items-center justify-center border shadow-[0_1px_2px_rgba(0,0,0,0.06)] ${
+                            active
+                              ? "bg-accent border-accent text-white shadow-[0_1px_2px_rgba(10,132,255,0.2)]"
+                              : "bg-surface border-border/30 text-text-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          {key.toUpperCase()}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Row 2 */}
+                  <div className="flex gap-1 sm:gap-1.5 w-full justify-center pl-3 sm:pl-4">
+                    {["a", "s", "d", "f", "g", "h", "j", "k", "l"].map((key) => {
+                      const active = selectedKeys.includes(key)
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => toggleKey(key)}
+                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-[6px] text-[12px] sm:text-[14px] font-bold transition-all cursor-pointer select-none active:scale-[0.93] flex items-center justify-center border shadow-[0_1px_2px_rgba(0,0,0,0.06)] ${
+                            active
+                              ? "bg-accent border-accent text-white shadow-[0_1px_2px_rgba(10,132,255,0.2)]"
+                              : "bg-surface border-border/30 text-text-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          {key.toUpperCase()}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Row 3 */}
+                  <div className="flex gap-1 sm:gap-1.5 w-full justify-center pl-7 sm:pl-9">
+                    {["z", "x", "c", "v", "b", "n", "m"].map((key) => {
+                      const active = selectedKeys.includes(key)
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => toggleKey(key)}
+                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-[6px] text-[12px] sm:text-[14px] font-bold transition-all cursor-pointer select-none active:scale-[0.93] flex items-center justify-center border shadow-[0_1px_2px_rgba(0,0,0,0.06)] ${
+                            active
+                              ? "bg-accent border-accent text-white shadow-[0_1px_2px_rgba(10,132,255,0.2)]"
+                              : "bg-surface border-border/30 text-text-secondary hover:text-text-primary"
+                          }`}
+                        >
+                          {key.toUpperCase()}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Manual input */}
+              <div className="flex items-center gap-2 max-w-sm pt-2">
+                <input
+                  type="text"
+                  maxLength={2}
+                  value={customInput}
+                  onChange={(e) => setCustomInput(e.target.value.toLowerCase())}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
+                  placeholder="Custom character or bigram (e.g. th)"
+                  className="flex-1 h-8 bg-surface-secondary/80 border border-border/30 rounded-xl px-3 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+                />
+                <button
+                  onClick={handleAddCustom}
+                  className="h-8 px-3 rounded-xl border border-border bg-surface-secondary text-text-secondary text-xs font-semibold hover:text-text-primary cursor-pointer active:scale-[0.97] select-none"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Selected Lists Summary */}
+              {(selectedKeys.length > 0 || selectedBigrams.length > 0) && (
+                <div className="flex items-center gap-2 flex-wrap text-xs text-text-secondary bg-surface-secondary/55 border border-border/10 rounded-2xl p-3">
+                  <span className="font-bold">Active Targets:</span>
+                  {selectedKeys.map((k) => (
+                    <span
+                      key={k}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-surface border border-border/35 text-[12px] font-bold text-accent"
+                    >
+                      {k.toUpperCase()}
+                      <button onClick={() => toggleKey(k)} className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold">×</button>
+                    </span>
+                  ))}
+                  {selectedBigrams.map((b) => (
+                    <span
+                      key={b}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-surface border border-border/35 text-[12px] font-bold text-accent"
+                    >
+                      {b.toUpperCase()}
+                      <button onClick={() => toggleBigram(b)} className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Dynamic Weights Sliders / Control Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-border/20 pt-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[12px] font-bold text-text-secondary">
+                    <span>Target Speed Limit</span>
+                    <span className="text-accent font-sans font-bold tabular-nums">{targetWpm} WPM</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={30}
+                    max={120}
+                    step={5}
+                    value={targetWpm}
+                    onChange={(e) => setTargetWpm(Number(e.target.value))}
+                    className="w-full h-1 bg-surface-secondary rounded-lg appearance-none cursor-pointer accent-accent"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[12px] font-bold text-text-secondary">
+                    <span>Target Duration</span>
+                    <span className="text-accent font-sans font-bold tabular-nums">
+                      {targetDuration === 30 ? "30 sec" : `${targetDuration / 60} min`}
+                    </span>
+                  </div>
+                  {/* iOS segment control for duration */}
+                  <div className="bg-surface-secondary p-0.5 rounded-xl flex items-center justify-between border border-border/10">
+                    {([30, 60, 120, 180] as const).map((secs) => (
+                      <button
+                        key={secs}
+                        onClick={() => setTargetDuration(secs)}
+                        className={`flex-1 text-[12px] font-bold py-1 rounded-lg transition-all cursor-pointer select-none active:scale-[0.97] ${
+                          targetDuration === secs
+                            ? "bg-surface text-accent shadow-sm"
+                            : "text-text-tertiary hover:text-text-secondary"
+                        }`}
+                      >
+                        {secs === 30 ? "30s" : secs === 60 ? "1m" : secs === 120 ? "2m" : "3m"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleStartCustomDrill}
+                disabled={selectedKeys.length === 0 && selectedBigrams.length === 0}
+                className="w-full h-11 rounded-2xl bg-accent text-white font-semibold text-xs transition-all active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none font-sans shadow-sm"
+              >
+                Generate & Start Custom Drill
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

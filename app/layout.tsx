@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter, Lora, JetBrains_Mono } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import Logo from "@/components/ui/Logo"
 import ThemeToggle from "@/components/ui/ThemeToggle"
@@ -8,7 +8,6 @@ import Link from "next/link"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const lora = Lora({ subsets: ["latin"], variable: "--font-lora" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
@@ -24,7 +23,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${lora.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text-primary transition-colors duration-150">
         <ThemeProvider>

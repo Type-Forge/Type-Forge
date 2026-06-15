@@ -204,7 +204,7 @@ export default function BattleView() {
             </span>
             <button
               onClick={handleRestart}
-              className="text-xs font-medium text-text-tertiary hover:text-text-primary transition-colors cursor-pointer"
+              className="text-xs font-medium text-text-tertiary hover:text-text-primary transition-all duration-150 active:scale-[0.97] cursor-pointer"
             >
               Restart race
             </button>
@@ -213,13 +213,13 @@ export default function BattleView() {
           {/* Tracks grid */}
           <div className="flex flex-col gap-4 mb-8">
             <BattleTrack
-              label="you"
+              label="You"
               progress={playerProgress}
               wpm={wpm}
               isPlayer={true}
             />
             <BattleTrack
-              label="enigma machine"
+              label="Enigma Machine"
               progress={aiProgress}
               wpm={battleConfig.aiWpm}
               isPlayer={false}
@@ -237,45 +237,6 @@ export default function BattleView() {
                 mode="battle"
               />
             </>
-          )}
-
-          {/* 4. Post-race Results */}
-          {battleStatus === "finished" && (
-            <div className="text-center py-10 border-t border-border mt-8 font-sans">
-              <span className="block text-xs font-semibold text-text-tertiary mb-2">
-                Decryption complete
-              </span>
-              <h3
-                className={`text-3xl font-heading font-bold mb-3 ${
-                  winner === "player" ? "text-correct" : "text-incorrect"
-                }`}
-              >
-                {winner === "player" ? "Decryption successful" : "Rotor lockout"}
-              </h3>
-              <p className="text-xs text-text-secondary mb-8 leading-relaxed max-w-sm mx-auto">
-                {winner === "player"
-                  ? `Decrypted the code grid before the Enigma rotors fully synced at ${battleConfig.aiWpm} WPM.`
-                  : `Enigma machine resolved encryption values first. Rotor synchronization locked you out.`}
-              </p>
-              <div className="flex gap-4 justify-center">
-                <button
-                  onClick={handleRestart}
-                  className="px-6 py-2 rounded-lg bg-text-primary text-bg hover:opacity-90 font-semibold text-xs transition-transform active:scale-[0.97] duration-150 cursor-pointer shadow-sm"
-                >
-                  Race again
-                </button>
-                <Link
-                  href="/"
-                  onClick={() => {
-                    resetBattle()
-                    initSession({ mode: "words", wordCount: 25 })
-                  }}
-                  className="px-6 py-2 rounded-lg border border-border bg-transparent text-text-secondary hover:text-text-primary font-semibold text-xs transition-[transform,colors] active:scale-[0.97] duration-150 cursor-pointer"
-                >
-                  Return home
-                </Link>
-              </div>
-            </div>
           )}
         </div>
       )}

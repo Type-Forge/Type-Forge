@@ -29,7 +29,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="w-8 h-8 flex items-center justify-center rounded-lg bg-transparent
                  text-text-muted hover:text-text-secondary hover:bg-surface-hover
-                 transition-colors duration-150 active:scale-[0.95] cursor-pointer focus:outline-none"
+                 transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
       aria-label="Toggle theme"
     >
       <motion.div

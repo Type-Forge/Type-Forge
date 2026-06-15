@@ -55,93 +55,59 @@ export default function StatsHistory() {
         </span>
         <button
           onClick={clearHistory}
-          className="text-xs font-medium text-text-tertiary hover:text-incorrect transition-colors duration-150 cursor-pointer"
+          className="text-xs font-medium text-text-tertiary hover:text-incorrect transition-colors duration-150 cursor-pointer active:scale-[0.97]"
         >
           Clear log
         </button>
       </div>
 
-      {/* Bento-like card feed stack */}
-      <div className="flex flex-col gap-3">
+      {/* iOS Grouped List for Session History */}
+      <div className="bg-surface-secondary/40 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden">
         {visibleHistory.map((session) => {
           const isWordsMode = session.config.mode === "words"
           const isBattleMode = session.config.mode === "battle"
+          const isDrillMode = session.config.mode === "drill"
           
           return (
-            <div 
+            <button 
               key={session.id} 
               onClick={() => setSelectedSession(session)}
-              className="relative flex items-center justify-between p-4 rounded-2xl transition-all duration-200 group cursor-pointer active:scale-[0.99] overflow-hidden"
+              className="w-full flex items-center justify-between px-4 py-3.5 transition-all duration-150 active:scale-[0.97] active:bg-surface-hover/55 cursor-pointer text-left focus:outline-none"
             >
-              {/* Layout morphing background card */}
-              <motion.div
-                layoutId={`session-bg-${session.id}`}
-                className="absolute inset-0 bg-surface border border-border rounded-2xl -z-10 group-hover:bg-surface-secondary transition-colors duration-200"
-              />
-              {/* Event descriptive info with custom tag icons */}
-              <div className="flex items-center gap-4">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center border ${
-                  isBattleMode
-                    ? "bg-incorrect/5 border-incorrect/20 text-incorrect"
-                    : isWordsMode 
-                      ? "bg-accent/5 border-accent/20 text-accent" 
-                      : "bg-text-primary/5 border-text-primary/10 text-text-primary"
-                }`}>
-                  {isBattleMode ? (
-                    // Lightning bolt icon for battle mode
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  ) : isWordsMode ? (
-                    // Document icon for words mode
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  ) : (
-                    // Clock icon for timed mode
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  )}
-                </div>
-
+              {/* Event descriptive info */}
+              <div className="flex items-center gap-3">
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-text-primary tracking-tight font-sans">
+                  <span className="text-[15px] font-semibold text-text-primary tracking-tight font-sans">
                     {isBattleMode 
                       ? `Battle (${session.config.difficulty})` 
                       : isWordsMode 
                         ? `${session.config.wordCount} words` 
-                        : `${session.config.duration}s timed`}
+                        : isDrillMode
+                          ? `Drill (${session.config.difficulty})`
+                          : `${session.config.duration}s timed`}
                   </span>
-                  <span className="text-[11px] text-text-muted mt-0.5 font-sans">
+                  <span className="text-[12px] text-text-tertiary mt-0.5 font-sans">
                     {formatDate(session.timestamp)}
                   </span>
                 </div>
               </div>
 
               {/* Event speed & accuracy metrics */}
-              <div className="flex items-center gap-5">
-                <div className="text-right">
-                  <span className="font-mono text-xl font-extrabold text-accent leading-none">
-                    {session.wpm}
+              <div className="flex items-center gap-3">
+                <div className="text-right flex flex-col items-end">
+                  <span className="text-[16px] font-bold text-accent leading-none font-sans tabular-nums">
+                    {session.wpm} <span className="text-[12px] font-medium text-text-tertiary uppercase tracking-wide">WPM</span>
                   </span>
-                  <span className="text-[10px] text-text-muted font-sans font-medium ml-1">
-                    WPM
-                  </span>
-                </div>
-
-                <div className="h-6 w-[1px] bg-border/40" />
-
-                <div className="text-right min-w-[55px]">
-                  <span className="font-mono text-sm font-semibold text-text-secondary leading-none">
-                    {session.accuracy}%
-                  </span>
-                  <span className="text-[10px] text-text-muted block font-sans font-medium mt-0.5">
-                    Accuracy
+                  <span className="text-[12px] text-text-secondary font-sans mt-0.5 font-medium tabular-nums">
+                    {session.accuracy}% acc
                   </span>
                 </div>
+                {/* Chevron icon indicating tap action */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-text-tertiary/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
@@ -150,9 +116,9 @@ export default function StatsHistory() {
         <div className="text-center mt-8 pt-4 border-t border-border/40">
           <button
             onClick={() => setLimit((prev) => prev + 5)}
-            className="h-10 px-6 rounded-xl border border-border/40 text-[10px] font-bold uppercase tracking-widest text-text-secondary hover:text-text-primary bg-surface/10 hover:bg-surface-hover/80 cursor-pointer transition-[colors,background-color] duration-150"
+            className="h-10 px-6 rounded-2xl border border-border bg-surface-secondary/40 text-[14px] font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-secondary/80 cursor-pointer transition-all duration-150 active:scale-[0.97]"
           >
-            show more logs
+            Show more
           </button>
         </div>
       )}
@@ -171,29 +137,23 @@ export default function StatsHistory() {
               onClick={() => setSelectedSession(null)}
             />
 
-            {/* Modal Box Container (without layoutId so inner text isn't warped) */}
-            <div
-              className="relative w-full max-w-sm p-6 flex flex-col z-10"
-            >
-              {/* Animated morphing background element */}
-              <motion.div
-                layoutId={`session-bg-${selectedSession.id}`}
-                transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                className="absolute inset-0 bg-surface border border-border rounded-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] -z-10"
-              />
+            {/* Modal Box Container */}
+            <div className="relative w-full max-w-sm p-6 flex flex-col z-10">
+              {/* Modal background element */}
+              <div className="absolute inset-0 bg-surface border border-border rounded-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] -z-10" />
 
-              {/* Fade in content to avoid visual distortion during shared layout expand */}
+              {/* Content */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2, delay: 0.05 }}
+                transition={{ duration: 0.2 }}
                 className="flex flex-col w-full relative z-10"
               >
                 {/* Close Button */}
                 <button
                   onClick={() => setSelectedSession(null)}
-                  className="absolute top-4 right-4 w-7 h-7 rounded-full bg-surface-secondary/80 hover:bg-surface-secondary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors active:scale-95 cursor-pointer focus:outline-none"
+                  className="absolute top-4 right-4 w-7 h-7 rounded-full bg-surface-secondary/80 hover:bg-surface-secondary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors active:scale-[0.97] cursor-pointer focus:outline-none"
                   aria-label="Close"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -206,70 +166,52 @@ export default function StatsHistory() {
                   <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1">
                     Decryption summary
                   </span>
-                  <h3 className="text-lg font-heading font-extrabold text-text-primary">
+                  <h3 className="text-lg font-sans font-bold text-text-primary">
                     {selectedSession.config.mode === "words" 
                       ? `${selectedSession.config.wordCount} words` 
                       : selectedSession.config.mode === "battle"
                         ? `Battle (${selectedSession.config.difficulty})`
-                        : `${selectedSession.config.duration}s timed`}
+                        : selectedSession.config.mode === "drill"
+                          ? `Drill (${selectedSession.config.difficulty})`
+                          : `${selectedSession.config.duration}s timed`}
                   </h3>
                   <span className="text-[11px] text-text-muted font-sans mt-0.5 block">
                     {formatDate(selectedSession.timestamp)}
                   </span>
                 </div>
 
-                {/* Stats Bento Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  {/* WPM Card */}
-                  <div className="bg-surface-secondary/40 border border-border/30 p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl font-mono font-extrabold text-accent leading-none">
-                      {selectedSession.wpm}
-                    </span>
-                    <span className="text-[10px] tracking-wide font-medium text-text-secondary mt-2">
-                      WPM speed
-                    </span>
+                {/* Stats Grouped List */}
+                <div className="w-full mb-6 bg-surface-secondary/40 border border-border/10 divide-y divide-border/10 rounded-2xl overflow-hidden font-sans">
+                  {/* WPM Row */}
+                  <div className="flex justify-between items-center px-4 py-3.5 text-[15px]">
+                    <span className="text-text-secondary font-medium">Speed</span>
+                    <span className="font-bold text-accent tabular-nums">{selectedSession.wpm} WPM</span>
                   </div>
-
-                  {/* Accuracy Card */}
-                  <div className="bg-surface-secondary/40 border border-border/30 p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
-                    <span className="text-3xl font-mono font-extrabold text-text-primary leading-none">
-                      {selectedSession.accuracy}%
-                    </span>
-                    <span className="text-[10px] tracking-wide font-medium text-text-secondary mt-2">
-                      Accuracy
-                    </span>
+                  {/* Accuracy Row */}
+                  <div className="flex justify-between items-center px-4 py-3.5 text-[15px]">
+                    <span className="text-text-secondary font-medium">Accuracy</span>
+                    <span className="font-semibold text-text-primary tabular-nums">{selectedSession.accuracy}%</span>
                   </div>
-
-                  {/* Duration Card */}
-                  <div className="bg-surface-secondary/40 border border-border/30 p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-mono font-bold text-text-primary leading-none">
-                      {selectedSession.duration.toFixed(1)}s
-                    </span>
-                    <span className="text-[10px] tracking-wide font-medium text-text-secondary mt-2.5">
-                      Time taken
-                    </span>
+                  {/* Time taken Row */}
+                  <div className="flex justify-between items-center px-4 py-3.5 text-[15px]">
+                    <span className="text-text-secondary font-medium">Time Taken</span>
+                    <span className="font-semibold text-text-primary tabular-nums">{selectedSession.duration.toFixed(1)}s</span>
                   </div>
-
-                  {/* Keystrokes Card */}
-                  <div className="bg-surface-secondary/40 border border-border/30 p-4 rounded-[20px] flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-mono font-bold text-text-primary leading-none">
-                      {selectedSession.correctKeystrokes}/{selectedSession.totalKeystrokes}
-                    </span>
-                    <span className="text-[10px] tracking-wide font-medium text-text-secondary mt-2.5">
-                      Keystrokes
-                    </span>
+                  {/* Keystrokes Row */}
+                  <div className="flex justify-between items-center px-4 py-3.5 text-[15px]">
+                    <span className="text-text-secondary font-medium">Keystrokes</span>
+                    <span className="font-semibold text-text-primary tabular-nums">{selectedSession.correctKeystrokes} / {selectedSession.totalKeystrokes}</span>
                   </div>
                 </div>
 
-                {/* Extra Info Details */}
-                <div className="bg-surface-secondary/30 rounded-[18px] p-3 text-xs text-text-secondary leading-relaxed mb-6 flex flex-col gap-1.5 border border-border/10 font-sans">
-                  <div className="flex justify-between">
-                    <span className="text-text-muted">Words decrypted</span>
+                {/* Metadata Grouped List */}
+                <div className="w-full mb-6 bg-surface-secondary/35 border border-border/10 divide-y divide-border/10 rounded-2xl overflow-hidden font-sans">
+                  <div className="flex justify-between items-center px-4 py-3 text-[14px]">
+                    <span className="text-text-tertiary">Words decrypted</span>
                     <span className="font-semibold text-text-primary">{selectedSession.wordsCompleted}</span>
                   </div>
-                  <div className="h-[1px] bg-border/20 w-full" />
-                  <div className="flex justify-between">
-                    <span className="text-text-muted">Keystroke errors</span>
+                  <div className="flex justify-between items-center px-4 py-3 text-[14px]">
+                    <span className="text-text-tertiary">Keystroke errors</span>
                     <span className="font-semibold text-incorrect">{selectedSession.incorrectKeystrokes}</span>
                   </div>
                 </div>
@@ -277,9 +219,9 @@ export default function StatsHistory() {
                 {/* Primary Dismiss Button */}
                 <button
                   onClick={() => setSelectedSession(null)}
-                  className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 text-white font-sans text-xs font-bold uppercase tracking-widest transition-transform duration-150 active:scale-[0.98] cursor-pointer focus:outline-none shadow-sm"
+                  className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 text-white font-sans text-[15px] font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm"
                 >
-                  done
+                  Done
                 </button>
               </motion.div>
             </div>
