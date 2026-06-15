@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react"
 import { useDrillStore } from "@/stores/drill-store"
 import { useTypingStore } from "@/stores/typing-store"
 import { calculateKeyWeakness, calculateBigramWeakness, getSuggestedDrills } from "@/engine/drill-engine"
+import KeyboardBody from "@/components/keyboard/KeyboardBody"
+import { playClickSound } from "@/lib/audio"
 
 interface DrillDashboardProps {
   onStartDrill: () => void
@@ -25,7 +27,6 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
   const [customInput, setCustomInput] = useState("")
 
   // Quick select presets
-  const commonKeysPreset = ["q", "z", "x", "c", "p"]
   const commonBigramsPreset = ["th", "he", "in", "er", "an", "ie", "ei"]
 
   // --- Calculate Focus Areas (Apple style) ---
@@ -37,6 +38,11 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
       weakness: number
     }> = []
 
+    const totalIncorrectAllKeys = Object.values(keyStats).reduce(
+      (sum, s) => sum + s.totalIncorrect,
+      0
+    )
+
     // 1. Process keys
     Object.values(keyStats).forEach((stats) => {
       if (stats.totalAttempts > 0) {
@@ -44,7 +50,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
           type: "key",
           label: stats.key.toUpperCase(),
           accuracy: Math.round((stats.totalCorrect / stats.totalAttempts) * 100),
-          weakness: calculateKeyWeakness(stats),
+          weakness: calculateKeyWeakness(stats, totalIncorrectAllKeys),
         })
       }
     })
@@ -145,7 +151,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto py-4 animate-fade-in font-sans">
+    <div className="max-w-2xl mx-auto w-full py-4 animate-fade-in font-sans space-y-6">
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/20 pb-4">
         <div>
@@ -157,6 +163,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
         {(focusAreas.length > 0 || mistakePatterns.length > 0) && (
           <button
             onClick={() => {
+              playClickSound("click")
               if (confirm("Are you sure you want to clear your typing weakness profile?")) {
                 resetStats()
               }
@@ -172,7 +179,10 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
       <div className="flex justify-center my-4 select-none">
         <div className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10 relative">
           <button
-            onClick={() => setActiveTab("adaptive")}
+            onClick={() => {
+              playClickSound("click")
+              setActiveTab("adaptive")
+            }}
             className={`text-[13px] font-semibold px-4 py-1.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer ${
               activeTab === "adaptive"
                 ? "text-text-primary bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
@@ -182,7 +192,10 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             Intelligent Trainer
           </button>
           <button
-            onClick={() => setActiveTab("custom")}
+            onClick={() => {
+              playClickSound("click")
+              setActiveTab("custom")
+            }}
             className={`text-[13px] font-semibold px-4 py-1.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer ${
               activeTab === "custom"
                 ? "text-text-primary bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
@@ -203,7 +216,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="space-y-6"
+            className="space-y-6 w-full"
           >
             {/* Typing Profile Analysis Card */}
             <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5">
@@ -224,38 +237,35 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Focus Areas List */}
                   <div>
-                    <h4 className="text-[13px] font-semibold text-text-secondary mb-3">Slowest Keys / Transitions</h4>
+                    <h4 className="text-[13px] font-bold text-text-secondary uppercase tracking-wider mb-3">Slowest Keys / Transitions</h4>
                     {focusAreas.length === 0 ? (
                       <p className="text-xs text-text-tertiary">No weak keys detected yet.</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="divide-y divide-border/10 rounded-xl bg-surface-secondary/50 border border-border/10 overflow-hidden">
                         {focusAreas.map((area, idx) => {
                           const accColor =
                             area.accuracy >= 90
-                              ? "bg-success"
+                              ? "text-success"
                               : area.accuracy >= 80
-                              ? "bg-amber-500"
-                              : "bg-danger"
+                              ? "text-amber-500"
+                              : "text-danger"
 
                           return (
                             <div
                               key={idx}
-                              className="flex items-center justify-between bg-surface-secondary/55 border border-border/10 rounded-xl px-3.5 py-2"
+                              className="flex items-center justify-between px-4 py-3 text-[14px]"
                             >
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold text-text-primary">
                                   {area.label}
                                 </span>
-                                <span className="text-[12px] text-text-tertiary font-medium capitalize">
+                                <span className="text-[11px] text-text-tertiary font-medium capitalize">
                                   ({area.type})
                                 </span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs font-sans text-text-secondary font-bold tabular-nums">
-                                  {area.accuracy}%
-                                </span>
-                                <span className={`w-1.5 h-1.5 rounded-full ${accColor}`} />
-                              </div>
+                              <span className={`text-xs font-sans font-bold tabular-nums ${accColor}`}>
+                                {area.accuracy}%
+                              </span>
                             </div>
                           )
                         })}
@@ -265,15 +275,15 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
 
                   {/* Mistake Patterns List */}
                   <div>
-                    <h4 className="text-[13px] font-semibold text-text-secondary mb-3">Frequent Typo Patterns</h4>
+                    <h4 className="text-[13px] font-bold text-text-secondary uppercase tracking-wider mb-3">Frequent Typo Patterns</h4>
                     {mistakePatterns.length === 0 ? (
                       <p className="text-xs text-text-tertiary">No typo trends detected yet.</p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="divide-y divide-border/10 rounded-xl bg-surface-secondary/50 border border-border/10 overflow-hidden">
                         {mistakePatterns.map((pat, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between bg-surface-secondary/55 border border-border/10 rounded-xl px-3.5 py-2"
+                            className="flex items-center justify-between px-4 py-3 text-[14px]"
                           >
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-bold text-danger/90 font-sans">
@@ -302,11 +312,11 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                 Recommended Training Drills
               </span>
 
-              <div className="space-y-3">
+              <div className="divide-y divide-border/10 rounded-2xl bg-surface-secondary/50 border border-border/10 overflow-hidden">
                 {suggestions.map((drill) => (
                   <div
                     key={drill.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-surface-secondary/55 border border-border/10 hover:border-accent/30 transition-all duration-200"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 hover:bg-surface-hover/30 transition-all duration-150"
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -322,7 +332,10 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                       </p>
                     </div>
                     <button
-                      onClick={() => handleStartSuggestedDrill(drill)}
+                      onClick={() => {
+                        playClickSound("click")
+                        handleStartSuggestedDrill(drill)
+                      }}
                       className="h-8 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all cursor-pointer active:scale-[0.97] select-none shrink-0"
                     >
                       Start
@@ -339,200 +352,177 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
+            className="space-y-6 w-full"
           >
-            {/* Custom Drill Builder Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5 space-y-4">
-              <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-2">
-                Custom Drill Builder
-              </span>
-              <p className="text-xs text-text-secondary leading-normal">
-                Select your focus targets, manually add custom combinations, and set speed parameters.
-              </p>
-
-              {/* Target Bigrams Selection */}
-              <div className="space-y-2">
-                <label className="text-[12px] font-bold text-text-secondary">Focus Transitions</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {commonBigramsPreset.map((bigram) => (
-                    <button
-                      key={bigram}
-                      onClick={() => toggleBigram(bigram)}
-                      className={`h-7 px-3 rounded-full border text-[12px] font-bold transition-all cursor-pointer select-none active:scale-[0.97] ${
-                        selectedBigrams.includes(bigram)
-                          ? "bg-accent border-accent text-white"
-                          : "bg-surface-secondary border-border/30 text-text-secondary hover:text-text-primary"
-                      }`}
-                    >
-                      {bigram.toUpperCase()}
-                    </button>
-                  ))}
+            {/* Custom Drill Builder Settings Card */}
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5 space-y-5">
+                <div>
+                  <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-2">
+                    Custom Drill Builder
+                  </span>
+                  <p className="text-xs text-text-secondary leading-normal">
+                    Select your focus targets, manually add custom combinations, and set speed parameters.
+                  </p>
                 </div>
-              </div>
 
-              {/* Target Keys Virtual Keyboard Selection */}
-              <div className="space-y-2 select-none pt-2">
-                <label className="text-[12px] font-bold text-text-secondary">Focus Letters</label>
-                
-                {/* Virtual Mac Keyboard Container */}
-                <div className="bg-surface-secondary border border-border/10 p-3 sm:p-4 rounded-[12px] max-w-xl mx-auto flex flex-col gap-1 sm:gap-1.5 items-center">
-                  {/* Row 1 */}
-                  <div className="flex gap-1 sm:gap-1.5 w-full justify-center">
-                    {["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"].map((key) => {
-                      const active = selectedKeys.includes(key)
-                      return (
-                        <button
-                          key={key}
-                          onClick={() => toggleKey(key)}
-                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-[6px] text-[12px] sm:text-[14px] font-bold transition-all cursor-pointer select-none active:scale-[0.93] flex items-center justify-center border shadow-[0_1px_2px_rgba(0,0,0,0.06)] ${
-                            active
-                              ? "bg-accent border-accent text-white shadow-[0_1px_2px_rgba(10,132,255,0.2)]"
-                              : "bg-surface border-border/30 text-text-secondary hover:text-text-primary"
-                          }`}
-                        >
-                          {key.toUpperCase()}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Row 2 */}
-                  <div className="flex gap-1 sm:gap-1.5 w-full justify-center pl-3 sm:pl-4">
-                    {["a", "s", "d", "f", "g", "h", "j", "k", "l"].map((key) => {
-                      const active = selectedKeys.includes(key)
-                      return (
-                        <button
-                          key={key}
-                          onClick={() => toggleKey(key)}
-                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-[6px] text-[12px] sm:text-[14px] font-bold transition-all cursor-pointer select-none active:scale-[0.93] flex items-center justify-center border shadow-[0_1px_2px_rgba(0,0,0,0.06)] ${
-                            active
-                              ? "bg-accent border-accent text-white shadow-[0_1px_2px_rgba(10,132,255,0.2)]"
-                              : "bg-surface border-border/30 text-text-secondary hover:text-text-primary"
-                          }`}
-                        >
-                          {key.toUpperCase()}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Row 3 */}
-                  <div className="flex gap-1 sm:gap-1.5 w-full justify-center pl-7 sm:pl-9">
-                    {["z", "x", "c", "v", "b", "n", "m"].map((key) => {
-                      const active = selectedKeys.includes(key)
-                      return (
-                        <button
-                          key={key}
-                          onClick={() => toggleKey(key)}
-                          className={`w-7 h-7 sm:w-9 sm:h-9 rounded-[6px] text-[12px] sm:text-[14px] font-bold transition-all cursor-pointer select-none active:scale-[0.93] flex items-center justify-center border shadow-[0_1px_2px_rgba(0,0,0,0.06)] ${
-                            active
-                              ? "bg-accent border-accent text-white shadow-[0_1px_2px_rgba(10,132,255,0.2)]"
-                              : "bg-surface border-border/30 text-text-secondary hover:text-text-primary"
-                          }`}
-                        >
-                          {key.toUpperCase()}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Manual input */}
-              <div className="flex items-center gap-2 max-w-sm pt-2">
-                <input
-                  type="text"
-                  maxLength={2}
-                  value={customInput}
-                  onChange={(e) => setCustomInput(e.target.value.toLowerCase())}
-                  onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
-                  placeholder="Custom character or bigram (e.g. th)"
-                  className="flex-1 h-8 bg-surface-secondary/80 border border-border/30 rounded-xl px-3 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
-                />
-                <button
-                  onClick={handleAddCustom}
-                  className="h-8 px-3 rounded-xl border border-border bg-surface-secondary text-text-secondary text-xs font-semibold hover:text-text-primary cursor-pointer active:scale-[0.97] select-none"
-                >
-                  Add
-                </button>
-              </div>
-
-              {/* Selected Lists Summary */}
-              {(selectedKeys.length > 0 || selectedBigrams.length > 0) && (
-                <div className="flex items-center gap-2 flex-wrap text-xs text-text-secondary bg-surface-secondary/55 border border-border/10 rounded-2xl p-3">
-                  <span className="font-bold">Active Targets:</span>
-                  {selectedKeys.map((k) => (
-                    <span
-                      key={k}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-surface border border-border/35 text-[12px] font-bold text-accent"
-                    >
-                      {k.toUpperCase()}
-                      <button onClick={() => toggleKey(k)} className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold">×</button>
-                    </span>
-                  ))}
-                  {selectedBigrams.map((b) => (
-                    <span
-                      key={b}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-surface border border-border/35 text-[12px] font-bold text-accent"
-                    >
-                      {b.toUpperCase()}
-                      <button onClick={() => toggleBigram(b)} className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold">×</button>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Dynamic Weights Sliders / Control Inputs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-border/20 pt-4">
+                {/* Target Bigrams Selection */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[12px] font-bold text-text-secondary">
-                    <span>Target Speed Limit</span>
-                    <span className="text-accent font-sans font-bold tabular-nums">{targetWpm} WPM</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={30}
-                    max={120}
-                    step={5}
-                    value={targetWpm}
-                    onChange={(e) => setTargetWpm(Number(e.target.value))}
-                    className="w-full h-1 bg-surface-secondary rounded-lg appearance-none cursor-pointer accent-accent"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[12px] font-bold text-text-secondary">
-                    <span>Target Duration</span>
-                    <span className="text-accent font-sans font-bold tabular-nums">
-                      {targetDuration === 30 ? "30 sec" : `${targetDuration / 60} min`}
-                    </span>
-                  </div>
-                  {/* iOS segment control for duration */}
-                  <div className="bg-surface-secondary p-0.5 rounded-xl flex items-center justify-between border border-border/10">
-                    {([30, 60, 120, 180] as const).map((secs) => (
+                  <label className="text-[12px] font-bold uppercase tracking-wider text-text-secondary">Focus Transitions</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {commonBigramsPreset.map((bigram) => (
                       <button
-                        key={secs}
-                        onClick={() => setTargetDuration(secs)}
-                        className={`flex-1 text-[12px] font-bold py-1 rounded-lg transition-all cursor-pointer select-none active:scale-[0.97] ${
-                          targetDuration === secs
-                            ? "bg-surface text-accent shadow-sm"
-                            : "text-text-tertiary hover:text-text-secondary"
+                        key={bigram}
+                        onClick={() => {
+                          playClickSound("click")
+                          toggleBigram(bigram)
+                        }}
+                        className={`h-7 px-3 rounded-full border text-[12px] font-bold transition-all cursor-pointer select-none active:scale-[0.97] ${
+                          selectedBigrams.includes(bigram)
+                            ? "bg-accent border-accent text-white"
+                            : "bg-surface-secondary border-border/30 text-text-secondary hover:text-text-primary"
                         }`}
                       >
-                        {secs === 30 ? "30s" : secs === 60 ? "1m" : secs === 120 ? "2m" : "3m"}
+                        {bigram.toUpperCase()}
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {/* Manual input */}
+                <div className="space-y-2 border-t border-border/10 pt-4">
+                  <label className="text-[12px] font-bold uppercase tracking-wider text-text-secondary block">Custom Target</label>
+                  <div className="flex items-center gap-2 max-w-sm">
+                    <input
+                      type="text"
+                      maxLength={2}
+                      value={customInput}
+                      onChange={(e) => setCustomInput(e.target.value.toLowerCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          playClickSound("click")
+                          handleAddCustom()
+                        }
+                      }}
+                      placeholder="Custom character or bigram (e.g. th)"
+                      className="flex-1 h-8 bg-surface-secondary/80 border border-border/30 rounded-xl px-3 text-xs text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent"
+                    />
+                    <button
+                      onClick={() => {
+                        playClickSound("click")
+                        handleAddCustom()
+                      }}
+                      className="h-8 px-3 rounded-xl border border-border bg-surface-secondary text-text-secondary text-xs font-semibold hover:text-text-primary cursor-pointer active:scale-[0.97] select-none"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Selected Lists Summary */}
+                {(selectedKeys.length > 0 || selectedBigrams.length > 0) && (
+                  <div className="flex items-center gap-2 flex-wrap text-xs text-text-secondary bg-surface-secondary/50 border border-border/10 rounded-2xl p-3">
+                    <span className="font-bold">Active Targets:</span>
+                    {selectedKeys.map((k) => (
+                      <span
+                        key={k}
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-surface border border-border/35 text-[12px] font-bold text-accent"
+                      >
+                        {k.toUpperCase()}
+                        <button
+                          onClick={() => {
+                            playClickSound("click")
+                            toggleKey(k)
+                          }}
+                          className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                    {selectedBigrams.map((b) => (
+                      <span
+                        key={b}
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-surface border border-border/35 text-[12px] font-bold text-accent"
+                      >
+                        {b.toUpperCase()}
+                        <button
+                          onClick={() => {
+                            playClickSound("click")
+                            toggleBigram(b)
+                          }}
+                          className="text-text-tertiary hover:text-danger ml-0.5 cursor-pointer font-bold"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Dynamic Weights Sliders / Control Inputs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 border-t border-border/20 pt-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                      <span>Target Speed Limit</span>
+                      <span className="text-accent font-sans font-bold tabular-nums">{targetWpm} WPM</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={30}
+                      max={120}
+                      step={5}
+                      value={targetWpm}
+                      onChange={(e) => setTargetWpm(Number(e.target.value))}
+                      className="w-full h-1 bg-surface-secondary rounded-lg appearance-none cursor-pointer accent-accent"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                      <span>Target Duration</span>
+                      <span className="text-accent font-sans font-bold tabular-nums">
+                        {targetDuration === 30 ? "30 sec" : `${targetDuration / 60} min`}
+                      </span>
+                    </div>
+                    {/* iOS segment control for duration */}
+                    <div className="bg-surface-secondary p-0.5 rounded-xl flex items-center justify-between border border-border/10">
+                      {([30, 60, 120, 180] as const).map((secs) => (
+                        <button
+                          key={secs}
+                          onClick={() => {
+                            playClickSound("click")
+                            setTargetDuration(secs)
+                          }}
+                          className={`flex-1 text-[12px] font-bold py-1 rounded-lg transition-all cursor-pointer select-none active:scale-[0.97] ${
+                            targetDuration === secs
+                              ? "bg-surface text-accent shadow-sm"
+                              : "text-text-tertiary hover:text-text-secondary"
+                          }`}
+                        >
+                          {secs === 30 ? "30s" : secs === 60 ? "1m" : secs === 120 ? "2m" : "3m"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    playClickSound("click")
+                    handleStartCustomDrill()
+                  }}
+                  disabled={selectedKeys.length === 0 && selectedBigrams.length === 0}
+                  className="w-full h-11 rounded-2xl bg-accent text-white font-semibold text-xs transition-all active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none font-sans shadow-sm"
+                >
+                  Generate & Start Custom Drill
+                </button>
               </div>
 
-              <button
-                onClick={handleStartCustomDrill}
-                disabled={selectedKeys.length === 0 && selectedBigrams.length === 0}
-                className="w-full h-11 rounded-2xl bg-accent text-white font-semibold text-xs transition-all active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none font-sans shadow-sm"
-              >
-                Generate & Start Custom Drill
-              </button>
-            </div>
+              {/* Target Keys Virtual Keyboard Selection */}
+              <div className="w-full space-y-2 select-none">
+                <label className="text-[12px] font-bold uppercase tracking-wider text-text-secondary block px-1">Focus Letters</label>
+                <KeyboardBody selectedKeys={selectedKeys} onToggleKey={toggleKey} />
+              </div>
           </motion.div>
         )}
       </AnimatePresence>

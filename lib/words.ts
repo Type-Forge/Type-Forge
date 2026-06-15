@@ -1,50 +1,39 @@
-/**
- * Word bank — 300+ common English words.
- * Mix of 3-8 letter words. No obscure words.
- * Sorted alphabetically for readability.
- */
-export const WORD_BANK: string[] = [
-  "about", "above", "after", "again", "air", "all", "along", "also",
-  "always", "an", "and", "another", "answer", "any", "are", "around",
-  "ask", "at", "away", "back", "be", "because", "been", "before",
-  "began", "below", "between", "big", "book", "both", "boy", "build",
-  "but", "by", "call", "came", "can", "car", "care", "carry", "change",
-  "children", "city", "close", "cold", "come", "could", "country",
-  "cut", "day", "did", "different", "do", "does", "done", "door",
-  "down", "draw", "each", "earth", "eat", "end", "enough", "even",
-  "every", "example", "eye", "face", "family", "far", "father",
-  "feel", "few", "find", "first", "follow", "food", "for", "form",
-  "found", "four", "from", "get", "girl", "give", "go", "going",
-  "good", "got", "great", "group", "grow", "had", "hand", "hard",
-  "has", "have", "he", "head", "hear", "help", "her", "here", "high",
-  "him", "his", "home", "hot", "house", "how", "idea", "if",
-  "important", "in", "into", "is", "it", "its", "just", "keep",
-  "kind", "know", "land", "large", "last", "later", "learn", "left",
-  "let", "letter", "life", "light", "like", "line", "list", "little",
-  "live", "long", "look", "made", "make", "man", "many", "may", "me",
-  "might", "mile", "mind", "miss", "more", "most", "mother", "move",
-  "much", "must", "my", "name", "near", "need", "never", "new",
-  "next", "night", "no", "not", "now", "number", "of", "off",
-  "often", "old", "on", "once", "one", "only", "open", "or", "other",
-  "our", "out", "over", "own", "page", "paper", "part", "people",
-  "place", "plant", "play", "point", "put", "question", "quick",
-  "quite", "read", "real", "right", "river", "run", "said", "same",
-  "saw", "say", "school", "second", "see", "seem", "self", "set",
-  "she", "should", "show", "side", "small", "so", "some", "song",
-  "soon", "sound", "spell", "start", "state", "still", "stop",
-  "story", "study", "such", "sun", "sure", "take", "talk", "tell",
-  "than", "that", "the", "their", "them", "then", "there", "these",
-  "they", "thing", "think", "this", "those", "thought", "three",
-  "through", "time", "to", "together", "too", "tree", "try", "turn",
-  "two", "under", "up", "us", "use", "very", "walk", "want", "was",
-  "watch", "water", "way", "we", "well", "went", "were", "what",
-  "when", "where", "which", "while", "white", "who", "why", "will",
-  "with", "without", "word", "work", "world", "would", "write",
-  "year", "you", "young", "your",
-]
+import { WORDS } from "./words/word-pool";
+import { EASY_INDICES } from "./words/easy";
+import { MEDIUM_INDICES } from "./words/medium";
+import { HARD_INDICES } from "./words/hard";
 
-/** Pick N random words from the word bank */
-export function getRandomWords(count: number): string[] {
-  const shuffled = [...WORD_BANK].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, count)
+/**
+ * Clean exported WORD_BANK for backwards compatibility
+ */
+export const WORD_BANK = WORDS;
+
+/**
+ * Pick N random words from the expanded word bank, filtered optionally by difficulty.
+ */
+export function getRandomWords(count: number, difficulty?: "easy" | "medium" | "hard" | "custom"): string[] {
+  let poolIndices: number[] = [];
+
+  if (difficulty === "easy") {
+    poolIndices = EASY_INDICES;
+  } else if (difficulty === "medium") {
+    poolIndices = MEDIUM_INDICES;
+  } else if (difficulty === "hard") {
+    poolIndices = HARD_INDICES;
+  } else {
+    // Blended default pool (Easy + Medium words) to provide standard balanced typing experience
+    poolIndices = [...EASY_INDICES, ...MEDIUM_INDICES];
+  }
+
+  if (poolIndices.length === 0) {
+    poolIndices = Array.from({ length: WORDS.length }, (_, i) => i);
+  }
+
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const randIndex = poolIndices[Math.floor(Math.random() * poolIndices.length)];
+    result.push(WORDS[randIndex] || "the");
+  }
+
+  return result;
 }

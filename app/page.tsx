@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { AnimatePresence } from "motion/react"
 import { useTypingStore } from "@/stores/typing-store"
 import { useStatsStore } from "@/stores/stats-store"
 import { useTypingEngine } from "@/hooks/useTypingEngine"
@@ -69,8 +70,6 @@ export default function Home() {
       const wpmVal = calculateWpm(finalCorrect, durationSecs * 1000)
       const accVal = calculateAccuracy(correctKeystrokes, totalKeystrokes)
 
-      finishSession()
-
       addResult({
         id: generateId(),
         timestamp: Date.now(),
@@ -83,6 +82,8 @@ export default function Home() {
         duration: durationSecs,
         wordsCompleted: currentWordIndex,
       })
+
+      finishSession()
     },
     status === "running" && (config.mode === "timed" || (config.mode === "drill" && !!config.targetDuration))
   )
@@ -143,34 +144,39 @@ export default function Home() {
       )}
 
       {/* Post-session results display */}
-      {status === "finished" && latestResult && (
-        config.mode === "drill" ? (
-          <DrillResults
-            result={latestResult}
-            onRestart={handleRestart}
-            onNewSession={handleNewSession}
-          />
-        ) : config.mode === "battle" ? (
-          <BattleResults
-            result={latestResult}
-            onRestart={() => {
-              resetSession()
-              const battleState = useBattleStore.getState()
-              battleState.initBattle(battleState.config.difficulty, battleState.config.wordCount)
-            }}
-            onNewSession={() => {
-              resetSession()
-              useBattleStore.getState().resetBattle()
-            }}
-          />
-        ) : (
-          <ResultsCard
-            result={latestResult}
-            onRestart={handleRestart}
-            onNewSession={handleNewSession}
-          />
-        )
-      )}
+      <AnimatePresence>
+        {status === "finished" && latestResult && (
+          config.mode === "drill" ? (
+            <DrillResults
+              key="drill-results"
+              result={latestResult}
+              onRestart={handleRestart}
+              onNewSession={handleNewSession}
+            />
+          ) : config.mode === "battle" ? (
+            <BattleResults
+              key="battle-results"
+              result={latestResult}
+              onRestart={() => {
+                resetSession()
+                const battleState = useBattleStore.getState()
+                battleState.initBattle(battleState.config.difficulty, battleState.config.wordCount)
+              }}
+              onNewSession={() => {
+                resetSession()
+                useBattleStore.getState().resetBattle()
+              }}
+            />
+          ) : (
+            <ResultsCard
+              key="standard-results"
+              result={latestResult}
+              onRestart={handleRestart}
+              onNewSession={handleNewSession}
+            />
+          )
+        )}
+      </AnimatePresence>
 
       {/* Persistent historical records logs */}
       {(status === "idle" || status === "ready") && (

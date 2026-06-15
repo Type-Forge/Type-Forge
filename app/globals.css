@@ -22,6 +22,10 @@
   --color-caret: var(--accent);
 }
 
+html, body {
+  scrollbar-gutter: stable;
+}
+
 /* Dark mode (default) */
 .dark, :root {
   --bg: #000000;

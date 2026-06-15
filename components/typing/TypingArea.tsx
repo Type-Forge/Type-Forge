@@ -65,6 +65,7 @@ function getAiPosition(words: any[], progress: number) {
  */
 export default function TypingArea() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [scrollY, setScrollY] = useState(0)
 
@@ -78,8 +79,8 @@ export default function TypingArea() {
   // Intercept keyboard events
   useKeyboardHandler(containerRef, handleKeyDown, isFocused)
 
-  // Track coordinates of caret position
-  const caretPosition = useCaret(containerRef, currentWordIndex, currentLetterIndex)
+  // Track coordinates of caret position relative to the inner scrolling container
+  const caretPosition = useCaret(innerRef, currentWordIndex, currentLetterIndex)
 
   // Focus trigger
   const focusContainer = () => {
@@ -113,10 +114,9 @@ export default function TypingArea() {
         return
       }
 
-      // Row height is exactly 84.2px (72.2px line height + 4px word padding + 8px flex gap)
-      const lineIndex = Math.round(offsetTop / 84.2)
-      if (lineIndex > 0) {
-        setScrollY(-lineIndex * 84.2)
+      // Scroll exactly to the top offset of the active word row dynamically
+      if (offsetTop > 0) {
+        setScrollY(-offsetTop)
       } else {
         setScrollY(0)
       }
@@ -156,26 +156,27 @@ export default function TypingArea() {
         onClick={focusContainer}
       >
         <motion.div
+          ref={innerRef}
           animate={{ y: scrollY }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="w-full flex flex-wrap"
+          className="w-full flex flex-wrap relative"
         >
           <WordDisplay words={words} currentWordIndex={currentWordIndex} />
+
+          {/* Floating Caret inside scrolling wrapper */}
+          {isFocused && status !== "finished" && (
+            <Caret position={caretPosition} />
+          )}
+
+          {/* AI Caret (Battle Mode) inside scrolling wrapper */}
+          {isBattleMode && status !== "finished" && (
+            <AiCaret
+              containerRef={innerRef}
+              wordIndex={getAiPosition(words, aiProgress).wordIndex}
+              letterIndex={getAiPosition(words, aiProgress).letterIndex}
+            />
+          )}
         </motion.div>
-
-        {/* Floating Caret */}
-        {isFocused && status !== "finished" && (
-          <Caret position={caretPosition} />
-        )}
-
-        {/* AI Caret (Battle Mode) */}
-        {isBattleMode && status !== "finished" && (
-          <AiCaret
-            containerRef={containerRef}
-            wordIndex={getAiPosition(words, aiProgress).wordIndex}
-            letterIndex={getAiPosition(words, aiProgress).letterIndex}
-          />
-        )}
       </div>
 
       {/* Footer tips */}

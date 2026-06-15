@@ -55,6 +55,7 @@ export interface KeyStats {
   totalIncorrect: number
   totalReactionTime: number
   averageReactionTime: number
+  maxConsecutiveMistakes: number
 }
 
 export interface BigramStats {

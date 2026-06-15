@@ -159,16 +159,6 @@ export function useTypingEngine() {
             useTypingStore.getState().totalKeystrokes
           )
 
-          finishSession()
-
-          if (config.mode === "battle") {
-            const battleState = useBattleStore.getState()
-            battleState.setPlayerProgress(1.0)
-            if (!battleState.winner) {
-              battleState.setWinner("player")
-            }
-          }
-
           addResult({
             id: generateId(),
             timestamp: Date.now(),
@@ -181,6 +171,16 @@ export function useTypingEngine() {
             duration: finalElapsed / 1000,
             wordsCompleted: currentWordIndex + 1,
           })
+
+          if (config.mode === "battle") {
+            const battleState = useBattleStore.getState()
+            battleState.setPlayerProgress(1.0)
+            if (!battleState.winner) {
+              battleState.setWinner("player")
+            }
+          }
+
+          finishSession()
         }
         return
       }
@@ -220,15 +220,6 @@ export function useTypingEngine() {
           const wpmVal = calculateWpm(finalCorrect, finalElapsed)
           const accVal = calculateAccuracy(correctKeystrokes, totalKeystrokes)
 
-          finishSession()
-
-          if (battleState.status === "racing") {
-            battleState.setPlayerProgress(1.0)
-            if (!battleState.winner) {
-              battleState.setWinner("player")
-            }
-          }
-
           addResult({
             id: generateId(),
             timestamp: Date.now(),
@@ -241,6 +232,15 @@ export function useTypingEngine() {
             duration: finalElapsed / 1000,
             wordsCompleted: currentWordIndex + 1,
           })
+
+          if (battleState.status === "racing") {
+            battleState.setPlayerProgress(1.0)
+            if (!battleState.winner) {
+              battleState.setWinner("player")
+            }
+          }
+
+          finishSession()
         }
         return
       }

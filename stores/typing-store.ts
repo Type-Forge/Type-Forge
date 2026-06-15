@@ -2,6 +2,7 @@ import { create } from "zustand"
 import type { SessionConfig, SessionState, SessionStatus, WordData } from "@/types"
 import { initializeWords } from "@/engine/typing-engine"
 import { getRandomWords } from "@/lib/words"
+import { getBattleWords } from "@/lib/words/battle"
 import { generateDrillText, calculateKeyWeakness, getWeaknessRatio } from "@/engine/drill-engine"
 import { useDrillStore } from "./drill-store"
 
@@ -47,10 +48,19 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
       let focusKeys = config.targetKeys ?? []
       let focusBigrams = config.targetBigrams ?? []
 
-      // Automatically find worst keys/bigrams if not explicitly specified (i.e. not custom/suggested)
+      // Calculate total session mistakes across all keys for advanced formula
+      const totalIncorrectAllKeys = Object.values(drillStore.keyStats).reduce(
+        (sum, s) => sum + s.totalIncorrect,
+        0
+      )
+
+      // Automatically find worst keys/bigrams if not explicitly specified
       if (focusKeys.length === 0 && focusBigrams.length === 0) {
         const weakKeys = Object.values(drillStore.keyStats)
-          .map(stats => ({ stats, weakness: calculateKeyWeakness(stats) }))
+          .map(stats => ({
+            stats,
+            weakness: calculateKeyWeakness(stats, totalIncorrectAllKeys)
+          }))
           .filter(item => item.weakness > 15)
           .sort((a, b) => b.weakness - a.weakness)
           .slice(0, 3)
@@ -63,7 +73,10 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
       const totalKeysWithStats = Object.keys(drillStore.keyStats).length
       let averageWeakness = 0
       if (totalKeysWithStats > 0) {
-        const totalW = Object.values(drillStore.keyStats).reduce((sum, stats) => sum + calculateKeyWeakness(stats), 0)
+        const totalW = Object.values(drillStore.keyStats).reduce(
+          (sum, stats) => sum + calculateKeyWeakness(stats, totalIncorrectAllKeys),
+          0
+        )
         averageWeakness = totalW / totalKeysWithStats
       }
       const weaknessRatio = getWeaknessRatio(averageWeakness)
@@ -76,12 +89,17 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
         focusBigrams,
         weaknessRatio,
         wordCount,
+        keyStats: drillStore.keyStats,
+        bigramStats: drillStore.bigramStats,
       })
+    } else if (config.mode === "battle") {
+      const wordCount = config.wordCount ?? 25
+      rawWords = getBattleWords(wordCount, config.difficulty as "easy" | "medium" | "hard")
     } else {
-      const wordCount = (config.mode === "words" || config.mode === "battle")
+      const wordCount = config.mode === "words"
         ? (config.wordCount ?? 25)
         : 200 // generate extra words for timed mode
-      rawWords = getRandomWords(wordCount)
+      rawWords = getRandomWords(wordCount, config.difficulty)
     }
 
     const words = initializeWords(rawWords)

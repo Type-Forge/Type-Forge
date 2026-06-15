@@ -4,6 +4,7 @@ import { motion } from "motion/react"
 import type { SessionResult } from "@/types"
 import { useBattleStore } from "@/stores/battle-store"
 import { AI_WPM_MAP } from "@/lib/constants"
+import { playClickSound } from "@/lib/audio"
 
 interface BattleResultsProps {
   result: SessionResult
@@ -31,7 +32,10 @@ export default function BattleResults({ result, onRestart, onNewSession }: Battl
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
         className="fixed inset-0 bg-black/60 backdrop-blur-[4px] pointer-events-auto"
-        onClick={onNewSession}
+        onClick={() => {
+          playClickSound("click")
+          onNewSession()
+        }}
       />
 
       {/* iOS Slide-up Drawer Container */}
@@ -47,7 +51,10 @@ export default function BattleResults({ result, onRestart, onNewSession }: Battl
 
         {/* Circular Close Button */}
         <button
-          onClick={onNewSession}
+          onClick={() => {
+            playClickSound("click")
+            onNewSession()
+          }}
           className="absolute top-6 right-6 w-8 h-8 rounded-full bg-surface-hover/80 hover:bg-surface-hover text-text-muted hover:text-text-primary flex items-center justify-center transition-colors active:scale-[0.97] cursor-pointer focus:outline-none"
           aria-label="Close"
         >
@@ -63,18 +70,23 @@ export default function BattleResults({ result, onRestart, onNewSession }: Battl
           </span>
         </div>
 
-        {/* Hero Status Title */}
-        <div className="text-center my-4">
+        {/* Hero Outcome & Speed (Consistent with ResultsCard) */}
+        <div className="text-center my-6">
           <h3
-            className={`text-[28px] font-sans font-bold leading-none tracking-tight mb-2 ${
+            className={`text-[28px] font-sans font-bold leading-none tracking-tight mb-3 ${
               playerWon ? "text-correct" : "text-incorrect"
             }`}
           >
             {playerWon ? "Decryption Successful" : "Rotor Lockout"}
           </h3>
-          <span className="block text-xs text-text-secondary font-sans font-medium mt-3">
-            Race status details below
-          </span>
+          <div className="mt-4">
+            <span className="text-[48px] font-sans font-bold text-text-primary leading-none tracking-tight">
+              {result.wpm}
+            </span>
+            <span className="block text-xs text-text-secondary font-sans font-medium mt-2">
+              Your speed (WPM)
+            </span>
+          </div>
         </div>
 
         {/* Grouped List layout for secondary stats */}
@@ -118,14 +130,20 @@ export default function BattleResults({ result, onRestart, onNewSession }: Battl
         {/* iOS-like CTAs layout */}
         <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
           <button
-            onClick={onRestart}
+            onClick={() => {
+              playClickSound("click")
+              onRestart()
+            }}
             className="flex-1 h-13 rounded-2xl bg-accent hover:opacity-90 text-white text-sm font-semibold
                        transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm font-sans"
           >
             Race again
           </button>
           <button
-            onClick={onNewSession}
+            onClick={() => {
+              playClickSound("click")
+              onNewSession()
+            }}
             className="flex-1 h-13 rounded-2xl border border-border bg-surface-hover/80 text-text-primary text-sm font-semibold
                        hover:bg-surface-hover hover:text-text-primary transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none font-sans"
           >

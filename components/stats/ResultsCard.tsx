@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react"
 import type { SessionResult } from "@/types"
+import { playClickSound } from "@/lib/audio"
 
 interface ResultsCardProps {
   result: SessionResult
@@ -26,7 +27,10 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
         className="fixed inset-0 bg-black/60 backdrop-blur-[4px] pointer-events-auto"
-        onClick={onNewSession}
+        onClick={() => {
+          playClickSound("click")
+          onNewSession()
+        }}
       />
 
       {/* iOS Slide-up Drawer Container */}
@@ -42,7 +46,10 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
 
         {/* Circular Close Button */}
         <button
-          onClick={onNewSession}
+          onClick={() => {
+            playClickSound("click")
+            onNewSession()
+          }}
           className="absolute top-6 right-6 w-8 h-8 rounded-full bg-surface-hover/80 hover:bg-surface-hover text-text-muted hover:text-text-primary flex items-center justify-center transition-colors active:scale-[0.97] cursor-pointer focus:outline-none"
           aria-label="Close"
         >
@@ -99,14 +106,20 @@ export default function ResultsCard({ result, onRestart, onNewSession }: Results
         {/* iOS-like CTAs layout */}
         <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
           <button
-            onClick={onRestart}
+            onClick={() => {
+              playClickSound("click")
+              onRestart()
+            }}
             className="flex-1 h-13 rounded-2xl bg-accent hover:opacity-90 text-white text-sm font-semibold
                        transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm font-sans"
           >
             Try again
           </button>
           <button
-            onClick={onNewSession}
+            onClick={() => {
+              playClickSound("click")
+              onNewSession()
+            }}
             className="flex-1 h-13 rounded-2xl border border-border bg-surface-hover/80 text-text-primary text-sm font-semibold
                        hover:bg-surface-hover hover:text-text-primary transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none font-sans"
           >

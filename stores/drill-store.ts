@@ -42,6 +42,30 @@ export const useDrillStore = create<DrillStore>()(
         const updatedTrigramStats = { ...get().trigramStats }
         let updatedMistakeRecords = [...get().mistakeRecords]
 
+        // Track consecutive incorrect strokes per key in this session
+        const sessionConsecutiveErrors: Record<string, number> = {}
+        const sessionMaxConsecutive: Record<string, number> = {}
+
+        keystrokes.forEach((k) => {
+          const expected = k.expectedChar.toLowerCase()
+          if (!expected || expected.length !== 1 || !/^[a-z ]$/.test(expected)) return
+
+          if (!sessionConsecutiveErrors[expected]) {
+            sessionConsecutiveErrors[expected] = 0
+            sessionMaxConsecutive[expected] = 0
+          }
+
+          if (!k.isCorrect) {
+            sessionConsecutiveErrors[expected]++
+            sessionMaxConsecutive[expected] = Math.max(
+              sessionMaxConsecutive[expected],
+              sessionConsecutiveErrors[expected]
+            )
+          } else {
+            sessionConsecutiveErrors[expected] = 0
+          }
+        })
+
         // 1. Process Single Key Statistics & Mistake Records (with Swap Detection)
         for (let idx = 0; idx < keystrokes.length; idx++) {
           const k = keystrokes[idx]
@@ -57,11 +81,16 @@ export const useDrillStore = create<DrillStore>()(
               totalIncorrect: 0,
               totalReactionTime: 0,
               averageReactionTime: 0,
+              maxConsecutiveMistakes: 0,
             }
           }
 
           const stats = updatedKeyStats[expected]
           stats.totalAttempts += 1
+          stats.maxConsecutiveMistakes = Math.max(
+            stats.maxConsecutiveMistakes || 0,
+            sessionMaxConsecutive[expected] || 0
+          )
 
           if (k.isCorrect) {
             stats.totalCorrect += 1

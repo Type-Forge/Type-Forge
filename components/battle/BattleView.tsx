@@ -86,7 +86,6 @@ export default function BattleView() {
         if (!state.winner) {
           setWinner("ai")
           const typingStore = useTypingStore.getState()
-          typingStore.setStatus("finished")
 
           // Log the battle session result where the player lost
           const finalWords = typingStore.words
@@ -110,6 +109,8 @@ export default function BattleView() {
             duration: finalElapsed / 1000,
             wordsCompleted: typingStore.currentWordIndex,
           })
+
+          typingStore.setStatus("finished")
         }
         return
       }
