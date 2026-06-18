@@ -15,7 +15,7 @@ interface BattleTrackProps {
  */
 export default function BattleTrack({ label, progress, wpm, isPlayer }: BattleTrackProps) {
   return (
-    <div className="w-full font-sans mb-6 select-none">
+    <div className="w-full font-sans mb-2 select-none">
       <div className="flex justify-between items-center mb-2 px-0.5">
         <span
           className={`text-[13px] font-semibold ${

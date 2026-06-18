@@ -28,8 +28,8 @@ export default function DifficultySelector({ onSelect }: DifficultySelectorProps
   ]
 
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col gap-6 py-6 font-sans select-none">
-      <div className="text-center mb-2">
+    <div className="w-full mx-auto flex flex-col gap-4 pt-1 pb-4 font-sans select-none">
+      <div className="text-center">
         <h2 className="text-xl font-sans font-bold text-text-primary mb-1">
           Configure Enigma speed
         </h2>

@@ -151,7 +151,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto w-full py-4 animate-fade-in font-sans space-y-6">
+    <div className="w-full py-4 animate-fade-in font-sans space-y-4">
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/20 pb-4">
         <div>
@@ -176,7 +176,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
       </div>
 
       {/* Segmented Switcher for Tab Mode Selection */}
-      <div className="flex justify-center my-4 select-none">
+      <div className="flex justify-center my-2 select-none">
         <div className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10 relative">
           <button
             onClick={() => {
@@ -216,10 +216,10 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="space-y-6 w-full"
+            className="space-y-4 w-full"
           >
             {/* Typing Profile Analysis Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5">
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-4">
               <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-4">
                 Weakness Analysis Profile
               </span>
@@ -307,7 +307,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             </div>
 
             {/* Suggested Drills Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5">
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-4">
               <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-4">
                 Recommended Training Drills
               </span>
@@ -352,10 +352,10 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="space-y-6 w-full"
+            className="space-y-4 w-full"
           >
             {/* Custom Drill Builder Settings Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-5 space-y-5">
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-4 space-y-4">
                 <div>
                   <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-2">
                     Custom Drill Builder

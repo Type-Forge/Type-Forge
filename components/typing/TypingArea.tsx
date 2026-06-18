@@ -108,8 +108,8 @@ export default function TypingArea() {
       const wrapperEl = container.querySelector("[data-word-index]")?.parentElement as HTMLElement | null
       const wrapperHeight = wrapperEl ? wrapperEl.clientHeight : 0
 
-      // If the entire text content fits within the container height (168px inner), keep it fixed!
-      if (wrapperHeight <= 168) {
+      // If the entire text content fits within the container height (256px inner), keep it fixed!
+      if (wrapperHeight <= 256) {
         setScrollY(0)
         return
       }
@@ -133,26 +133,13 @@ export default function TypingArea() {
   }, [status])
 
   return (
-    <div className="relative w-full my-8 bg-surface border border-border rounded-[32px] shadow-[0_10px_30px_rgba(0,0,0,0.06)] p-12">
-      {/* Focus lock overlay */}
-      {!isFocused && status !== "finished" && (
-        <div
-          onClick={focusContainer}
-          className="absolute inset-0 z-20 flex items-center justify-center bg-surface/80 backdrop-blur-[4px] rounded-[32px] cursor-pointer transition-opacity duration-200"
-        >
-          <span className="text-sm font-sans font-semibold text-text-secondary tracking-wide">
-            click to focus
-          </span>
-        </div>
-      )}
-
-      {/* Invisible text box container */}
+    <div className="relative w-full my-4 p-0">
       <div
         ref={containerRef}
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full min-h-[200px] max-h-[200px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans text-[38px] font-medium leading-[1.9] tracking-[-0.03em] select-none cursor-text"
+        className="w-full min-h-[290px] max-h-[290px] overflow-hidden py-2 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans text-2xl sm:text-[30px] font-medium leading-[1.6] tracking-[-0.02em] select-none cursor-text"
         onClick={focusContainer}
       >
         <motion.div

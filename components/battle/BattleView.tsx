@@ -7,8 +7,6 @@ import { useTypingStore } from "@/stores/typing-store"
 import { calculateAiProgressPerTick } from "@/engine/battle-engine"
 import DifficultySelector from "./DifficultySelector"
 import BattleTrack from "./BattleTrack"
-import TypingArea from "@/components/typing/TypingArea"
-import StatsBar from "@/components/stats/StatsBar"
 import { useTypingEngine } from "@/hooks/useTypingEngine"
 import Link from "next/link"
 import type { BattleDifficulty } from "@/types"
@@ -141,7 +139,7 @@ export default function BattleView() {
   }
 
   return (
-    <div className="w-full min-h-[400px] flex flex-col items-center justify-center p-2 relative select-none">
+    <div className="w-full flex flex-col items-center justify-center p-2 relative select-none">
       {/* 1. Selection State */}
       {battleStatus === "selecting" && (
         <DifficultySelector onSelect={handleSelectDifficulty} />
@@ -197,9 +195,9 @@ export default function BattleView() {
 
       {/* 3. Racing State */}
       {(battleStatus === "racing" || battleStatus === "finished") && (
-        <div className="w-full max-w-xl">
+        <div className="w-full">
           {/* Header Controls */}
-          <div className="flex justify-between items-center mb-8 pb-3 border-b border-border">
+          <div className="flex justify-between items-center mb-4 pb-3 border-b border-border">
             <span className="text-xs font-semibold text-text-secondary">
               {battleConfig.difficulty.charAt(0).toUpperCase() + battleConfig.difficulty.slice(1)}
             </span>
@@ -212,7 +210,7 @@ export default function BattleView() {
           </div>
 
           {/* Tracks grid */}
-          <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col gap-4">
             <BattleTrack
               label="You"
               progress={playerProgress}
@@ -226,19 +224,6 @@ export default function BattleView() {
               isPlayer={false}
             />
           </div>
-
-          {/* Live Race Typing Canvas */}
-          {battleStatus === "racing" && (
-            <>
-              <TypingArea />
-              <StatsBar
-                wpm={wpm}
-                accuracy={accuracy}
-                time={null}
-                mode="battle"
-              />
-            </>
-          )}
         </div>
       )}
     </div>
