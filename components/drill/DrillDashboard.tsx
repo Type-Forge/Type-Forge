@@ -512,7 +512,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                     handleStartCustomDrill()
                   }}
                   disabled={selectedKeys.length === 0 && selectedBigrams.length === 0}
-                  className="w-full h-11 rounded-2xl bg-accent text-white font-semibold text-xs transition-all active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none font-sans shadow-sm"
+                  className="mx-auto block w-fit px-8 h-10 rounded-[10px] bg-accent text-white font-semibold text-xs transition-all active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none cursor-pointer select-none font-sans shadow-sm"
                 >
                   Generate & Start Custom Drill
                 </button>

@@ -19,9 +19,8 @@ interface KeyboardBodyProps {
 }
 
 /**
- * KeyboardBody component representing a premium Apple HIG style chassis and keys.
- * Uses flex-proportional layout so all rows have identical total width.
- * Left and right edges of every row are perfectly aligned.
+ * KeyboardBody component representing a premium Apple Magic Keyboard style layout.
+ * Distinguishes currently active typing targets (solid accent blue) from selected focus keys (white dot).
  */
 export default function KeyboardBody({
   selectedKeys = [],
@@ -31,11 +30,8 @@ export default function KeyboardBody({
 }: KeyboardBodyProps) {
   const [isMacLayout, setIsMacLayout] = useState(true)
 
-  // --- Row Definitions ---
-  // Each key defaults to flex-1. Modifier keys get proportional flex values.
-
   const fRow: KeyDef[] = [
-    { label: "esc", code: "Escape" },
+    { label: "ESC", code: "Escape" },
     { label: "F1", code: "F1" },
     { label: "F2", code: "F2" },
     { label: "F3", code: "F3" },
@@ -141,9 +137,8 @@ export default function KeyboardBody({
         { label: "▶", code: "ArrowRight" },
       ]
 
-  // Helper to determine key status
+  // Key status mapping: activeKey (currently prompted) is solid accent blue, wrongKey is red.
   const getKeyStatus = (keyLabel: string, keyCode: string) => {
-    const isLetter = keyLabel.length === 1 && /^[a-z]$/.test(keyLabel)
     const normalizedKey = keyLabel.toLowerCase()
     const activeCode = activeKey?.toLowerCase()
     const wrongCode = wrongKey?.toLowerCase()
@@ -154,13 +149,16 @@ export default function KeyboardBody({
     if (wrongKey === keyLabel || wrongCode === keyCode.toLowerCase() || wrongCode === normalizedKey) {
       return "incorrect"
     }
-    if (isLetter && selectedKeys.includes(normalizedKey)) {
-      return "active"
-    }
     return "default"
   }
 
-  // Handle key click
+  // Selected focus keys display a white dot on the keycap.
+  const isKeyFocused = (keyLabel: string, keyCode: string) => {
+    const isLetter = keyLabel.length === 1 && /^[a-z]$/.test(keyLabel)
+    const normalizedKey = keyLabel.toLowerCase()
+    return isLetter && selectedKeys.includes(normalizedKey)
+  }
+
   const handleKeyClick = (keyLabel: string) => {
     playClickSound(keyLabel)
     const isLetter = keyLabel.length === 1 && /^[a-z]$/.test(keyLabel)
@@ -169,15 +167,16 @@ export default function KeyboardBody({
     }
   }
 
-  // Render helper for a standard row
   const renderRow = (row: KeyDef[], heightClass?: string) => (
     <div className="flex gap-[3px] w-full">
       {row.map((k) => (
         <Key
           key={k.code}
+          code={k.code}
           label={k.label}
           subLabel={k.subLabel}
           status={getKeyStatus(k.label, k.code)}
+          isFocusKey={isKeyFocused(k.label, k.code)}
           widthClass={k.flex || "flex-1"}
           heightClass={heightClass || "h-9 sm:h-10"}
           isMacLayout={isMacLayout}
@@ -188,7 +187,7 @@ export default function KeyboardBody({
   )
 
   return (
-    <div className="w-full rounded-[20px] bg-surface-secondary/50 border border-border/10 p-3 sm:p-4 shadow-inner flex flex-col gap-[3px] select-none font-sans">
+    <div className="w-full rounded-[20px] bg-surface-secondary/50 border border-border/10 p-3 sm:p-4 shadow-sm flex flex-col gap-[3px] select-none font-sans">
       {/* OS Layout Switcher */}
       <div className="flex justify-between items-center w-full mb-2 px-0.5">
         <span className="text-[12px] font-bold uppercase tracking-wider text-text-secondary">
@@ -197,7 +196,7 @@ export default function KeyboardBody({
         <div className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10">
           <button
             onClick={() => { playClickSound("click"); setIsMacLayout(true) }}
-            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none ${
               isMacLayout
                 ? "text-text-primary bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
                 : "text-text-tertiary hover:text-text-secondary"
@@ -207,7 +206,7 @@ export default function KeyboardBody({
           </button>
           <button
             onClick={() => { playClickSound("click"); setIsMacLayout(false) }}
-            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer ${
+            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none ${
               !isMacLayout
                 ? "text-text-primary bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
                 : "text-text-tertiary hover:text-text-secondary"
@@ -238,23 +237,27 @@ export default function KeyboardBody({
         {/* Shift Row */}
         {renderRow(shiftRow)}
 
-        {/* Bottom Row - special handling for arrow up/down split key */}
+        {/* Bottom Row - special arrow split */}
         <div className="flex gap-[3px] w-full">
           {bottomRow.map((k) => {
             if (k.label === "up-down") {
               return (
                 <div key="ArrowUpDown" className="flex flex-col gap-[2px] justify-between h-9 sm:h-10 flex-1 min-w-0">
                   <Key
+                    code="ArrowUp"
                     label="▲"
                     status={getKeyStatus("▲", "ArrowUp")}
+                    isFocusKey={isKeyFocused("▲", "ArrowUp")}
                     widthClass="w-full"
                     heightClass="flex-1"
                     isMacLayout={isMacLayout}
                     onClick={() => handleKeyClick("▲")}
                   />
                   <Key
+                    code="ArrowDown"
                     label="▼"
                     status={getKeyStatus("▼", "ArrowDown")}
+                    isFocusKey={isKeyFocused("▼", "ArrowDown")}
                     widthClass="w-full"
                     heightClass="flex-1"
                     isMacLayout={isMacLayout}
@@ -266,8 +269,10 @@ export default function KeyboardBody({
             return (
               <Key
                 key={k.code}
+                code={k.code}
                 label={k.label}
                 status={getKeyStatus(k.label, k.code)}
+                isFocusKey={isKeyFocused(k.label, k.code)}
                 widthClass={k.flex || "flex-1"}
                 isMacLayout={isMacLayout}
                 onClick={() => handleKeyClick(k.label)}

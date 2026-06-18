@@ -1,206 +1,170 @@
 "use client"
 
-import { useEffect } from "react"
-import type { SessionConfig } from "@/types"
+import { useEffect, useRef, useState } from "react"
+import type { SessionConfig, WordCount, TimeDuration, BattleDifficulty } from "@/types"
 import { WORD_COUNT_OPTIONS, TIME_DURATION_OPTIONS } from "@/lib/constants"
 import { useTypingStore } from "@/stores/typing-store"
 import { useBattleStore } from "@/stores/battle-store"
-import { motion } from "motion/react"
+import SubOptionSelector, { type SubOption } from "@/components/ui/SubOptionSelector"
 
 interface ModeSelectorProps {
   onSelect: (config: SessionConfig) => void
   currentConfig: SessionConfig
 }
 
+const MODES = ["words", "timed", "battle", "drill"] as const
+type Mode = (typeof MODES)[number]
+
+const WORD_OPTIONS: SubOption<WordCount>[] = WORD_COUNT_OPTIONS.map((count) => ({
+  value: count as WordCount,
+  label: String(count),
+  tooltip: `${count} words typing test. Quick sprint/practice.`,
+}))
+
+const TIME_OPTIONS: SubOption<TimeDuration>[] = TIME_DURATION_OPTIONS.map((duration) => ({
+  value: duration as TimeDuration,
+  label: `${duration}s`,
+  tooltip: `${duration / 60} minute countdown challenge.`,
+}))
+
+const BATTLE_OPTIONS: SubOption<BattleDifficulty>[] = [
+  {
+    value: "easy",
+    label: "easy (35 wpm)",
+    tooltip: "Simulation speed set to slow. Suitable for decryption practice.",
+  },
+  {
+    value: "medium",
+    label: "medium (60 wpm)",
+    tooltip: "Standard Bletchley operational pace. A solid race.",
+  },
+  {
+    value: "hard",
+    label: "hard (90 wpm)",
+    tooltip: "Elite Enigma machine rotor sync. Speeds running hot!",
+  },
+]
+
 /**
- * Centered selector tabs for choosing Words mode, Timed mode, or Battle mode.
- * Styled with larger text sizes (text-base) for better readability and tap targets.
+ * Centered selector tabs for choosing Words / Timed / Battle / Drill modes.
+ * Uses a single persistent sliding pill indicator — never unmounts — for instant snappy transitions.
  */
 export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorProps) {
   const status = useTypingStore((s) => s.status)
   const isInactive = status === "idle" || status === "ready"
 
+  const containerRef = useRef<HTMLDivElement>(null)
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const [pillStyle, setPillStyle] = useState({ left: 0, width: 0, opacity: 0 })
+
+  // Slide the pill to the active mode button
+  useEffect(() => {
+    const idx = MODES.indexOf(currentConfig.mode as Mode)
+    const btn = btnRefs.current[idx]
+    const container = containerRef.current
+    if (!btn || !container) return
+
+    const containerRect = container.getBoundingClientRect()
+    const btnRect = btn.getBoundingClientRect()
+    setPillStyle({
+      left: btnRect.left - containerRect.left,
+      width: btnRect.width,
+      opacity: 1,
+    })
+  }, [currentConfig.mode])
+
   useEffect(() => {
     if (!isInactive) return
-
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return
-
       const key = e.key
       if (key === "1") {
-        if (currentConfig.mode === "words") {
-          onSelect({ mode: "words", wordCount: 25 })
-        } else if (currentConfig.mode === "timed") {
-          onSelect({ mode: "timed", duration: 60 })
-        }
+        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 25 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 60 })
       } else if (key === "2") {
-        if (currentConfig.mode === "words") {
-          onSelect({ mode: "words", wordCount: 50 })
-        } else if (currentConfig.mode === "timed") {
-          onSelect({ mode: "timed", duration: 180 })
-        }
+        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 50 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 180 })
       } else if (key === "3") {
-        if (currentConfig.mode === "words") {
-          onSelect({ mode: "words", wordCount: 75 })
-        } else if (currentConfig.mode === "timed") {
-          onSelect({ mode: "timed", duration: 300 })
-        }
+        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 75 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 300 })
       }
     }
-
     window.addEventListener("keydown", handleKeyPress)
     return () => window.removeEventListener("keydown", handleKeyPress)
   }, [currentConfig, onSelect, isInactive])
 
-  const selectMode = (mode: "words" | "timed" | "battle" | "drill") => {
+  const selectMode = (mode: Mode) => {
     if (mode === "words") {
       onSelect({ mode: "words", wordCount: 25 })
     } else if (mode === "timed") {
       onSelect({ mode: "timed", duration: 60 })
     } else if (mode === "battle") {
-      onSelect({ mode: "battle", wordCount: 25 })
       useBattleStore.getState().resetBattle()
+      onSelect({ mode: "battle", difficulty: "easy", wordCount: 25 })
     } else {
       onSelect({ mode: "drill", difficulty: "easy" })
     }
   }
 
-  const selectWordOption = (count: 25 | 50 | 75) => {
-    onSelect({ mode: "words", wordCount: count })
-  }
-
-  const selectTimeOption = (duration: 60 | 180 | 300) => {
-    onSelect({ mode: "timed", duration })
-  }
-
   return (
     <div className="flex flex-col items-center gap-5 py-3 select-none">
-      {/* iOS Segmented Control with spring layout indicator */}
-      <div className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10 relative">
-        <button
-          onClick={() => selectMode("words")}
-          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
-            currentConfig.mode === "words"
-              ? "text-text-primary"
-              : "text-text-tertiary hover:text-text-secondary"
-          }`}
-        >
-          {currentConfig.mode === "words" && (
-            <motion.div
-              layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              style={{ zIndex: 1 }}
-            />
-          )}
-          <span className="relative z-10">Words</span>
-        </button>
+      {/* iOS Segmented Control — single persistent sliding pill */}
+      <div
+        ref={containerRef}
+        className="bg-surface-secondary p-0.5 rounded-[8px] flex items-center justify-center gap-0.5 border border-border/10 relative"
+      >
+        {/* Sliding pill — never unmounts, just translates */}
+        <div
+          className="absolute top-0.5 bottom-0.5 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)] pointer-events-none"
+          style={{
+            left: pillStyle.left,
+            width: pillStyle.width,
+            opacity: pillStyle.opacity,
+            transition: "left 180ms cubic-bezier(0.25,0.46,0.45,0.94), width 180ms cubic-bezier(0.25,0.46,0.45,0.94)",
+          }}
+        />
 
-        <button
-          onClick={() => selectMode("timed")}
-          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
-            currentConfig.mode === "timed"
-              ? "text-text-primary"
-              : "text-text-tertiary hover:text-text-secondary"
-          }`}
-        >
-          {currentConfig.mode === "timed" && (
-            <motion.div
-              layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              style={{ zIndex: 1 }}
-            />
-          )}
-          <span className="relative z-10">Timed</span>
-        </button>
-
-        <button
-          onClick={() => selectMode("battle")}
-          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
-            currentConfig.mode === "battle"
-              ? "text-text-primary"
-              : "text-text-tertiary hover:text-text-secondary"
-          }`}
-        >
-          {currentConfig.mode === "battle" && (
-            <motion.div
-              layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              style={{ zIndex: 1 }}
-            />
-          )}
-          <span className="relative z-10">Battle</span>
-        </button>
-
-        <button
-          onClick={() => selectMode("drill")}
-          className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-all duration-150 active:scale-[0.97] cursor-pointer relative ${
-            currentConfig.mode === "drill"
-              ? "text-text-primary"
-              : "text-text-tertiary hover:text-text-secondary"
-          }`}
-        >
-          {currentConfig.mode === "drill" && (
-            <motion.div
-              layoutId="active-mode-bg"
-              className="absolute inset-0 bg-surface rounded-[6px] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              style={{ zIndex: 1 }}
-            />
-          )}
-          <span className="relative z-10">Drill</span>
-        </button>
+        {MODES.map((mode, idx) => (
+          <button
+            key={mode}
+            ref={(el) => { btnRefs.current[idx] = el }}
+            onClick={() => selectMode(mode)}
+            className={`text-[15px] font-semibold px-5 py-1 rounded-[6px] transition-colors duration-100 active:scale-[0.97] cursor-pointer relative z-10 focus:outline-none ${
+              currentConfig.mode === mode
+                ? "text-text-primary"
+                : "text-text-tertiary hover:text-text-secondary"
+            }`}
+          >
+            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+          </button>
+        ))}
       </div>
 
-      {/* count limit configurations - Styled as clean sans-serif */}
-      <div className="flex items-center justify-center gap-6 min-h-[20px]">
+      {/* Sub-option row */}
+      <div className="flex items-center justify-center gap-6 min-h-[20px] mt-2">
         {currentConfig.mode === "words" ? (
-          WORD_COUNT_OPTIONS.map((count) => (
-            <button
-              key={count}
-              onClick={() => selectWordOption(count as 25 | 50 | 75)}
-              className={`text-sm font-semibold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer ${
-                currentConfig.wordCount === count
-                  ? "text-accent font-bold"
-                  : "text-text-tertiary hover:text-text-secondary"
-              }`}
-            >
-              {count}
-            </button>
-          ))
+          <SubOptionSelector
+            options={WORD_OPTIONS}
+            selected={currentConfig.wordCount || 25}
+            onSelect={(val) => onSelect({ mode: "words", wordCount: val })}
+          />
         ) : currentConfig.mode === "timed" ? (
-          TIME_DURATION_OPTIONS.map((duration) => (
-            <button
-              key={duration}
-              onClick={() => selectTimeOption(duration as 60 | 180 | 300)}
-              className={`text-sm font-semibold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer ${
-                currentConfig.duration === duration
-                  ? "text-accent font-bold"
-                  : "text-text-tertiary hover:text-text-secondary"
-              }`}
-            >
-              {duration}s
-            </button>
-          ))
-        ) : currentConfig.mode === "drill" ? (
-          (["easy", "medium", "hard"] as const).map((diff) => (
-            <button
-              key={diff}
-              onClick={() => onSelect({ ...currentConfig, difficulty: diff })}
-              className={`text-sm font-semibold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer capitalize ${
-                currentConfig.difficulty === diff
-                  ? "text-accent font-bold"
-                  : "text-text-tertiary hover:text-text-secondary"
-              }`}
-            >
-              {diff}
-            </button>
-          ))
+          <SubOptionSelector
+            options={TIME_OPTIONS}
+            selected={currentConfig.duration || 60}
+            onSelect={(val) => onSelect({ mode: "timed", duration: val })}
+          />
+        ) : currentConfig.mode === "battle" ? (
+          <SubOptionSelector
+            options={BATTLE_OPTIONS}
+            selected={(currentConfig.difficulty as BattleDifficulty) || "easy"}
+            onSelect={(val) => {
+              onSelect({ ...currentConfig, difficulty: val })
+              useBattleStore.getState().initBattle(val, 25)
+            }}
+          />
         ) : null}
       </div>
     </div>
   )
 }
-

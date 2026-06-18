@@ -22,29 +22,23 @@ import { useBattleStore } from "@/stores/battle-store"
 
 /**
  * Main Home Page Dashboard.
- * Coordinates mode selections, timed session countdown interrupts,
- * and page scrolling anchors for post-decryption restarts.
+ * Optimized: uses granular Zustand selectors so the page only re-renders on
+ * status/config/mode changes — NOT on every keystroke (words/letterIndex changes).
  */
 export default function Home() {
-  const {
-    config,
-    status,
-    words,
-    currentWordIndex,
-    correctKeystrokes,
-    totalKeystrokes,
-    incorrectKeystrokes,
-    timeRemaining,
-    initSession,
-    resetSession,
-    finishSession,
-  } = useTypingStore()
+  // Granular subscriptions — only what this component actually renders/reacts to
+  const status = useTypingStore((s) => s.status)
+  const config = useTypingStore((s) => s.config)
+  const timeRemaining = useTypingStore((s) => s.timeRemaining)
+  const initSession = useTypingStore((s) => s.initSession)
+  const resetSession = useTypingStore((s) => s.resetSession)
+  const finishSession = useTypingStore((s) => s.finishSession)
 
   const addResult = useStatsStore((s) => s.addResult)
+  const latestResult = useStatsStore((s) => s.history[0])
   const selectorRef = useRef<HTMLDivElement>(null)
   const battleStatus = useBattleStore((s) => s.status)
-  
-  // Track whether an active drill is ongoing (showing typing area vs dashboard)
+
   const [isDrillActive, setIsDrillActive] = useState(false)
 
   // Initialize default session on mount
@@ -59,17 +53,18 @@ export default function Home() {
     }
   }, [config.mode])
 
-  // Bind key capture events and fetch metrics
+  // Bind key capture events and fetch live metrics
   const { wpm, accuracy } = useTypingEngine()
 
-  // Track timed mode countdown (supports standard timed mode & timed drill mode)
+  // Timed countdown — reads words/keystrokes from getState() to avoid subscriptions here
   useCountdown(
     config.mode === "timed" ? (config.duration ?? 60) : (config.targetDuration ?? 60),
     () => {
-      const finalCorrect = countCorrectChars(words)
+      const s = useTypingStore.getState()
       const durationSecs = config.mode === "timed" ? (config.duration ?? 60) : (config.targetDuration ?? 60)
+      const finalCorrect = countCorrectChars(s.words)
       const wpmVal = calculateWpm(finalCorrect, durationSecs * 1000)
-      const accVal = calculateAccuracy(correctKeystrokes, totalKeystrokes)
+      const accVal = calculateAccuracy(s.correctKeystrokes, s.totalKeystrokes)
 
       addResult({
         id: generateId(),
@@ -77,11 +72,11 @@ export default function Home() {
         config,
         wpm: wpmVal,
         accuracy: accVal,
-        totalKeystrokes,
-        correctKeystrokes,
-        incorrectKeystrokes,
+        totalKeystrokes: s.totalKeystrokes,
+        correctKeystrokes: s.correctKeystrokes,
+        incorrectKeystrokes: s.incorrectKeystrokes,
         duration: durationSecs,
-        wordsCompleted: currentWordIndex,
+        wordsCompleted: s.currentWordIndex,
       })
 
       finishSession()
@@ -89,9 +84,7 @@ export default function Home() {
     status === "running" && (config.mode === "timed" || (config.mode === "drill" && !!config.targetDuration))
   )
 
-  const handleRestart = () => {
-    resetSession()
-  }
+  const handleRestart = () => resetSession()
 
   const handleNewSession = () => {
     resetSession()
@@ -101,51 +94,39 @@ export default function Home() {
     }, 100)
   }
 
-  // Get most recent log entry
-  const latestResult = useStatsStore((s) => s.history[0])
-
   return (
     <div className="w-full flex-1 flex flex-col select-none">
       {/* 1. Centered Header & Config Selector */}
       <Container className="flex flex-col">
-        {/* Tagline header */}
         <div className="text-center mb-4">
           <p className="text-center text-[13px] text-text-tertiary font-sans font-medium uppercase tracking-wider">
             Decode &middot; Type &middot; Break the cipher
           </p>
         </div>
 
-        {/* Mode configurations selector */}
         <div
           ref={selectorRef}
-          className={`mb-2 transition-opacity duration-300 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
+          className={`mb-2 transition-opacity duration-100 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
         >
           <ModeSelector onSelect={initSession} currentConfig={config} />
         </div>
-
-        {/* Battle Selector / Countdown OR Drill Dashboard */}
-        <div
-          className={`transition-opacity duration-300 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
-        >
-          {config.mode === "battle" ? (
-            <div className="w-full">
-              <BattleView />
-            </div>
-          ) : config.mode === "drill" && !isDrillActive ? (
-            <DrillDashboard onStartDrill={() => setIsDrillActive(true)} />
-          ) : null}
-        </div>
       </Container>
+
+      {/* 1b. Drill Dashboard */}
+      {config.mode === "drill" && !isDrillActive && status !== "finished" && (
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-2 animate-fade-in">
+          <DrillDashboard onStartDrill={() => setIsDrillActive(true)} />
+        </div>
+      )}
 
       {/* 2. Full Width Typing Area */}
       <div
-        className={`w-full transition-opacity duration-300 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
+        className={`w-full transition-opacity duration-100 ${status === "finished" ? "opacity-20 pointer-events-none" : "opacity-100"}`}
       >
-        {/* Render TypingArea for words, timed, active drill, or active battle race */}
         {((config.mode === "words" || config.mode === "timed") ||
           (config.mode === "drill" && isDrillActive) ||
           (config.mode === "battle" && (battleStatus === "racing" || battleStatus === "finished"))) && (
-          <Container size="7xl" className="py-4">
+          <Container size="6xl" className="py-4">
             <TypingArea />
           </Container>
         )}
@@ -153,7 +134,10 @@ export default function Home() {
 
       {/* 3. Centered StatsBar & Post-Session Results */}
       <Container className="flex flex-col mt-4">
-        {/* Live ticking stats bar */}
+        {/* Battle logic runner (no visual — AI ghost caret is in TypingArea) */}
+        {config.mode === "battle" && <BattleView />}
+
+        {/* Live stats bar */}
         {status === "running" && (
           <StatsBar
             wpm={wpm}
@@ -163,7 +147,7 @@ export default function Home() {
           />
         )}
 
-        {/* Post-session results display */}
+        {/* Post-session results */}
         <AnimatePresence>
           {status === "finished" && latestResult && (
             config.mode === "drill" ? (

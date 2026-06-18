@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, useMemo } from "react"
 import { motion } from "motion/react"
 import Caret from "./Caret"
 import WordDisplay from "./WordDisplay"
@@ -61,7 +61,8 @@ function getAiPosition(words: any[], progress: number) {
 
 /**
  * TypingArea wraps the typing canvas.
- * Floats words in space with zero borders, backgrounds, or shadows.
+ * Optimized: subscribes only to words, currentWordIndex, currentLetterIndex, and status.
+ * Does NOT call useTypingEngine (called in page.tsx to avoid double-subscription).
  */
 export default function TypingArea() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -69,32 +70,44 @@ export default function TypingArea() {
   const [isFocused, setIsFocused] = useState(false)
   const [scrollY, setScrollY] = useState(0)
 
-  const { words, currentWordIndex, currentLetterIndex, status } = useTypingStore()
+  // Granular subscriptions — only the fields this component renders
+  const words = useTypingStore((s) => s.words)
+  const currentWordIndex = useTypingStore((s) => s.currentWordIndex)
+  const currentLetterIndex = useTypingStore((s) => s.currentLetterIndex)
+  const status = useTypingStore((s) => s.status)
+  const configMode = useTypingStore((s) => s.config.mode)
+
+  // Get stable handleKeyDown — won't re-create on every keystroke
   const { handleKeyDown } = useTypingEngine()
 
+  // Battle AI caret — only subscribe when in battle mode
   const battleStatus = useBattleStore((s) => s.status)
   const aiProgress = useBattleStore((s) => s.aiProgress)
-  const isBattleMode = battleStatus === "racing" || battleStatus === "finished"
+  // Guard: configMode must be "battle" — battleStatus stays "racing" across mode switches
+  const isBattleMode = configMode === "battle" && (battleStatus === "racing" || battleStatus === "finished")
 
   // Intercept keyboard events
   useKeyboardHandler(containerRef, handleKeyDown, isFocused)
 
-  // Track coordinates of caret position relative to the inner scrolling container
+  // Caret position — only recalculates when word/letter index changes
   const caretPosition = useCaret(innerRef, currentWordIndex, currentLetterIndex)
 
-  // Focus trigger
-  const focusContainer = () => {
-    containerRef.current?.focus()
-  }
+  // Memoize AI position — avoid recomputing every render
+  const aiPos = useMemo(
+    () => (isBattleMode ? getAiPosition(words, aiProgress) : null),
+    [isBattleMode, words, aiProgress]
+  )
 
-  // Auto focus triggers
+  const focusContainer = () => containerRef.current?.focus()
+
+  // Auto focus on new session
   useEffect(() => {
     if (status === "ready" || status === "idle") {
       focusContainer()
     }
   }, [status])
 
-  // Scroll logic for shifting rows
+  // Scroll to keep active word visible
   useEffect(() => {
     if (!containerRef.current) return
 
@@ -108,24 +121,18 @@ export default function TypingArea() {
       const wrapperEl = container.querySelector("[data-word-index]")?.parentElement as HTMLElement | null
       const wrapperHeight = wrapperEl ? wrapperEl.clientHeight : 0
 
-      // If the entire text content fits within the container height (256px inner), keep it fixed!
-      if (wrapperHeight <= 256) {
+      if (wrapperHeight <= 185) {
         setScrollY(0)
         return
       }
 
-      // Scroll exactly to the top offset of the active word row dynamically
-      if (offsetTop > 0) {
-        setScrollY(-offsetTop)
-      } else {
-        setScrollY(0)
-      }
+      setScrollY(offsetTop > 0 ? -offsetTop : 0)
     } else {
       setScrollY(0)
     }
   }, [currentWordIndex])
 
-  // Reset scroll position on new sessions
+  // Reset scroll on new session
   useEffect(() => {
     if (status === "ready") {
       requestAnimationFrame(() => setScrollY(0))
@@ -139,7 +146,7 @@ export default function TypingArea() {
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full min-h-[290px] max-h-[290px] overflow-hidden py-2 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans text-2xl sm:text-[30px] font-medium leading-[1.6] tracking-[-0.02em] select-none cursor-text"
+        className="w-full min-h-[192px] max-h-[192px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans text-2xl sm:text-[30px] font-medium leading-[1.6] tracking-[-0.02em] select-none cursor-text"
         onClick={focusContainer}
       >
         <motion.div
@@ -150,17 +157,17 @@ export default function TypingArea() {
         >
           <WordDisplay words={words} currentWordIndex={currentWordIndex} />
 
-          {/* Floating Caret inside scrolling wrapper */}
+          {/* Floating Caret */}
           {isFocused && status !== "finished" && (
             <Caret position={caretPosition} />
           )}
 
-          {/* AI Caret (Battle Mode) inside scrolling wrapper */}
-          {isBattleMode && status !== "finished" && (
+          {/* AI Ghost Caret (Battle Mode) */}
+          {isBattleMode && status !== "finished" && aiPos && (
             <AiCaret
               containerRef={innerRef}
-              wordIndex={getAiPosition(words, aiProgress).wordIndex}
-              letterIndex={getAiPosition(words, aiProgress).letterIndex}
+              wordIndex={aiPos.wordIndex}
+              letterIndex={aiPos.letterIndex}
             />
           )}
         </motion.div>

@@ -133,14 +133,13 @@ export interface BattleConfig {
   wordCount: WordCount
 }
 
-export type BattleStatus = "selecting" | "countdown" | "racing" | "finished"
+export type BattleStatus = "selecting" | "racing" | "finished"
 
 export interface BattleState {
   config: BattleConfig
   status: BattleStatus
   playerProgress: number       // 0 to 1 (percentage of words completed)
   aiProgress: number           // 0 to 1
-  countdown: number            // 3, 2, 1, 0
   winner: "player" | "ai" | null
 }
 

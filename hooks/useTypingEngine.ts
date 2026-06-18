@@ -17,29 +17,27 @@ import { playClickSound } from "@/lib/audio"
 /**
  * Connects the active session's keyboard keystrokes to store mutations.
  * Exposes live WPM and Accuracy metrics.
+ * 
+ * Re-render optimization: reads keystroke-sensitive values directly from getState()
+ * inside handlers to avoid re-creating the callback on every word/letter change.
  */
 export function useTypingEngine() {
-  const {
-    status,
-    words,
-    currentWordIndex,
-    currentLetterIndex,
-    startTime,
-    endTime,
-    totalKeystrokes,
-    correctKeystrokes,
-    incorrectKeystrokes,
-    config,
-    startSession,
-    finishSession,
-    resetSession,
-    setWords,
-    setCurrentWordIndex,
-    setCurrentLetterIndex,
-    incrementCorrect,
-    incrementIncorrect,
-    incrementTotal,
-  } = useTypingStore()
+  // Only subscribe to values that are displayed in UI or needed for conditional logic in the hook itself
+  const status = useTypingStore((s) => s.status)
+  const config = useTypingStore((s) => s.config)
+  const startTime = useTypingStore((s) => s.startTime)
+  const endTime = useTypingStore((s) => s.endTime)
+
+  // Store actions — stable references, won't cause re-renders
+  const startSession = useTypingStore((s) => s.startSession)
+  const finishSession = useTypingStore((s) => s.finishSession)
+  const resetSession = useTypingStore((s) => s.resetSession)
+  const setWords = useTypingStore((s) => s.setWords)
+  const setCurrentWordIndex = useTypingStore((s) => s.setCurrentWordIndex)
+  const setCurrentLetterIndex = useTypingStore((s) => s.setCurrentLetterIndex)
+  const incrementCorrect = useTypingStore((s) => s.incrementCorrect)
+  const incrementIncorrect = useTypingStore((s) => s.incrementIncorrect)
+  const incrementTotal = useTypingStore((s) => s.incrementTotal)
 
   const addResult = useStatsStore((s) => s.addResult)
 
@@ -63,20 +61,21 @@ export function useTypingEngine() {
     }
   }, [status, startTime])
 
+  // handleKeyDown reads all keystroke-sensitive state from getState() to avoid
+  // recreating this callback every keystroke (words, currentWordIndex, currentLetterIndex
+  // change on every keypress — would invalidate the callback 60+ times/minute)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (status === "finished") return
+      const store = useTypingStore.getState()
+      if (store.status === "finished") return
 
-      // Ignore keypresses when typing in input or textarea elements
       const target = e.target as HTMLElement
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
-        return
-      }
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return
 
-      // Prevent modifier combos (like browser refresh, inspect, etc.), EXCEPT Backspace
       if ((e.ctrlKey || e.metaKey || e.altKey) && e.key !== "Backspace") return
 
       const key = e.key
+      const { words, currentWordIndex, currentLetterIndex, status: currentStatus, config: currentConfig } = store
 
       // Tab or Escape triggers reset
       if (key === "Tab" || key === "Escape") {
@@ -94,12 +93,6 @@ export function useTypingEngine() {
         playClickSound(key)
         const typed = key.toLowerCase()
 
-        // Block typing during battle countdown
-        const battleState = useBattleStore.getState()
-        if (status === "ready" && battleState.status !== "selecting" && battleState.status !== "racing") {
-          return
-        }
-
         const expectedChar = words[currentWordIndex]?.letters[currentLetterIndex]?.char || ""
 
         const { words: nextWords, newLetterIndex, isCorrect } = processCharacter(
@@ -109,35 +102,20 @@ export function useTypingEngine() {
           typed
         )
 
-        // Only start session if status is ready and key is correct
-        if (status === "ready") {
+        if (currentStatus === "ready") {
           if (isCorrect) {
             startSession()
           } else {
-            // Incorrect first character: mark it incorrect, increment incorrect count, but don't start the session
             incrementIncorrect()
             setWords(nextWords)
             setCurrentLetterIndex(newLetterIndex)
-            // Log first key press even if incorrect
-            keystrokesLogRef.current.push({
-              char: typed,
-              expectedChar,
-              time: Date.now(),
-              isCorrect: false,
-            })
+            keystrokesLogRef.current.push({ char: typed, expectedChar, time: Date.now(), isCorrect: false })
             return
           }
         }
 
-        // Log keystroke
-        keystrokesLogRef.current.push({
-          char: typed,
-          expectedChar,
-          time: Date.now(),
-          isCorrect,
-        })
+        keystrokesLogRef.current.push({ char: typed, expectedChar, time: Date.now(), isCorrect })
 
-        // Increment store counts
         if (isCorrect) {
           incrementCorrect()
         } else {
@@ -147,32 +125,29 @@ export function useTypingEngine() {
         setWords(nextWords)
         setCurrentLetterIndex(newLetterIndex)
 
-        // Check for session completion in normal words mode or battle mode or drill mode
-        const isWordsOrBattleOrDrill = config.mode === "words" || config.mode === "battle" || config.mode === "drill"
+        const isWordsOrBattleOrDrill = currentConfig.mode === "words" || currentConfig.mode === "battle" || currentConfig.mode === "drill"
         if (isWordsOrBattleOrDrill && isSessionComplete(nextWords, currentWordIndex)) {
-          const finalWords = nextWords
-          const finalCorrect = countCorrectChars(finalWords)
-          const finalElapsed = Date.now() - (startTime || Date.now())
+          const finalCorrect = countCorrectChars(nextWords)
+          const finalElapsed = Date.now() - (store.startTime || Date.now())
           const wpmVal = calculateWpm(finalCorrect, finalElapsed)
-          const accVal = calculateAccuracy(
-            useTypingStore.getState().correctKeystrokes,
-            useTypingStore.getState().totalKeystrokes
-          )
+          // Read latest keystroke counts directly from store to get post-increment values
+          const latestStore = useTypingStore.getState()
+          const accVal = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
 
           addResult({
             id: generateId(),
             timestamp: Date.now(),
-            config,
+            config: currentConfig,
             wpm: wpmVal,
             accuracy: accVal,
-            totalKeystrokes: useTypingStore.getState().totalKeystrokes,
-            correctKeystrokes: useTypingStore.getState().correctKeystrokes,
-            incorrectKeystrokes: useTypingStore.getState().incorrectKeystrokes,
+            totalKeystrokes: latestStore.totalKeystrokes,
+            correctKeystrokes: latestStore.correctKeystrokes,
+            incorrectKeystrokes: latestStore.incorrectKeystrokes,
             duration: finalElapsed / 1000,
             wordsCompleted: currentWordIndex + 1,
           })
 
-          if (config.mode === "battle") {
+          if (currentConfig.mode === "battle") {
             const battleState = useBattleStore.getState()
             battleState.setPlayerProgress(1.0)
             if (!battleState.winner) {
@@ -194,41 +169,34 @@ export function useTypingEngine() {
 
         if (spaceResult) {
           const { words: nextWords, newWordIndex, newLetterIndex } = spaceResult
-          
-          // Log correct space transition
-          keystrokesLogRef.current.push({
-            char: " ",
-            expectedChar: " ",
-            time: Date.now(),
-            isCorrect: true,
-          })
+
+          keystrokesLogRef.current.push({ char: " ", expectedChar: " ", time: Date.now(), isCorrect: true })
 
           setWords(nextWords)
           setCurrentWordIndex(newWordIndex)
           setCurrentLetterIndex(newLetterIndex)
           incrementTotal()
 
-          // Sync battle mode progress
           if (battleState.status === "racing") {
             const completedRatio = newWordIndex / battleState.config.wordCount
             battleState.setPlayerProgress(completedRatio)
           }
         } else {
-          // No more words left (end of standard words lists)
           const finalCorrect = countCorrectChars(words)
-          const finalElapsed = Date.now() - (startTime || Date.now())
+          const finalElapsed = Date.now() - (store.startTime || Date.now())
           const wpmVal = calculateWpm(finalCorrect, finalElapsed)
-          const accVal = calculateAccuracy(correctKeystrokes, totalKeystrokes)
+          const latestStore = useTypingStore.getState()
+          const accVal = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
 
           addResult({
             id: generateId(),
             timestamp: Date.now(),
-            config,
+            config: currentConfig,
             wpm: wpmVal,
             accuracy: accVal,
-            totalKeystrokes,
-            correctKeystrokes,
-            incorrectKeystrokes,
+            totalKeystrokes: latestStore.totalKeystrokes,
+            correctKeystrokes: latestStore.correctKeystrokes,
+            incorrectKeystrokes: latestStore.incorrectKeystrokes,
             duration: finalElapsed / 1000,
             wordsCompleted: currentWordIndex + 1,
           })
@@ -250,18 +218,11 @@ export function useTypingEngine() {
         playClickSound(key)
         const isWordDelete = e.ctrlKey || e.altKey || e.metaKey
         if (isWordDelete) {
-          const { words: nextWords, newLetterIndex } = processWordDelete(
-            words,
-            currentWordIndex
-          )
+          const { words: nextWords, newLetterIndex } = processWordDelete(words, currentWordIndex)
           setWords(nextWords)
           setCurrentLetterIndex(newLetterIndex)
         } else {
-          const { words: nextWords, newLetterIndex } = processBackspace(
-            words,
-            currentWordIndex,
-            currentLetterIndex
-          )
+          const { words: nextWords, newLetterIndex } = processBackspace(words, currentWordIndex, currentLetterIndex)
           setWords(nextWords)
           setCurrentLetterIndex(newLetterIndex)
         }
@@ -269,50 +230,33 @@ export function useTypingEngine() {
         return
       }
     },
-    [
-      status,
-      words,
-      currentWordIndex,
-      currentLetterIndex,
-      startTime,
-      totalKeystrokes,
-      correctKeystrokes,
-      incorrectKeystrokes,
-      config,
-      startSession,
-      finishSession,
-      resetSession,
-      setWords,
-      setCurrentWordIndex,
-      setCurrentLetterIndex,
-      incrementCorrect,
-      incrementIncorrect,
-      incrementTotal,
-      addResult,
-    ]
+    // Only truly stable refs needed — all keystroke state read via getState()
+    [startSession, finishSession, resetSession, setWords, setCurrentWordIndex, setCurrentLetterIndex, incrementCorrect, incrementIncorrect, incrementTotal, addResult]
   )
 
-  // Calculate live WPM state via a side effect (avoiding Date.now in render)
+  // Live WPM — only recalculates on status change or every 500ms interval
   const [wpm, setWpm] = useState(0)
+  const wordsRef = useRef(useTypingStore.getState().words)
+  
+  // Keep wordsRef in sync without triggering re-renders
+  useEffect(() => {
+    return useTypingStore.subscribe((s) => { wordsRef.current = s.words })
+  }, [])
 
   useEffect(() => {
     if (status !== "running") {
       if (status === "finished" && startTime && endTime) {
-        const correct = countCorrectChars(words)
+        const correct = countCorrectChars(wordsRef.current)
         const elapsed = endTime - startTime
-        requestAnimationFrame(() => {
-          setWpm(calculateWpm(correct, elapsed))
-        })
+        requestAnimationFrame(() => setWpm(calculateWpm(correct, elapsed)))
       } else {
-        requestAnimationFrame(() => {
-          setWpm(0)
-        })
+        requestAnimationFrame(() => setWpm(0))
       }
       return
     }
 
     const updateWpm = () => {
-      const correct = countCorrectChars(words)
+      const correct = countCorrectChars(wordsRef.current)
       const elapsed = Date.now() - (startTime || Date.now())
       setWpm(calculateWpm(correct, elapsed))
     }
@@ -320,19 +264,15 @@ export function useTypingEngine() {
     updateWpm()
     const interval = setInterval(updateWpm, 500)
     return () => clearInterval(interval)
-  }, [words, status, startTime, endTime])
+  }, [status, startTime, endTime])
 
-  // Calculate live accuracy
-  const accuracy = useMemo(() => {
-    return calculateAccuracy(correctKeystrokes, totalKeystrokes)
-  }, [correctKeystrokes, totalKeystrokes])
+  // Live accuracy — read from store state directly, subscribe only to keystroke counts
+  const correctKeystrokes = useTypingStore((s) => s.correctKeystrokes)
+  const totalKeystrokes = useTypingStore((s) => s.totalKeystrokes)
+  const accuracy = useMemo(
+    () => calculateAccuracy(correctKeystrokes, totalKeystrokes),
+    [correctKeystrokes, totalKeystrokes]
+  )
 
-  const isActive = status === "running"
-
-  return {
-    handleKeyDown,
-    wpm,
-    accuracy,
-    isActive,
-  }
+  return { handleKeyDown, wpm, accuracy, isActive: status === "running" }
 }
