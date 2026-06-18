@@ -7,6 +7,7 @@ import { useTypingStore } from "@/stores/typing-store"
 import { calculateKeyWeakness, calculateBigramWeakness, getSuggestedDrills } from "@/engine/drill-engine"
 import KeyboardBody from "@/components/keyboard/KeyboardBody"
 import { playClickSound } from "@/lib/audio"
+import AlertModal from "@/components/ui/AlertModal"
 
 interface DrillDashboardProps {
   onStartDrill: () => void
@@ -18,6 +19,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
 
   // Tab State
   const [activeTab, setActiveTab] = useState<"adaptive" | "custom">("adaptive")
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false)
 
   // Custom Builder State
   const [selectedKeys, setSelectedKeys] = useState<string[]>([])
@@ -164,9 +166,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
           <button
             onClick={() => {
               playClickSound("click")
-              if (confirm("Are you sure you want to clear your typing weakness profile?")) {
-                resetStats()
-              }
+              setIsClearModalOpen(true)
             }}
             className="text-xs font-semibold text-danger/80 hover:text-danger hover:underline cursor-pointer active:scale-[0.97] transition-transform"
           >
@@ -219,8 +219,8 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             className="space-y-4 w-full"
           >
             {/* Typing Profile Analysis Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-4">
-              <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-4">
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-6 space-y-4">
+              <span className="text-[12px] uppercase font-bold tracking-wider text-text-secondary font-sans block mb-2">
                 Weakness Analysis Profile
               </span>
 
@@ -237,11 +237,11 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Focus Areas List */}
                   <div>
-                    <h4 className="text-[13px] font-bold text-text-secondary uppercase tracking-wider mb-3">Slowest Keys / Transitions</h4>
+                    <h4 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-2.5">Slowest Keys / Transitions</h4>
                     {focusAreas.length === 0 ? (
                       <p className="text-xs text-text-tertiary">No weak keys detected yet.</p>
                     ) : (
-                      <div className="divide-y divide-border/10 rounded-xl bg-surface-secondary/50 border border-border/10 overflow-hidden">
+                      <div className="divide-y divide-border/10 overflow-hidden">
                         {focusAreas.map((area, idx) => {
                           const accColor =
                             area.accuracy >= 90
@@ -253,7 +253,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                           return (
                             <div
                               key={idx}
-                              className="flex items-center justify-between px-4 py-3 text-[14px]"
+                              className="flex items-center justify-between py-3 text-[14px]"
                             >
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold text-text-primary">
@@ -275,15 +275,15 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
 
                   {/* Mistake Patterns List */}
                   <div>
-                    <h4 className="text-[13px] font-bold text-text-secondary uppercase tracking-wider mb-3">Frequent Typo Patterns</h4>
+                    <h4 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider mb-2.5">Frequent Typo Patterns</h4>
                     {mistakePatterns.length === 0 ? (
                       <p className="text-xs text-text-tertiary">No typo trends detected yet.</p>
                     ) : (
-                      <div className="divide-y divide-border/10 rounded-xl bg-surface-secondary/50 border border-border/10 overflow-hidden">
+                      <div className="divide-y divide-border/10 overflow-hidden">
                         {mistakePatterns.map((pat, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between px-4 py-3 text-[14px]"
+                            className="flex items-center justify-between py-3 text-[14px]"
                           >
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-bold text-danger/90 font-sans">
@@ -307,16 +307,16 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             </div>
 
             {/* Suggested Drills Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-4">
-              <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-4">
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-6 space-y-4">
+              <span className="text-[12px] uppercase font-bold tracking-wider text-text-secondary font-sans block mb-2">
                 Recommended Training Drills
               </span>
 
-              <div className="divide-y divide-border/10 rounded-2xl bg-surface-secondary/50 border border-border/10 overflow-hidden">
+              <div className="divide-y divide-border/10 overflow-hidden">
                 {suggestions.map((drill) => (
                   <div
                     key={drill.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 hover:bg-surface-hover/30 transition-all duration-150"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4 hover:bg-surface-hover/10 transition-all duration-150 rounded-lg px-2 -mx-2"
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -336,7 +336,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                         playClickSound("click")
                         handleStartSuggestedDrill(drill)
                       }}
-                      className="h-8 px-4 rounded-xl bg-accent text-white text-xs font-bold transition-all cursor-pointer active:scale-[0.97] select-none shrink-0"
+                      className="h-8 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold transition-all cursor-pointer active:scale-[0.97] select-none shrink-0"
                     >
                       Start
                     </button>
@@ -355,19 +355,19 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
             className="space-y-4 w-full"
           >
             {/* Custom Drill Builder Settings Card */}
-            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-4 space-y-4">
+            <div className="bg-surface-secondary/40 border border-border/10 rounded-[20px] p-6 space-y-6">
                 <div>
-                  <span className="text-[12px] uppercase font-bold tracking-wider text-accent font-sans block mb-2">
+                  <span className="text-[12px] uppercase font-bold tracking-wider text-text-secondary font-sans block mb-2">
                     Custom Drill Builder
                   </span>
-                  <p className="text-xs text-text-secondary leading-normal">
+                  <p className="text-xs text-text-tertiary leading-normal">
                     Select your focus targets, manually add custom combinations, and set speed parameters.
                   </p>
                 </div>
 
                 {/* Target Bigrams Selection */}
                 <div className="space-y-2">
-                  <label className="text-[12px] font-bold uppercase tracking-wider text-text-secondary">Focus Transitions</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-text-tertiary">Focus Transitions</label>
                   <div className="flex flex-wrap gap-1.5">
                     {commonBigramsPreset.map((bigram) => (
                       <button
@@ -376,10 +376,10 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
                           playClickSound("click")
                           toggleBigram(bigram)
                         }}
-                        className={`h-7 px-3 rounded-full border text-[12px] font-bold transition-all cursor-pointer select-none active:scale-[0.97] ${
+                        className={`h-7 px-3 rounded-full border text-[11px] font-bold transition-all cursor-pointer select-none active:scale-[0.97] ${
                           selectedBigrams.includes(bigram)
                             ? "bg-accent border-accent text-white"
-                            : "bg-surface-secondary border-border/30 text-text-secondary hover:text-text-primary"
+                            : "bg-surface border-border/10 text-text-secondary hover:text-text-primary"
                         }`}
                       >
                         {bigram.toUpperCase()}
