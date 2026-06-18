@@ -1,6 +1,8 @@
 import { WORDS } from "@/lib/words/word-pool"
 import { getIndicesForTarget, getGeneralIndices } from "@/lib/words/drill"
 import type { KeyStats, BigramStats, TrigramStats, MistakeRecord } from "@/types"
+import { isAllowedWord } from "@/lib/words"
+
 
 /**
  * Calculates a weakness score (0-100) for a single key.
@@ -160,27 +162,55 @@ export function generateDrillText(options: {
   const words: string[] = []
   for (let i = 0; i < count; i++) {
     const isTarget = Math.random() < targetRatio
+    let word = "the"
+    let attempts = 0
 
-    if (isTarget) {
-      const selectedTarget = pickTarget()
-      const indices = getIndicesForTarget(selectedTarget, options.difficulty)
+    while (attempts < 15) {
+      if (isTarget) {
+        const selectedTarget = pickTarget()
+        const indices = getIndicesForTarget(selectedTarget, options.difficulty)
 
-      if (indices.length > 0) {
-        const randIndex = indices[Math.floor(Math.random() * indices.length)]
-        words.push(WORDS[randIndex] || "the")
+        if (indices.length > 0) {
+          const randIndex = indices[Math.floor(Math.random() * indices.length)]
+          word = WORDS[randIndex] || "the"
+        } else {
+          // Fallback to general vocabulary word if no exact target match exists in this tier
+          const randIndex = generalIndices[Math.floor(Math.random() * generalIndices.length)]
+          word = WORDS[randIndex] || "the"
+        }
       } else {
-        // Fallback to general vocabulary word if no exact target match exists in this tier
+        // Natural mix word from general vocabulary
         const randIndex = generalIndices[Math.floor(Math.random() * generalIndices.length)]
-        words.push(WORDS[randIndex] || "the")
+        word = WORDS[randIndex] || "the"
       }
-    } else {
-      // Natural mix word from general vocabulary
-      const randIndex = generalIndices[Math.floor(Math.random() * generalIndices.length)]
-      words.push(WORDS[randIndex] || "the")
+
+      if (isAllowedWord(word)) {
+        break
+      }
+      attempts++
     }
+
+    if (!isAllowedWord(word)) {
+      // Find a clean random word as fallback
+      let fallbackWord = "the"
+      let fallbackAttempts = 0
+      while (fallbackAttempts < 10) {
+        const idx = generalIndices[Math.floor(Math.random() * generalIndices.length)]
+        const cand = WORDS[idx] || "the"
+        if (isAllowedWord(cand)) {
+          fallbackWord = cand
+          break
+        }
+        fallbackAttempts++
+      }
+      word = fallbackWord
+    }
+
+    words.push(word)
   }
 
   return words
+
 }
 
 /**
@@ -293,6 +323,14 @@ export function getSuggestedDrills(
       focusKeys: ["t", "h", "e"],
       focusBigrams: ["th", "he"],
       difficulty: "easy",
+    })
+    suggestions.push({
+      id: "suggested-default-g",
+      title: "Transition: G-Flow (NG & GR)",
+      description: "Focus on common 'g' letter flows: 'ng' and 'gr'.",
+      focusKeys: ["n", "g", "r"],
+      focusBigrams: ["ng", "gr"],
+      difficulty: "medium",
     })
     suggestions.push({
       id: "suggested-default-in",

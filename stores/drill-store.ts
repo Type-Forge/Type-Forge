@@ -152,8 +152,8 @@ export const useDrillStore = create<DrillStore>()(
           const char1 = k1.expectedChar.toLowerCase()
           const char2 = k2.expectedChar.toLowerCase()
 
-          // Only track basic pairs (letters or spaces)
-          if (!/^[a-z ]$/.test(char1) || !/^[a-z ]$/.test(char2)) continue
+          // Only track letter transitions (no spaces)
+          if (!/^[a-z]$/.test(char1) || !/^[a-z]$/.test(char2)) continue
           const pair = char1 + char2
 
           if (!updatedBigramStats[pair]) {
@@ -190,7 +190,8 @@ export const useDrillStore = create<DrillStore>()(
           const char2 = k2.expectedChar.toLowerCase()
           const char3 = k3.expectedChar.toLowerCase()
 
-          if (!/^[a-z ]$/.test(char1) || !/^[a-z ]$/.test(char2) || !/^[a-z ]$/.test(char3)) continue
+          // Only track letter transitions (no spaces)
+          if (!/^[a-z]$/.test(char1) || !/^[a-z]$/.test(char2) || !/^[a-z]$/.test(char3)) continue
           const sequence = char1 + char2 + char3
 
           if (!updatedTrigramStats[sequence]) {

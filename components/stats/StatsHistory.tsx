@@ -240,8 +240,8 @@ export default function StatsHistory() {
                   </span>
                 </div>
 
-                {/* Stats Grouped List */}
-                <GroupedList className="mb-6 bg-surface-secondary/40 font-sans">
+                 {/* Stats Grouped List */}
+                <GroupedList className="mb-6 font-sans">
                   <GroupedListItem
                     title="Speed"
                     rightElement={<span className="font-bold text-accent tabular-nums">{selectedSession.wpm} WPM</span>}
@@ -261,7 +261,7 @@ export default function StatsHistory() {
                 </GroupedList>
 
                 {/* Metadata Grouped List */}
-                <GroupedList className="mb-6 bg-surface-secondary/35 font-sans">
+                <GroupedList className="mb-6 font-sans">
                   <GroupedListItem
                     title="Words decrypted"
                     className="py-2.5"
