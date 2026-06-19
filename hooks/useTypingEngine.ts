@@ -210,10 +210,10 @@ export function useTypingEngine() {
             const completedWord = nextWords[currentWordIndex]
             const wasWordCorrect = completedWord && completedWord.state === "completed"
             
-            useYoloStore.setState((s) => ({
-              streak: wasWordCorrect ? s.streak + 1 : 0
-            }))
-
+            const latestStore = useTypingStore.getState()
+            const currentAcc = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
+            
+            yoloStore.recordWordResult(wasWordCorrect, currentAcc)
             yoloStore.incrementWordsCompleted(1)
 
             if (newWordIndex > 0 && newWordIndex % 20 === 0) {

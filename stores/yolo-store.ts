@@ -2,7 +2,13 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { useDrillStore } from "./drill-store"
 import { useStatsStore } from "./stats-store"
+import { useTypingStore } from "./typing-store"
+import { generateYoloWords } from "@/lib/words/drill"
+import { initializeWords } from "@/engine/typing-engine"
 import type { YoloLetterProfile } from "@/types"
+import { createElement } from "react"
+import { toast } from "sonner"
+import { YoloToastBanner } from "@/components/yolo/YoloToastBanner"
 
 // Touch-typing progression sequence
 export const YOLO_SEQUENCE = [
@@ -18,6 +24,14 @@ export interface YoloSessionSummary {
   lettersMasteredThisSession: string[]
 }
 
+export interface YoloToast {
+  id: string
+  icon: string
+  title: string
+  description: string
+  type: "streak" | "confidence" | "rank" | "speed" | "mastery"
+}
+
 interface YoloState {
   activeLetter: string | null
   letterProfiles: Record<string, YoloLetterProfile>
@@ -27,23 +41,24 @@ interface YoloState {
   hasActiveRun: boolean
   sessionSummary: YoloSessionSummary
 
-  // Mastery Toast State
-  masteryToast: {
+  // Mastery Banner Overlay State
+  masteryBanner: {
     letter: string
-    confidence: number
     nextLetter: string
-    isVisible: boolean
+    confidence: number
   } | null
 
   // Actions
   initYoloRun: () => void
   startFresh: () => void
+  addYoloToast: (toast: Omit<YoloToast, "id">) => void
+  recordWordResult: (wasWordCorrect: boolean, currentAccuracy: number) => void
   updateActiveLetterStats: (
     keystrokes: { char: string; expectedChar: string; time: number; isCorrect: boolean }[],
     sessionWpm: number
   ) => void
   incrementWordsCompleted: (count: number) => void
-  closeMasteryToast: () => void
+  closeMasteryBanner: () => void
   finishYoloSession: (wpm: number, accuracy: number, duration: number) => void
 }
 
@@ -53,6 +68,24 @@ const initialSummary: YoloSessionSummary = {
   incorrectKeystrokes: 0,
   startTime: null,
   lettersMasteredThisSession: [],
+}
+
+export function getLetterRank(confidence: number): string {
+  if (confidence < 30) return "Novice"
+  if (confidence < 50) return "Apprentice"
+  if (confidence < 70) return "Adept"
+  if (confidence < 85) return "Expert"
+  if (confidence < 90) return "Master"
+  return "Legendary"
+}
+
+export function getNextRankInfo(confidence: number): { nextRank: string; diff: number } | null {
+  if (confidence < 30) return { nextRank: "Apprentice", diff: 30 - confidence }
+  if (confidence < 50) return { nextRank: "Adept", diff: 50 - confidence }
+  if (confidence < 70) return { nextRank: "Expert", diff: 70 - confidence }
+  if (confidence < 85) return { nextRank: "Master", diff: 85 - confidence }
+  if (confidence < 90) return { nextRank: "Legendary", diff: 90 - confidence }
+  return null
 }
 
 // Helper to find worst-performing key in historical Drill stats
@@ -66,7 +99,6 @@ export function getWeakestDrillLetter(): string {
   const keyStatsList = Object.values(drillStore.keyStats)
   if (keyStatsList.length === 0) return "e"
 
-  // Standard weakness formula
   const calculateWeakness = (stats: any) => {
     if (stats.totalAttempts === 0) return 0
     const accuracy = stats.totalCorrect / stats.totalAttempts
@@ -118,23 +150,19 @@ export const useYoloStore = create<YoloState>()(
       sessionCount: 0,
       hasActiveRun: false,
       sessionSummary: initialSummary,
-      masteryToast: null,
+      masteryBanner: null,
 
       initYoloRun: () => {
         let currentActive = get().activeLetter
         let profiles = get().letterProfiles
 
-        // If no profiles exist, initialize them
         if (Object.keys(profiles).length === 0) {
           profiles = createDefaultProfiles()
         }
 
-        // If active letter is null, find weakest or default to 'e'
         if (!currentActive) {
           currentActive = getWeakestDrillLetter()
-          // Ensure we don't start on an already mastered letter
           if (profiles[currentActive] && profiles[currentActive].confidence >= 90) {
-            // Find first unmastered letter in sequence
             const firstUnmastered = YOLO_SEQUENCE.find(l => profiles[l].confidence < 90)
             currentActive = firstUnmastered || "z"
           }
@@ -149,6 +177,7 @@ export const useYoloStore = create<YoloState>()(
             startTime: Date.now(),
           },
           sessionCount: get().sessionCount + 1,
+          masteryBanner: null,
         })
       },
 
@@ -159,11 +188,42 @@ export const useYoloStore = create<YoloState>()(
           activeLetter: weakest,
           letterProfiles: defaultProfiles,
           hasActiveRun: true,
+          streak: 0,
           sessionSummary: {
             ...initialSummary,
             startTime: Date.now(),
           },
+          masteryBanner: null,
         })
+      },
+
+      addYoloToast: (toastData) => {
+        toast.custom(
+          (t) =>
+            createElement(YoloToastBanner, {
+              toastId: t,
+              icon: toastData.icon,
+              title: toastData.title,
+              description: toastData.description,
+              onClose: (id) => toast.dismiss(id),
+            }),
+          { duration: 2000 }
+        )
+      },
+
+      recordWordResult: (wasWordCorrect, currentAccuracy) => {
+        const newStreak = wasWordCorrect ? get().streak + 1 : 0
+        set({ streak: newStreak })
+
+        // Trigger streak toast on multiples of 10
+        if (newStreak > 0 && newStreak % 10 === 0) {
+          get().addYoloToast({
+            icon: "🔥",
+            title: `Accuracy Streak x${newStreak}`,
+            description: `Current Accuracy: ${currentAccuracy}%\nKeep it up.`,
+            type: "streak"
+          })
+        }
       },
 
       updateActiveLetterStats: (keystrokes, sessionWpm) => {
@@ -175,6 +235,9 @@ export const useYoloStore = create<YoloState>()(
           profiles[active] = { letter: active, attempts: 0, correct: 0, avgReactionMs: 0, confidence: 0 }
         }
 
+        const oldConfidence = profiles[active].confidence
+        const oldRank = getLetterRank(oldConfidence)
+
         // 1. Update active letter stats
         const activeKeystrokes = keystrokes.filter(
           k => k.expectedChar.toLowerCase() === active
@@ -184,11 +247,10 @@ export const useYoloStore = create<YoloState>()(
         let totalCorrect = profiles[active].correct
         let totalReaction = profiles[active].avgReactionMs * totalCorrect
 
-        activeKeystrokes.forEach((k, idx) => {
+        activeKeystrokes.forEach((k) => {
           totalAttempts++
           if (k.isCorrect) {
             totalCorrect++
-            // Calculate reaction time since previous keystroke index
             const keyIdx = keystrokes.indexOf(k)
             const prevTime = keyIdx === 0 ? (get().sessionSummary.startTime || Date.now()) : keystrokes[keyIdx - 1].time
             const rt = Math.max(0, k.time - prevTime)
@@ -208,11 +270,47 @@ export const useYoloStore = create<YoloState>()(
         const targetWpm = Math.max(30, Math.round(avgWpm > 0 ? avgWpm * 0.9 : 45))
         const speedScore = Math.min(100, Math.max(0, (sessionWpm / targetWpm) * 100))
         
-        // V1 Formula: confidence = accuracy * 0.7 + speedScore * 0.3
-        const finalConfidence = Math.round(accuracy * 0.7 + speedScore * 0.3)
-        profiles[active].confidence = Math.min(100, Math.max(0, finalConfidence))
+        const finalConfidence = Math.min(100, Math.max(0, Math.round(accuracy * 0.7 + speedScore * 0.3)))
+        profiles[active].confidence = finalConfidence
 
-        // 2. Process mistakes on OTHER mastered letters
+        const newRank = getLetterRank(finalConfidence)
+        const confidenceGain = finalConfidence - oldConfidence
+
+        // Trigger Live Feed toasts:
+        // A. Confidence Gain Toast (if improved by 2%+)
+        if (confidenceGain >= 2 && finalConfidence < 90) {
+          get().addYoloToast({
+            icon: "⚡",
+            title: `${active.toUpperCase()} +${confidenceGain} Confidence`,
+            description: `Current Confidence: ${finalConfidence}%\nStrong improvement.`,
+            type: "confidence"
+          })
+        }
+
+        // B. Rank Promotion Toast
+        if (newRank !== oldRank && finalConfidence < 90) {
+          const nextInfo = getNextRankInfo(finalConfidence)
+          const distLabel = nextInfo ? `${nextInfo.diff}% away from ${nextInfo.nextRank}.` : "Max rank achieved."
+          get().addYoloToast({
+            icon: "🏆",
+            title: `${active.toUpperCase()} Reached ${newRank}`,
+            description: `Confidence: ${finalConfidence}%\n${distLabel}`,
+            type: "rank"
+          })
+        }
+
+        // C. Check for new best speed toast
+        const historicalBestWpm = useStatsStore.getState().bestWpm
+        if (sessionWpm > historicalBestWpm && historicalBestWpm > 0) {
+          get().addYoloToast({
+            icon: "🚀",
+            title: "New Best Speed",
+            description: `Current WPM: ${sessionWpm}\nPrevious Best: ${historicalBestWpm}`,
+            type: "speed"
+          })
+        }
+
+        // D. 2. Process mistakes on OTHER mastered letters
         const otherExpected = new Set(keystrokes.map(k => k.expectedChar.toLowerCase()))
         otherExpected.delete(active)
 
@@ -225,10 +323,7 @@ export const useYoloStore = create<YoloState>()(
             const mistakes = charKeystrokes.filter(k => !k.isCorrect).length
             
             if (mistakes > 0) {
-              // V1: mastered is mastered, but we slightly damp confidence to track typos,
-              // cap minimum at 90 so it stays unlocked, or drop below 90 to re-lock if they fail?
-              // The user said: "reinforcement V1 se nikaal do, mastered = mastered. active = active."
-              // So for V1, we DO NOT decrease confidence below 90. Capped at 90.
+              // Mastered is mastered in V1/V2, capped at 90
               const newConfidence = Math.max(90, profile.confidence - (mistakes * 2))
               profile.confidence = newConfidence
             } else if (charKeystrokes.length > 0) {
@@ -239,16 +334,14 @@ export const useYoloStore = create<YoloState>()(
 
         // 3. Switch focus letter if mastered
         let newActive = active
-        let toast = null
+        let banner = null
 
         if (profiles[active].confidence >= 90 && totalAttempts >= 30) {
-          // Find next letter in the touch-typing progression sequence
           const currentIndex = YOLO_SEQUENCE.indexOf(active)
           const nextIndex = currentIndex + 1
           if (nextIndex < YOLO_SEQUENCE.length) {
             newActive = YOLO_SEQUENCE[nextIndex]
             
-            // Check if next letter already has a mastered confidence, skip it if so
             while (nextIndex < YOLO_SEQUENCE.length && profiles[newActive] && profiles[newActive].confidence >= 90) {
               const nextLetterIdx = YOLO_SEQUENCE.indexOf(newActive) + 1
               if (nextLetterIdx < YOLO_SEQUENCE.length) {
@@ -258,15 +351,21 @@ export const useYoloStore = create<YoloState>()(
               }
             }
 
-            // Create toast summary
-            toast = {
+            // Create Full mastery Banner
+            banner = {
               letter: active.toUpperCase(),
-              confidence: profiles[active].confidence,
               nextLetter: newActive.toUpperCase(),
-              isVisible: true,
+              confidence: profiles[active].confidence,
             }
 
-            // Record letters mastered in summary
+            // Trigger Mastered Toast
+            get().addYoloToast({
+              icon: "✓",
+              title: "Letter Mastered",
+              description: `${active.toUpperCase()} mastered successfully\nNext Focus: ${newActive.toUpperCase()}`,
+              type: "mastery"
+            })
+
             const currentMastered = get().sessionSummary.lettersMasteredThisSession
             if (!currentMastered.includes(active)) {
               set((s) => ({
@@ -276,13 +375,27 @@ export const useYoloStore = create<YoloState>()(
                 }
               }))
             }
+
+            // Regenerate future words immediately for the new active letter
+            const typingStore = useTypingStore.getState()
+            const activeWords = typingStore.words
+            const currentIdx = typingStore.currentWordIndex
+            const sliced = activeWords.slice(0, currentIdx + 1)
+            const newWords = generateYoloWords(newActive, 25)
+            const initializedNew = initializeWords(newWords)
+            const lastIndex = sliced[sliced.length - 1]?.index ?? 0
+            const mappedNew = initializedNew.map((w, idx) => ({
+              ...w,
+              index: lastIndex + 1 + idx
+            }))
+            typingStore.setWords([...sliced, ...mappedNew])
           }
         }
 
         set({
           letterProfiles: profiles,
           activeLetter: newActive,
-          masteryToast: toast,
+          masteryBanner: banner,
         })
       },
 
@@ -296,14 +409,13 @@ export const useYoloStore = create<YoloState>()(
         }))
       },
 
-      closeMasteryToast: () => {
-        set({ masteryToast: null })
+      closeMasteryBanner: () => {
+        set({ masteryBanner: null })
       },
 
       finishYoloSession: (wpm, accuracy, duration) => {
         const summary = get().sessionSummary
         
-        // Add session results to Stats Store
         useStatsStore.getState().addResult({
           id: `yolo-${Date.now()}`,
           timestamp: Date.now(),
@@ -324,11 +436,11 @@ export const useYoloStore = create<YoloState>()(
     }),
     {
       name: "turing-type-yolo",
-      // Only persist core data structures to avoid bloat
       partialize: (state) => ({
         activeLetter: state.activeLetter,
         letterProfiles: state.letterProfiles,
         totalWordsCompleted: state.totalWordsCompleted,
+        streak: state.streak,
         sessionCount: state.sessionCount,
         hasActiveRun: state.hasActiveRun,
       }),

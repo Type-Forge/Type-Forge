@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import Footer from "@/components/ui/Footer"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -31,6 +32,9 @@ export default function RootLayout({
           
           {/* Clean minimal footer */}
           <Footer />
+
+          {/* Sonner Toaster container for notifications */}
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

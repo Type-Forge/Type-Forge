@@ -42,8 +42,8 @@ export default function Home() {
   const latestResult = useStatsStore((s) => s.history[0])
   const selectorRef = useRef<HTMLDivElement>(null)
   const battleStatus = useBattleStore((s) => s.status)
-  const masteryToast = useYoloStore((s) => s.masteryToast)
-  const closeMasteryToast = useYoloStore((s) => s.closeMasteryToast)
+  const masteryBanner = useYoloStore((s) => s.masteryBanner)
+  const closeMasteryBanner = useYoloStore((s) => s.closeMasteryBanner)
 
   const [isDrillActive, setIsDrillActive] = useState(false)
 
@@ -59,15 +59,15 @@ export default function Home() {
     }
   }, [config.mode])
 
-  // Automatically close mastery toast after 2.5 seconds
+  // Automatically close mastery banner after 2.5 seconds
   useEffect(() => {
-    if (masteryToast && masteryToast.isVisible) {
+    if (masteryBanner) {
       const timer = setTimeout(() => {
-        closeMasteryToast()
+        closeMasteryBanner()
       }, 2500)
       return () => clearTimeout(timer)
     }
-  }, [masteryToast, closeMasteryToast])
+  }, [masteryBanner, closeMasteryBanner])
 
   // Bind key capture events and fetch live metrics
   const { wpm, accuracy } = useTypingEngine()
@@ -112,40 +112,45 @@ export default function Home() {
 
   return (
     <div className="w-full flex-1 flex flex-col select-none">
-      {/* 0. Slide-Down Mastery Toast (Apple HIG Style) */}
+      {/* 0b. Upgraded Full-Width Glassmorphic Mastery Banner */}
       <AnimatePresence>
-        {masteryToast && masteryToast.isVisible && (
+        {masteryBanner && (
           <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.95 }}
+            initial={{ opacity: 0, y: -30, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="fixed top-6 left-1/2 -translate-x-1/2 z-[200] w-full max-w-sm px-4 select-none pointer-events-none"
+            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+            transition={{ type: "spring", damping: 20, stiffness: 250 }}
+            className="w-full max-w-6xl mx-auto px-6 md:px-8 py-2 relative z-[150] select-none"
           >
-            <div className="bg-surface/95 dark:bg-[#1c1c1e]/95 border border-border/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] backdrop-blur-xl rounded-2xl py-3 px-5 flex items-center justify-between pointer-events-auto">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#34c759]/10 border border-[#34c759]/20 flex items-center justify-center text-[#34c759] font-bold">
+            <div className="bg-gradient-to-r from-accent/5 via-[#34c759]/5 to-accent/5 bg-surface/80 dark:bg-[#1c1c1e]/80 border border-[#34c759]/25 shadow-[0_8px_32px_rgba(52,199,89,0.15)] backdrop-blur-xl rounded-[20px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left transition-all duration-300">
+              <div className="flex items-center gap-4 flex-col sm:flex-row">
+                <div className="w-12 h-12 rounded-full bg-[#34c759]/10 border border-[#34c759]/20 flex items-center justify-center text-[22px] text-[#34c759] font-bold shadow-sm shrink-0">
                   ✓
                 </div>
-                <div className="text-left font-sans">
-                  <h4 className="text-[13px] font-bold text-text-primary tracking-tight">
-                    {masteryToast.letter} Mastered!
-                  </h4>
-                  <p className="text-[11px] text-text-secondary leading-none mt-0.5 font-medium">
-                    Confidence: {masteryToast.confidence}% &middot; Next: {masteryToast.nextLetter}
-                  </p>
+                <div className="font-sans">
+                  <h3 className="text-[12px] font-bold text-[#34c759] uppercase tracking-widest leading-none">
+                    ✓ Letter Mastered
+                  </h3>
+                  <h2 className="text-[20px] font-bold text-text-primary tracking-tight mt-1 leading-none">
+                    {masteryBanner.letter} mastered
+                  </h2>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  playClickSound("click")
-                  closeMasteryToast()
-                }}
-                className="text-text-muted hover:text-text-secondary font-bold text-[14px] cursor-pointer pl-4"
-              >
-                ×
-              </button>
+              <div className="flex items-center gap-4">
+                <div className="text-sm font-semibold text-text-secondary bg-surface-secondary/50 px-4 py-1.5 rounded-xl border border-border/5">
+                  Next Focus: <span className="text-accent font-bold">{masteryBanner.nextLetter}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClickSound("click")
+                    closeMasteryBanner()
+                  }}
+                  className="text-text-muted hover:text-text-secondary font-bold text-[18px] cursor-pointer"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
