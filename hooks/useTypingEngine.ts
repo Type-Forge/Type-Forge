@@ -3,6 +3,8 @@ import { useTypingStore } from "@/stores/typing-store"
 import { useStatsStore } from "@/stores/stats-store"
 import { useBattleStore } from "@/stores/battle-store"
 import { useDrillStore } from "@/stores/drill-store"
+import { useYoloStore } from "@/stores/yolo-store"
+import { generateYoloWords } from "@/lib/words/drill"
 import {
   processCharacter,
   processSpace,
@@ -10,6 +12,7 @@ import {
   processWordDelete,
   isSessionComplete,
   countCorrectChars,
+  initializeWords,
 } from "@/engine/typing-engine"
 import { calculateWpm, calculateAccuracy, generateId } from "@/lib/utils"
 import { playClickSound } from "@/lib/audio"
@@ -79,6 +82,10 @@ export function useTypingEngine() {
 
       // Tab or Escape triggers reset
       if (key === "Tab" || key === "Escape") {
+        if (currentConfig.mode === "yolo" && currentStatus === "running") {
+          finishSession()
+          return
+        }
         resetSession()
         const battleState = useBattleStore.getState()
         if (battleState.status === "racing" || battleState.status === "finished") {
@@ -164,7 +171,27 @@ export function useTypingEngine() {
       if (key === " ") {
         if (currentLetterIndex === 0) return
         playClickSound(key)
-        const spaceResult = processSpace(words, currentWordIndex)
+
+        // YOLO mode endless stream generator
+        if (currentConfig.mode === "yolo") {
+          const activeWords = useTypingStore.getState().words
+          if (currentWordIndex + 5 >= activeWords.length) {
+            const yoloStore = useYoloStore.getState()
+            const activeLetter = yoloStore.activeLetter || "e"
+            const newWords = generateYoloWords(activeLetter, 15) // append 15 more words
+            const initializedNew = initializeWords(newWords)
+            const lastIndex = activeWords[activeWords.length - 1].index
+            const mappedNew = initializedNew.map((w, idx) => ({
+              ...w,
+              index: lastIndex + 1 + idx
+            }))
+            setWords([...activeWords, ...mappedNew])
+          }
+        }
+
+        // Get the updated words array
+        const updatedWords = useTypingStore.getState().words
+        const spaceResult = processSpace(updatedWords, currentWordIndex)
         const battleState = useBattleStore.getState()
 
         if (spaceResult) {
@@ -176,6 +203,26 @@ export function useTypingEngine() {
           setCurrentWordIndex(newWordIndex)
           setCurrentLetterIndex(newLetterIndex)
           incrementTotal()
+
+          // YOLO mode updates
+          if (currentConfig.mode === "yolo") {
+            const yoloStore = useYoloStore.getState()
+            const completedWord = nextWords[currentWordIndex]
+            const wasWordCorrect = completedWord && completedWord.state === "completed"
+            
+            useYoloStore.setState((s) => ({
+              streak: wasWordCorrect ? s.streak + 1 : 0
+            }))
+
+            yoloStore.incrementWordsCompleted(1)
+
+            if (newWordIndex > 0 && newWordIndex % 20 === 0) {
+              const elapsedMs = Date.now() - (store.startTime || Date.now())
+              const correct = countCorrectChars(nextWords)
+              const currentWpm = calculateWpm(correct, elapsedMs)
+              yoloStore.updateActiveLetterStats(keystrokesLogRef.current, currentWpm)
+            }
+          }
 
           if (battleState.status === "racing") {
             const completedRatio = newWordIndex / battleState.config.wordCount

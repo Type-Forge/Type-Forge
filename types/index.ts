@@ -29,7 +29,7 @@ export interface WordData {
 }
 
 // ===== SESSION =====
-export type SessionMode = "words" | "timed" | "battle" | "drill"
+export type SessionMode = "words" | "timed" | "battle" | "drill" | "yolo"
 export type WordCount = 25 | 50 | 75
 export type TimeDuration = 60 | 180 | 300
 
@@ -48,6 +48,14 @@ export interface SessionConfig {
 export type SessionStatus = "idle" | "ready" | "running" | "finished"
 
 // ===== DRILL STATS =====
+export interface YoloLetterProfile {
+  letter: string
+  attempts: number
+  correct: number
+  avgReactionMs: number
+  confidence: number
+}
+
 export interface KeyStats {
   key: string
   totalAttempts: number

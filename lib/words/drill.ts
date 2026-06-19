@@ -60,3 +60,40 @@ export function getGeneralIndices(difficulty: "easy" | "medium" | "hard" | "cust
   if (difficulty === "hard") return HARD_INDICES;
   return Array.from({ length: WORDS.length }, (_, i) => i);
 }
+
+/**
+ * Generates endless words containing the active focus letter for YOLO mode.
+ * V1: Just pick random words containing activeLetter from index. Filter profanity.
+ */
+export function generateYoloWords(activeLetter: string, count: number = 20): string[] {
+  const clean = activeLetter.toLowerCase();
+  const indices = getIndicesForTarget(clean, "custom");
+  const { isAllowedWord } = require("../words"); // avoid circular dependency, resolve dynamically
+
+  if (indices.length === 0) {
+    const result: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const idx = Math.floor(Math.random() * WORDS.length);
+      const w = WORDS[idx] || "the";
+      result.push(w);
+    }
+    return result;
+  }
+
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    let attempts = 0;
+    let word = "the";
+    while (attempts < 15) {
+      const randIndex = indices[Math.floor(Math.random() * indices.length)];
+      const cand = WORDS[randIndex] || "the";
+      if (isAllowedWord(cand)) {
+        word = cand;
+        break;
+      }
+      attempts++;
+    }
+    result.push(word);
+  }
+  return result;
+}

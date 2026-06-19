@@ -12,7 +12,7 @@ interface ModeSelectorProps {
   currentConfig: SessionConfig
 }
 
-const MODES = ["words", "timed", "battle", "drill"] as const
+const MODES = ["words", "timed", "battle", "drill", "yolo"] as const
 type Mode = (typeof MODES)[number]
 
 const WORD_OPTIONS: SubOption<WordCount>[] = WORD_COUNT_OPTIONS.map((count) => ({
@@ -101,8 +101,10 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
     } else if (mode === "battle") {
       useBattleStore.getState().resetBattle()
       onSelect({ mode: "battle", difficulty: "easy", wordCount: 25 })
-    } else {
+    } else if (mode === "drill") {
       onSelect({ mode: "drill", difficulty: "easy" })
+    } else if (mode === "yolo") {
+      onSelect({ mode: "yolo" })
     }
   }
 
@@ -163,6 +165,14 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
               useBattleStore.getState().initBattle(val, 25)
             }}
           />
+        ) : currentConfig.mode === "drill" ? (
+          <span className="text-[12px] font-bold uppercase tracking-wider text-text-secondary select-none">
+            Custom Drill Builder
+          </span>
+        ) : currentConfig.mode === "yolo" ? (
+          <span className="text-[12px] font-bold uppercase tracking-wider text-text-secondary select-none">
+            YOLO Mode &middot; Endless Adaptive Training
+          </span>
         ) : null}
       </div>
     </div>

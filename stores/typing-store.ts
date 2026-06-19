@@ -5,6 +5,8 @@ import { getRandomWords } from "@/lib/words"
 import { getBattleWords } from "@/lib/words/battle"
 import { generateDrillText, calculateKeyWeakness, getWeaknessRatio } from "@/engine/drill-engine"
 import { useDrillStore } from "./drill-store"
+import { generateYoloWords } from "@/lib/words/drill"
+import { useYoloStore } from "./yolo-store"
 
 interface TypingStore extends SessionState {
   // Actions
@@ -95,6 +97,11 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
     } else if (config.mode === "battle") {
       const wordCount = config.wordCount ?? 25
       rawWords = getBattleWords(wordCount, config.difficulty as "easy" | "medium" | "hard")
+    } else if (config.mode === "yolo") {
+      const yoloStore = useYoloStore.getState()
+      yoloStore.initYoloRun()
+      const active = useYoloStore.getState().activeLetter || "e"
+      rawWords = generateYoloWords(active, 25)
     } else {
       const wordCount = config.mode === "words"
         ? (config.wordCount ?? 25)

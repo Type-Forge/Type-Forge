@@ -129,7 +129,13 @@ export default function Key({
     // 7. Standard Letter keys
     return (
       <div className="flex items-center justify-center w-full h-full text-xs sm:text-sm font-bold uppercase select-none text-center">
-        <span className={cn(isActiveOrWrong ? "text-white" : "text-text-primary")}>{label}</span>
+        <span className={cn(
+          isActiveOrWrong 
+            ? "text-white" 
+            : isFocusKey && status === "default" 
+              ? "text-accent font-bold" 
+              : "text-text-primary"
+        )}>{label}</span>
       </div>
     )
   }
@@ -143,7 +149,9 @@ export default function Key({
         "min-w-0 rounded-[6px] border flex flex-col items-center justify-between select-none cursor-pointer font-sans transition-all duration-150 ease-in-out active:scale-[0.97] relative focus:outline-none",
         widthClass,
         heightClass,
-        statusClasses[status]
+        isFocusKey && status === "default"
+          ? "bg-accent/10 dark:bg-accent/15 border-accent/25 dark:border-accent/30 shadow-[0_1px_2px_rgba(10,132,255,0.06)]"
+          : statusClasses[status]
       )}
     >
       {/* Selection focus dot (white on active/incorrect key backgrounds, black in light mode, white in dark mode) */}
@@ -151,7 +159,7 @@ export default function Key({
         <span
           className={cn(
             "w-1.5 h-1.5 rounded-full absolute top-1.5 right-1.5 shadow-[0_0_2px_rgba(0,0,0,0.15)] animate-fade-in",
-            isActiveOrWrong ? "bg-white" : "bg-black dark:bg-white"
+            isActiveOrWrong ? "bg-white" : "bg-accent"
           )}
         />
       )}

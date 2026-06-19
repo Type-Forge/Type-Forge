@@ -13,6 +13,7 @@ interface KeyDef {
 
 interface KeyboardBodyProps {
   selectedKeys?: string[]
+  selectedBigrams?: string[]
   onToggleKey?: (key: string) => void
   activeKey?: string | null
   wrongKey?: string | null
@@ -24,6 +25,7 @@ interface KeyboardBodyProps {
  */
 export default function KeyboardBody({
   selectedKeys = [],
+  selectedBigrams = [],
   onToggleKey,
   activeKey = null,
   wrongKey = null,
@@ -156,7 +158,12 @@ export default function KeyboardBody({
   const isKeyFocused = (keyLabel: string, keyCode: string) => {
     const isLetter = keyLabel.length === 1 && /^[a-z]$/.test(keyLabel)
     const normalizedKey = keyLabel.toLowerCase()
-    return isLetter && selectedKeys.includes(normalizedKey)
+    return (
+      isLetter && (
+        selectedKeys.includes(normalizedKey) ||
+        selectedBigrams.some((bigram) => bigram.toLowerCase().includes(normalizedKey))
+      )
+    )
   }
 
   const handleKeyClick = (keyLabel: string) => {
