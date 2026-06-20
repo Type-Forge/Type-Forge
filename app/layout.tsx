@@ -29,7 +29,7 @@ export default function RootLayout({
           <Navbar />
 
           {/* Main Layout Content */}
-          <main className="flex-1 flex flex-col pt-20 pb-8">
+          <main className="flex-1 flex flex-col pt-16 pb-8">
             {children}
           </main>
           

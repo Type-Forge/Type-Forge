@@ -58,11 +58,11 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {/* Theme Toggle */}
           {!mounted ? (
-            <div className="w-9 h-9 rounded-full border border-border/10 bg-surface-secondary/40" />
+            <div className="w-8 h-8 rounded-full border border-border/10 bg-surface-secondary/40" />
           ) : (
             <button
               onClick={toggleTheme}
-              className="w-9 h-9 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
               aria-label="Toggle theme"
             >
               <motion.div
@@ -113,7 +113,7 @@ export default function Navbar() {
           <Link
             href="/settings"
             onClick={() => playClickSound("click")}
-            className={`w-9 h-9 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none ${
+            className={`w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none ${
               pathname === "/settings" ? "border-accent/30 text-accent bg-accent/5 shadow-[0_0_8px_rgba(10,132,255,0.1)]" : ""
             }`}
             aria-label="Open Settings"
@@ -137,7 +137,7 @@ export default function Navbar() {
           <Link
             href="/profile"
             onClick={() => playClickSound("click")}
-            className={`w-9 h-9 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer ${
+            className={`w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer ${
               pathname === "/profile" ? "border-accent/30 text-accent bg-accent/5 shadow-[0_0_8px_rgba(10,132,255,0.1)]" : ""
             }`}
             aria-label="View Profile"
