@@ -24,34 +24,34 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 apple-navbar flex items-center select-none">
       <div className="mx-auto max-w-7xl w-full flex items-center justify-between px-6 h-full">
-        {/* Left Section: Back Chevron, & Logo */}
-        <div className="flex items-center gap-3">
-          {/* Back Chevron */}
-          {showBackChevron && (
-            <Link
-              href="/"
-              className="w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all duration-150 active:scale-[0.95] cursor-pointer"
-              aria-label="Back to trainer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4"
+        {/* Left Section: Back Chevron & Logo */}
+        <div className="flex items-center">
+          {/* Back Chevron container with fixed width to prevent Logo shifting */}
+          <div className="w-8 mr-2 flex items-center justify-center shrink-0">
+            {showBackChevron && (
+              <Link
+                href="/"
+                className="w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all duration-150 active:scale-[0.95] cursor-pointer"
+                aria-label="Back to trainer"
               >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </Link>
-          )}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-4 h-4"
+                >
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </Link>
+            )}
+          </div>
 
           {/* Logo */}
-          <div className="ml-1">
-            <Logo />
-          </div>
+          <Logo />
         </div>
 
         {/* Right Section: Utility circular glass controls */}
