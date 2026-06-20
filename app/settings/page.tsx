@@ -108,14 +108,20 @@ export default function SettingsPage() {
 
   if (!mounted) {
     return (
-      <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-8 animate-pulse font-sans">
-        {/* Page Header skeleton */}
-        <div className="border-b border-border/10 pb-4">
-          <div className="h-6 w-32 bg-surface-secondary rounded mb-2" />
-          <div className="h-4 w-64 bg-surface-secondary rounded" />
+      <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-pulse font-sans">
+        <div className="bg-surface/50 border border-border/10 rounded-[20px] p-6 space-y-6 w-full h-[600px]">
+          {/* Page Header skeleton inside card */}
+          <div className="border-b border-border/10 pb-5">
+            <div className="h-6 w-32 bg-surface-secondary rounded mb-2" />
+            <div className="h-4 w-64 bg-surface-secondary rounded" />
+          </div>
+          {/* Skeleton list items */}
+          <div className="space-y-4">
+            <div className="h-4 w-24 bg-surface-secondary rounded" />
+            <div className="h-10 w-full bg-surface-secondary rounded" />
+            <div className="h-12 w-full bg-surface-secondary rounded" />
+          </div>
         </div>
-        {/* Card skeleton */}
-        <div className="bg-surface/50 border border-border/10 rounded-[20px] h-[500px] w-full" />
       </div>
     )
   }
@@ -169,171 +175,153 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-8 animate-fade-in font-sans select-none">
-      {/* Page Header */}
-      <div className="border-b border-border/10 pb-4">
-        <h2 className="text-xl font-bold tracking-tight text-text-primary">Settings</h2>
-        <p className="text-xs text-text-secondary mt-1">
-          Customize your trainer visual appearance, typing sound feedback, and typing metrics.
-        </p>
-      </div>
+    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-fade-in font-sans select-none">
+      <WhiteCard>
+        {/* Main Settings Header */}
+        <div className="px-1 py-5 select-none">
+          <h2 className="text-xl font-bold tracking-tight text-text-primary">Settings</h2>
+          <p className="text-xs text-text-secondary mt-1">
+            Customize your trainer visual appearance, typing sound feedback, and typing metrics.
+          </p>
+        </div>
 
-      <div className="space-y-6">
         {/* Section 1: Appearance */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-            Appearance
-          </h3>
-          <WhiteCard>
-            <SegmentedControl
-              options={themeOptions}
-              value={settings.theme}
-              onChange={settings.setTheme}
-              label="Interface Theme"
-              description="Change the dark mode, light mode, or respect system defaults"
-            />
-            {/* Accent Color Selection */}
-            <div className="flex items-center justify-between py-4 px-1 select-none">
-              <div className="space-y-0.5 pr-4">
-                <span className="text-[14px] font-bold text-text-primary block">Accent Color</span>
-                <span className="text-[12px] text-text-secondary block leading-normal">Personalize the main interface highlight tones</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {colors.map((color) => {
-                  const isSelected = settings.accentColor === color.name
-                  return (
-                    <button
-                      key={color.name}
-                      type="button"
-                      onClick={() => {
-                        playClickSound("click")
-                        settings.setAccentColor(color.name)
-                      }}
-                      className={`w-6 h-6 rounded-full ${color.bgClass} flex items-center justify-center transition-all duration-150 active:scale-[0.8] hover:scale-[1.05] cursor-pointer focus:outline-none relative border border-black/10 dark:border-white/10`}
-                      aria-label={`Select ${color.name} accent`}
+        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+          Appearance
+        </div>
+        <SegmentedControl
+          options={themeOptions}
+          value={settings.theme}
+          onChange={settings.setTheme}
+          label="Interface Theme"
+          description="Change the dark mode, light mode, or respect system defaults"
+        />
+        {/* Accent Color Selection */}
+        <div className="flex items-center justify-between py-4 px-1 select-none">
+          <div className="space-y-0.5 pr-4">
+            <span className="text-[14px] font-bold text-text-primary block">Accent Color</span>
+            <span className="text-[12px] text-text-secondary block leading-normal">Personalize the main interface highlight tones</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {colors.map((color) => {
+              const isSelected = settings.accentColor === color.name
+              return (
+                <button
+                  key={color.name}
+                  type="button"
+                  onClick={() => {
+                    playClickSound("click")
+                    settings.setAccentColor(color.name)
+                  }}
+                  className={`w-6 h-6 rounded-full ${color.bgClass} flex items-center justify-center transition-all duration-150 active:scale-[0.8] hover:scale-[1.05] cursor-pointer focus:outline-none relative border border-black/10 dark:border-white/10`}
+                  aria-label={`Select ${color.name} accent`}
+                >
+                  {isSelected && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-3.5 h-3.5"
                     >
-                      {isSelected && (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="white"
-                          strokeWidth="3.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="w-3.5 h-3.5"
-                        >
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </WhiteCard>
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Section 2: Audio Settings */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-            Audio
-          </h3>
-          <WhiteCard>
-            <Switch
-              checked={settings.typingSounds}
-              onChange={settings.setTypingSounds}
-              label="Typing Sounds"
-              description="Play mechanical click sounds as you type letters"
-            />
-            <Switch
-              checked={settings.achievementSounds}
-              onChange={settings.setAchievementSounds}
-              label="Achievement Sounds"
-              description="Crisp audio reward when unlocked achievement milestones"
-            />
-            <Switch
-              checked={settings.notificationSounds}
-              onChange={settings.setNotificationSounds}
-              label="Notification Sounds"
-              description="Acoustic alerts on interface alerts or achievements"
-            />
-          </WhiteCard>
+        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+          Audio
         </div>
+        <Switch
+          checked={settings.typingSounds}
+          onChange={settings.setTypingSounds}
+          label="Typing Sounds"
+          description="Play mechanical click sounds as you type letters"
+        />
+        <Switch
+          checked={settings.achievementSounds}
+          onChange={settings.setAchievementSounds}
+          label="Achievement Sounds"
+          description="Crisp audio reward when unlocked achievement milestones"
+        />
+        <Switch
+          checked={settings.notificationSounds}
+          onChange={settings.setNotificationSounds}
+          label="Notification Sounds"
+          description="Acoustic alerts on interface alerts or achievements"
+        />
 
         {/* Section 3: Typing Engine */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-            Typing
-          </h3>
-          <WhiteCard>
-            <SegmentedControl
-              options={sizeOptions}
-              value={settings.fontSize}
-              onChange={settings.setFontSize}
-              label="Font Size"
-              description="Change the size of the letter outputs"
-            />
-            <SegmentedControl
-              options={widthOptions}
-              value={settings.textWidth}
-              onChange={settings.setTextWidth}
-              label="Text Width"
-              description="Limit the maximum width of the typing text box"
-            />
-            <SegmentedControl
-              options={caretOptions}
-              value={settings.caretStyle}
-              onChange={settings.setCaretStyle}
-              label="Caret Style"
-              description="Choose layout shape representation for typing cursor"
-            />
-          </WhiteCard>
+        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+          Typing
         </div>
+        <SegmentedControl
+          options={sizeOptions}
+          value={settings.fontSize}
+          onChange={settings.setFontSize}
+          label="Font Size"
+          description="Change the size of the letter outputs"
+        />
+        <SegmentedControl
+          options={widthOptions}
+          value={settings.textWidth}
+          onChange={settings.setTextWidth}
+          label="Text Width"
+          description="Limit the maximum width of the typing text box"
+        />
+        <SegmentedControl
+          options={caretOptions}
+          value={settings.caretStyle}
+          onChange={settings.setCaretStyle}
+          label="Caret Style"
+          description="Choose layout shape representation for typing cursor"
+        />
 
         {/* Section 4: Accessibility */}
-        <div className="space-y-2">
-          <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-            Accessibility
-          </h3>
-          <WhiteCard>
-            <Switch
-              checked={settings.reducedMotion}
-              onChange={settings.setReducedMotion}
-              label="Reduced Motion"
-              description="Minimize slide drawers spring physics transitions"
-            />
-            <Switch
-              checked={settings.animations}
-              onChange={settings.setAnimations}
-              label="Animations"
-              description="Render subtle fades and hover scale transitions"
-            />
-          </WhiteCard>
+        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+          Accessibility
         </div>
+        <Switch
+          checked={settings.reducedMotion}
+          onChange={settings.setReducedMotion}
+          label="Reduced Motion"
+          description="Minimize slide drawers spring physics transitions"
+        />
+        <Switch
+          checked={settings.animations}
+          onChange={settings.setAnimations}
+          label="Animations"
+          description="Render subtle fades and hover scale transitions"
+        />
 
         {/* Section 5: Reset to Defaults */}
-        <WhiteCard>
-          <div className="flex items-center justify-between py-4 px-1 select-none">
-            <div className="space-y-0.5 pr-4">
-              <span className="text-[14px] font-bold text-text-primary block">Reset to Defaults</span>
-              <span className="text-[12px] text-text-secondary block leading-normal">
-                Revert all preferences and interface styles to factory defaults
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                playClickSound("click")
-                setIsResetModalOpen(true)
-              }}
-              className="h-8.5 px-4 rounded-lg bg-incorrect/10 text-incorrect text-xs font-bold hover:bg-incorrect/15 transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shrink-0"
-            >
-              Reset
-            </button>
+        <div className="flex items-center justify-between py-4 px-1 select-none">
+          <div className="space-y-0.5 pr-4">
+            <span className="text-[14px] font-bold text-text-primary block">Reset to Defaults</span>
+            <span className="text-[12px] text-text-secondary block leading-normal">
+              Revert all preferences and interface styles to factory defaults
+            </span>
           </div>
-        </WhiteCard>
-      </div>
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound("click")
+              setIsResetModalOpen(true)
+            }}
+            className="h-8.5 px-4 rounded-lg bg-incorrect/10 text-incorrect text-xs font-bold hover:bg-incorrect/15 transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shrink-0"
+          >
+            Reset
+          </button>
+        </div>
+      </WhiteCard>
 
       {/* Confirmation Alert Modal */}
       <AlertModal
