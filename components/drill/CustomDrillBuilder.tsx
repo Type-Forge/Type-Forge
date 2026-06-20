@@ -148,9 +148,9 @@ export default function CustomDrillBuilder({
       {/* iOS Settings Toggles (Switches) and Focus Configurations */}
       <WhiteCard>
         {/* Title and Description Header inside the card */}
-        <div className="px-1 py-5 select-none">
-          <h2 className="text-xl font-bold tracking-tight text-text-primary">Custom Drill Builder</h2>
-          <p className="text-xs text-text-tertiary mt-1">
+        <div className="px-1 py-5  select-none">
+          <h2 className="text-xl font-bold tracking-tight mt-5 text-text-primary">Custom Drill Builder</h2>
+          <p className="text-xs text-text-secondary mt-1">
             Configure custom keys, transition patterns, speed targets, and duration limits for typing practice.
           </p>
         </div>
@@ -501,7 +501,7 @@ export default function CustomDrillBuilder({
               </div>
 
               {/* Action buttons (horizontal iOS style) */}
-              <div className="flex gap-2 w-full mt-2">
+              <div className="flex gap-2 w-full mt-2 ">
                 <button
                   onClick={() => {
                     playClickSound("click")

@@ -90,8 +90,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
       // In drill mode, we generate plenty of words to fill any timed duration or just keep typing
       const wordCount = config.targetDuration ? 150 : 35
+      const drillDifficulty = config.difficulty === "veryhard" ? "hard" : (config.difficulty ?? "easy")
       rawWords = generateDrillText({
-        difficulty: config.difficulty ?? "easy",
+        difficulty: drillDifficulty,
         focusKeys,
         focusBigrams,
         weaknessRatio,
@@ -101,7 +102,7 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
       })
     } else if (config.mode === "battle") {
       const wordCount = config.wordCount ?? 25
-      rawWords = getBattleWords(wordCount, config.difficulty as "easy" | "medium" | "hard")
+      rawWords = getBattleWords(wordCount, config.difficulty as "easy" | "medium" | "hard" | "veryhard")
     } else if (config.mode === "yolo") {
       const yoloStore = useYoloStore.getState()
       yoloStore.initYoloRun()
@@ -111,7 +112,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
       const wordCount = config.mode === "words"
         ? (config.wordCount ?? 25)
         : 200 // generate extra words for timed mode
-      rawWords = getRandomWords(wordCount, config.difficulty)
+      const textDifficulty = config.difficulty === "veryhard" ? "hard" : config.difficulty
+      rawWords = getRandomWords(wordCount, textDifficulty)
     }
 
     const words = initializeWords(rawWords)

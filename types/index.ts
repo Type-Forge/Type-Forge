@@ -30,8 +30,8 @@ export interface WordData {
 
 // ===== SESSION =====
 export type SessionMode = "words" | "timed" | "battle" | "drill" | "yolo"
-export type WordCount = 25 | 50 | 75
-export type TimeDuration = 60 | 180 | 300
+export type WordCount = 15 | 25 | 50 | 75
+export type TimeDuration = 15 | 30 | 60 | 180
 
 export interface SessionConfig {
   mode: SessionMode
@@ -89,7 +89,7 @@ export interface MistakeRecord {
 export interface DrillHistoryEntry {
   id: string
   timestamp: number
-  difficulty: "easy" | "medium" | "hard" | "custom"
+  difficulty: "easy" | "medium" | "hard" | "veryhard" | "custom"
   beforeAccuracy: number
   afterAccuracy: number
   improvement: number
@@ -143,7 +143,7 @@ export interface StatsState {
 }
 
 // ===== BATTLE =====
-export type BattleDifficulty = "easy" | "medium" | "hard"
+export type BattleDifficulty = "easy" | "medium" | "hard" | "veryhard"
 
 export interface BattleConfig {
   difficulty: BattleDifficulty

@@ -28,7 +28,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
       config: {
         difficulty,
         aiWpm: AI_WPM_MAP[difficulty],
-        wordCount: wordCount as 25 | 50 | 75,
+        wordCount: wordCount as 15 | 25 | 50 | 75,
       },
       status: "racing",
     })

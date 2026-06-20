@@ -10,7 +10,7 @@ export interface BattleDifficultyConfig {
   rareWordChance: number;
 }
 
-export const BATTLE_DIFFICULTY_PRESETS: Record<"easy" | "medium" | "hard", BattleDifficultyConfig> = {
+export const BATTLE_DIFFICULTY_PRESETS: Record<"easy" | "medium" | "hard" | "veryhard", BattleDifficultyConfig> = {
   easy: {
     wordComplexity: "easy",
     punctuationChance: 0.0,
@@ -26,6 +26,11 @@ export const BATTLE_DIFFICULTY_PRESETS: Record<"easy" | "medium" | "hard", Battl
     punctuationChance: 0.15, // 15% chance of punctuation (, . : ; ?)
     rareWordChance: 0.2,
   },
+  veryhard: {
+    wordComplexity: "hard",
+    punctuationChance: 0.25, // 25% chance of punctuation
+    rareWordChance: 0.3,
+  },
 };
 
 const PUNCTUATIONS = [".", ",", ";", ":", "?"];
@@ -33,7 +38,7 @@ const PUNCTUATIONS = [".", ",", ";", ":", "?"];
 /**
  * Returns N random words for a Battle session based on difficulty configurations
  */
-export function getBattleWords(count: number, difficulty: "easy" | "medium" | "hard"): string[] {
+export function getBattleWords(count: number, difficulty: "easy" | "medium" | "hard" | "veryhard"): string[] {
   const config = BATTLE_DIFFICULTY_PRESETS[difficulty] || BATTLE_DIFFICULTY_PRESETS.medium;
   const words: string[] = [];
 

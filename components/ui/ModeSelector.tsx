@@ -43,6 +43,11 @@ const BATTLE_OPTIONS: SubOption<BattleDifficulty>[] = [
     label: "hard (90 wpm)",
     tooltip: "Elite opponent speed. Only for experienced typists.",
   },
+  {
+    value: "veryhard",
+    label: "veryhard (120 wpm)",
+    tooltip: "Insane opponent speed. Will test your absolute limits.",
+  },
 ]
 
 /**
@@ -79,14 +84,17 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
       if (e.ctrlKey || e.metaKey || e.altKey) return
       const key = e.key
       if (key === "1") {
-        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 25 })
-        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 60 })
+        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 15 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 15 })
       } else if (key === "2") {
-        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 50 })
-        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 180 })
+        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 25 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 30 })
       } else if (key === "3") {
+        if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 50 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 60 })
+      } else if (key === "4") {
         if (currentConfig.mode === "words") onSelect({ mode: "words", wordCount: 75 })
-        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 300 })
+        else if (currentConfig.mode === "timed") onSelect({ mode: "timed", duration: 180 })
       }
     }
     window.addEventListener("keydown", handleKeyPress)
