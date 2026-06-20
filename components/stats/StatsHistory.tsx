@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useStatsStore } from "@/stores/stats-store"
-import { motion, AnimatePresence } from "motion/react"
 import type { SessionResult } from "@/types"
 import AlertModal from "@/components/ui/AlertModal"
-import FloatingPillTabs, { TabOption } from "@/components/ui/FloatingPillTabs"
 import { GroupedList, GroupedListItem, ChevronIcon } from "@/components/ui/GroupedList"
 import AnalysisDrawer from "./AnalysisDrawer"
 
-// Icons representing each session mode
 const WordsIcon = (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-text-secondary">
     <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
@@ -51,15 +48,12 @@ function getSessionIcon(mode: string) {
   }
 }
 
-/**
- * Re-architected StatsHistory using iPadOS list/menu aesthetics.
- * Adds dynamic capsule filter controls matching the Apple Edit Menu specifications.
- */
 export default function StatsHistory() {
   const { history, clearHistory } = useStatsStore()
   const [filter, setFilter] = useState<"all" | "words" | "timed" | "battle" | "drill">("all")
   const [limit, setLimit] = useState(5)
   const [mounted, setMounted] = useState(false)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<SessionResult | null>(null)
   const [isClearModalOpen, setIsClearModalOpen] = useState(false)
 
@@ -70,10 +64,9 @@ export default function StatsHistory() {
   }, [])
 
   if (!mounted) {
-    return <div className="w-full max-w-xl mx-auto h-24 bg-transparent animate-pulse border-b border-border mt-8" />
+    return <div className="w-full h-24 bg-transparent animate-pulse border-b border-border/10 mt-8" />
   }
 
-  // Filter history based on selected capsule tab
   const filteredHistory = history.filter((session) => {
     if (filter === "all") return true
     return session.config.mode === filter
@@ -91,40 +84,80 @@ export default function StatsHistory() {
     })
   }
 
-  const filterOptions: TabOption[] = [
+  const filterOptions = [
     { value: "all", label: "All" },
     { value: "words", label: "Words" },
     { value: "timed", label: "Timed" },
     { value: "battle", label: "Battle" },
     { value: "drill", label: "Drill" },
-  ]
+  ] as const
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-16 font-sans select-none animate-fade-in">
+    <div className="w-full mt-16 font-sans select-none animate-fade-in">
       {/* Category Header */}
-      <div className="flex items-center justify-between mb-6 border-b border-border/40 pb-3">
-        <span className="text-xs font-semibold text-text-secondary">
-          Session history
-        </span>
+      <div className="flex items-center justify-between mb-6 border-b border-border/10 pb-3">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider font-sans">
+            Session history
+          </span>
+          
+          {/* macOS Dropdown Popup Button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="bg-surface-secondary border border-border/10 px-2.5 py-1 rounded-[6px] flex items-center gap-1 text-[11px] text-text-primary font-semibold hover:bg-surface-hover active:scale-[0.97] transition-all duration-100 cursor-pointer focus:outline-none"
+            >
+              <span>{filterOptions.find(o => o.value === filter)?.label}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-2.5 h-2.5 text-text-secondary shrink-0 ml-0.5">
+                <path d="m7 15 5 5 5-5" />
+                <path d="m7 9 5-5 5 5" />
+              </svg>
+            </button>
+
+            {isDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                <div className="absolute left-0 mt-1.5 w-32 bg-surface border border-border/15 backdrop-blur-xl rounded-lg p-1 shadow-lg z-50 flex flex-col gap-0.5 animate-fade-in select-none">
+                  {filterOptions.map((opt) => {
+                    const isActive = filter === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setFilter(opt.value as any)
+                          setLimit(5)
+                          setIsDropdownOpen(false)
+                        }}
+                        className={`px-2.5 py-1.5 rounded-md text-left text-[11px] font-semibold transition-colors duration-100 cursor-pointer flex items-center justify-between focus:outline-none ${
+                          isActive
+                            ? "bg-accent/10 text-accent hover:bg-accent hover:text-white"
+                            : "text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        {isActive && (
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3 shrink-0">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
         <button
+          type="button"
           onClick={() => setIsClearModalOpen(true)}
-          className="text-xs font-medium text-text-tertiary hover:text-incorrect transition-colors duration-150 cursor-pointer active:scale-[0.97] focus:outline-none"
+          className="text-xs font-semibold text-text-tertiary hover:text-incorrect transition-colors duration-150 cursor-pointer active:scale-[0.97] focus:outline-none"
         >
           Clear log
         </button>
-      </div>
-
-      {/* Floating horizontal capsule filter bar (iPadOS Edit Menu layout) */}
-      <div className="flex justify-center mb-6">
-        <FloatingPillTabs
-          options={filterOptions}
-          activeValue={filter}
-          onChange={(val) => {
-            setFilter(val as any)
-            setLimit(5) // Reset list view limit on filter change
-          }}
-          layoutId="active-history-filter"
-        />
       </div>
 
       {/* Grouped List log view */}
@@ -174,7 +207,7 @@ export default function StatsHistory() {
       )}
 
       {hasMore && (
-        <div className="text-center mt-8 pt-4 border-t border-border/40">
+        <div className="text-center mt-8 pt-4 border-t border-border/10">
           <button
             onClick={() => setLimit((prev) => prev + 5)}
             className="h-10 px-6 rounded-2xl border border-border bg-surface-secondary/40 text-[14px] font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-secondary/80 cursor-pointer transition-all duration-150 active:scale-[0.97] focus:outline-none"
