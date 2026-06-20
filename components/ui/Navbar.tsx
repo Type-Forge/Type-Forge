@@ -24,15 +24,8 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 apple-navbar flex items-center select-none">
       <div className="mx-auto max-w-7xl w-full flex items-center justify-between px-6 h-full">
-        {/* Left Section: Traffic Lights, Back Chevron, & Logo */}
+        {/* Left Section: Back Chevron, & Logo */}
         <div className="flex items-center gap-3">
-          {/* Traffic Lights */}
-          <div className="flex items-center gap-1.5 mr-1">
-            <span className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/40 opacity-90 shadow-sm" />
-            <span className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dfa123]/40 opacity-90 shadow-sm" />
-            <span className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab2f]/40 opacity-90 shadow-sm" />
-          </div>
-
           {/* Back Chevron */}
           {showBackChevron && (
             <Link

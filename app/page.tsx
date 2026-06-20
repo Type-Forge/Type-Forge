@@ -120,7 +120,7 @@ export default function Home() {
 
       {/* 1b. Drill Dashboard */}
       {config.mode === "drill" && !isDrillActive && status !== "finished" && (
-        <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-2 animate-fade-in">
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-8 pt-0 pb-2 animate-fade-in">
           <DrillDashboard onStartDrill={() => setIsDrillActive(true)} />
         </div>
       )}

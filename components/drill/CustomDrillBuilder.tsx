@@ -147,12 +147,20 @@ export default function CustomDrillBuilder({
     <div className="font-sans select-none relative space-y-6">
       {/* iOS Settings Toggles (Switches) and Focus Configurations */}
       <WhiteCard>
-          <Switch
-            checked={isSpeedCapEnabled}
-            onChange={setIsSpeedCapEnabled}
-            label="Enable Speed Target"
-            description="Allows setting a target WPM limit to pace typing output."
-          />
+        {/* Title and Description Header inside the card */}
+        <div className="px-1 py-5 select-none">
+          <h2 className="text-xl font-bold tracking-tight text-text-primary">Custom Drill Builder</h2>
+          <p className="text-xs text-text-tertiary mt-1">
+            Configure custom keys, transition patterns, speed targets, and duration limits for typing practice.
+          </p>
+        </div>
+
+        <Switch
+          checked={isSpeedCapEnabled}
+          onChange={setIsSpeedCapEnabled}
+          label="Enable Speed Target"
+          description="Allows setting a target WPM limit to pace typing output."
+        />
           <Switch
             checked={isTimeLimitEnabled}
             onChange={setIsTimeLimitEnabled}
@@ -320,7 +328,7 @@ export default function CustomDrillBuilder({
           )}
 
           {/* Active Focus & Generate Action Footer */}
-          <div className="py-4 px-1 bg-surface-secondary/15 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
+          <div className="py-4 px-1 bg-surface-secondary/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 select-none">
             <div className="flex items-center gap-2 flex-wrap text-xs text-text-secondary">
               <span className="text-[14px] font-bold text-text-primary block shrink-0">
                 Active Focus
@@ -383,7 +391,7 @@ export default function CustomDrillBuilder({
           </div>
 
           {/* YOLO Mode Quick Start */}
-          <div className="py-4 px-1 border-t border-border/10 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
+          <div className="py-4 px-1 border-t border-border/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 select-none">
             <div className="space-y-0.5 pr-4 relative group">
               <div className="flex items-center gap-1.5">
                 <span className="text-[14px] font-bold text-text-primary block">

@@ -5,6 +5,7 @@ import { useSettingsStore } from "@/stores/settings-store"
 import { playClickSound } from "@/lib/audio"
 import Container from "@/components/ui/Container"
 import WhiteCard from "@/components/ui/WhiteCard"
+import AlertModal from "@/components/ui/AlertModal"
 
 // Exact iOS Toggle Switch — matches drill mode CustomDrillBuilder.tsx
 interface SwitchProps {
@@ -95,6 +96,7 @@ function SegmentedControl<T extends string | number>({
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false)
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
   const settings = useSettingsStore()
 
   // Hydration safety
@@ -107,12 +109,7 @@ export default function SettingsPage() {
   if (!mounted) {
     return (
       <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-5 animate-pulse font-sans">
-        <div className="border-b border-border/20 pb-4 mb-4">
-          <div className="h-3 w-32 bg-surface-secondary rounded mb-2" />
-          <div className="h-6 w-48 bg-surface-secondary rounded mb-2" />
-          <div className="h-4 w-96 bg-surface-secondary rounded" />
-        </div>
-        <div className="bg-surface border border-border/10 rounded-2xl h-[600px] w-full" />
+        <div className="bg-surface border border-border/10 rounded-2xl h-[700px] w-full" />
       </div>
     )
   }
@@ -166,21 +163,18 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-6 animate-fade-in font-sans select-none">
-      {/* Page Header */}
-      <div className="border-b border-border/20 pb-4">
-        <span className="text-[13px] font-semibold text-text-primary font-sans block mb-0.5">
-          System Preferences
-        </span>
-        <h2 className="text-xl font-bold tracking-tight text-text-primary">Settings</h2>
-        <p className="text-xs text-text-tertiary mt-1">
-          Customize your trainer visual appearance, typing sound feedback, and typing metrics.
-        </p>
-      </div>
-
+    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-fade-in font-sans select-none">
       <WhiteCard>
+        {/* Settings Title and Description Header inside the card */}
+        <div className="px-1 py-5 select-none">
+          <h2 className="text-xl font-bold tracking-tight text-text-primary">Settings</h2>
+          <p className="text-xs text-text-tertiary mt-1">
+            Customize your trainer visual appearance, typing sound feedback, and typing metrics.
+          </p>
+        </div>
+
         {/* Section 1: Appearance */}
-        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
+        <div className="px-1 py-3 text-[13px] font-bold text-text-primary select-none">
           Appearance
         </div>
         <SegmentedControl
@@ -231,7 +225,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section 2: Audio Settings */}
-        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
+        <div className="px-1 py-3 text-[13px] font-bold text-text-primary select-none">
           Audio Settings
         </div>
         <Switch
@@ -254,7 +248,7 @@ export default function SettingsPage() {
         />
 
         {/* Section 3: Interface & Motion */}
-        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
+        <div className="px-1 py-3 text-[13px] font-bold text-text-primary select-none">
           Interface Preferences
         </div>
         <Switch
@@ -277,7 +271,7 @@ export default function SettingsPage() {
         />
 
         {/* Section 4: Typing Engine */}
-        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
+        <div className="px-1 py-3 text-[13px] font-bold text-text-primary select-none">
           Typing Engine
         </div>
         <SegmentedControl
@@ -301,18 +295,38 @@ export default function SettingsPage() {
           label="Caret Cursor Style"
           description="Choose layout shape representation for typing cursor"
         />
+
+        {/* Reset settings row inside the card */}
+        <div className="flex items-center justify-between py-4 px-1 select-none">
+          <div className="space-y-0.5 pr-4">
+            <span className="text-[14px] font-bold text-text-primary block">Reset to Defaults</span>
+            <span className="text-[12px] text-text-secondary block leading-normal">
+              Revert all preferences and interface styles to factory defaults
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound("click")
+              setIsResetModalOpen(true)
+            }}
+            className="h-8.5 px-4 rounded-lg bg-incorrect/10 text-incorrect text-xs font-bold hover:bg-incorrect/15 transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shrink-0"
+          >
+            Reset
+          </button>
+        </div>
       </WhiteCard>
 
-      {/* Reset settings button */}
-      <div className="pt-4 flex justify-center">
-        <button
-          type="button"
-          onClick={handleReset}
-          className="h-11 px-6 rounded-xl bg-incorrect/10 border border-incorrect/20 text-incorrect text-xs font-bold hover:bg-incorrect/15 transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
-        >
-          Reset to defaults
-        </button>
-      </div>
+      {/* Confirmation Alert Modal */}
+      <AlertModal
+        isOpen={isResetModalOpen}
+        onClose={() => setIsResetModalOpen(false)}
+        onConfirm={handleReset}
+        title="Reset All Settings?"
+        message="Are you sure you want to reset all preferences to default values?"
+        confirmText="Reset"
+        type="destructive"
+      />
     </div>
   )
 }

@@ -109,7 +109,7 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
   }
 
   return (
-    <div className="flex flex-col items-center gap-5 py-3 select-none">
+    <div className="flex flex-col items-center gap-5 pt-3 pb-1 select-none">
       {/* iOS Segmented Control — single persistent sliding pill */}
       <div
         ref={containerRef}
@@ -143,38 +143,36 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
       </div>
 
       {/* Sub-option row */}
-      <div className="flex items-center justify-center gap-6 min-h-[20px] mt-2">
-        {currentConfig.mode === "words" ? (
-          <SubOptionSelector
-            options={WORD_OPTIONS}
-            selected={currentConfig.wordCount || 25}
-            onSelect={(val) => onSelect({ mode: "words", wordCount: val })}
-          />
-        ) : currentConfig.mode === "timed" ? (
-          <SubOptionSelector
-            options={TIME_OPTIONS}
-            selected={currentConfig.duration || 60}
-            onSelect={(val) => onSelect({ mode: "timed", duration: val })}
-          />
-        ) : currentConfig.mode === "battle" ? (
-          <SubOptionSelector
-            options={BATTLE_OPTIONS}
-            selected={(currentConfig.difficulty as BattleDifficulty) || "easy"}
-            onSelect={(val) => {
-              onSelect({ ...currentConfig, difficulty: val })
-              useBattleStore.getState().initBattle(val, 25)
-            }}
-          />
-        ) : currentConfig.mode === "drill" ? (
-          <span className="text-[14px] font-bold text-text-primary select-none">
-            Custom Drill Builder
-          </span>
-        ) : currentConfig.mode === "yolo" ? (
-          <span className="text-[14px] font-bold text-text-primary select-none">
-            YOLO Mode &middot; Endless Adaptive Training
-          </span>
-        ) : null}
-      </div>
+      {currentConfig.mode !== "drill" && (
+        <div className="flex items-center justify-center gap-6 min-h-[20px] mt-2">
+          {currentConfig.mode === "words" ? (
+            <SubOptionSelector
+              options={WORD_OPTIONS}
+              selected={currentConfig.wordCount || 25}
+              onSelect={(val) => onSelect({ mode: "words", wordCount: val })}
+            />
+          ) : currentConfig.mode === "timed" ? (
+            <SubOptionSelector
+              options={TIME_OPTIONS}
+              selected={currentConfig.duration || 60}
+              onSelect={(val) => onSelect({ mode: "timed", duration: val })}
+            />
+          ) : currentConfig.mode === "battle" ? (
+            <SubOptionSelector
+              options={BATTLE_OPTIONS}
+              selected={(currentConfig.difficulty as BattleDifficulty) || "easy"}
+              onSelect={(val) => {
+                onSelect({ ...currentConfig, difficulty: val })
+                useBattleStore.getState().initBattle(val, 25)
+              }}
+            />
+          ) : currentConfig.mode === "yolo" ? (
+            <span className="text-[14px] font-bold text-text-primary select-none">
+              YOLO Mode &middot; Endless Adaptive Training
+            </span>
+          ) : null}
+        </div>
+      )}
     </div>
   )
 }

@@ -24,7 +24,7 @@ export default function DrillDashboard({ onStartDrill }: DrillDashboardProps) {
   const resetStats = useDrillStore((s) => s.resetStats)
 
   return (
-    <div className="w-full py-4 animate-fade-in font-sans space-y-6">
+    <div className="w-full pt-1 pb-4 animate-fade-in font-sans space-y-6">
       {/* Custom Drill Builder */}
       <CustomDrillBuilder
         onStartDrill={onStartDrill}
