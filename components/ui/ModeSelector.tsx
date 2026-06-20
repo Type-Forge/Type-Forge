@@ -166,11 +166,11 @@ export default function ModeSelector({ onSelect, currentConfig }: ModeSelectorPr
             }}
           />
         ) : currentConfig.mode === "drill" ? (
-          <span className="text-[12px] font-bold uppercase tracking-wider text-text-secondary select-none">
+          <span className="text-[14px] font-bold text-text-primary select-none">
             Custom Drill Builder
           </span>
         ) : currentConfig.mode === "yolo" ? (
-          <span className="text-[12px] font-bold uppercase tracking-wider text-text-secondary select-none">
+          <span className="text-[14px] font-bold text-text-primary select-none">
             YOLO Mode &middot; Endless Adaptive Training
           </span>
         ) : null}

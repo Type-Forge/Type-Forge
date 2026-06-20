@@ -106,18 +106,14 @@ export default function SettingsPage() {
 
   if (!mounted) {
     return (
-      <Container size="7xl" className="py-6 space-y-8 animate-pulse font-sans">
-        <div className="border-b border-border/20 pb-4 mb-6">
+      <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-5 animate-pulse font-sans">
+        <div className="border-b border-border/20 pb-4 mb-4">
           <div className="h-3 w-32 bg-surface-secondary rounded mb-2" />
           <div className="h-6 w-48 bg-surface-secondary rounded mb-2" />
           <div className="h-4 w-96 bg-surface-secondary rounded" />
         </div>
-        <div className="space-y-6">
-          <div className="h-32 bg-surface-secondary rounded-2xl" />
-          <div className="h-44 bg-surface-secondary rounded-2xl" />
-          <div className="h-44 bg-surface-secondary rounded-2xl" />
-        </div>
-      </Container>
+        <div className="bg-surface border border-border/10 rounded-2xl h-[600px] w-full" />
+      </div>
     )
   }
 
@@ -170,10 +166,10 @@ export default function SettingsPage() {
   ]
 
   return (
-    <Container size="7xl" className="py-6 space-y-8 animate-fade-in font-sans select-none">
+    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-6 animate-fade-in font-sans select-none">
       {/* Page Header */}
       <div className="border-b border-border/20 pb-4">
-        <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-0.5 uppercase">
+        <span className="text-[13px] font-semibold text-text-primary font-sans block mb-0.5">
           System Preferences
         </span>
         <h2 className="text-xl font-bold tracking-tight text-text-primary">Settings</h2>
@@ -182,144 +178,130 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Category 1: Appearance */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
+      <WhiteCard>
+        {/* Section 1: Appearance */}
+        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
           Appearance
-        </h3>
-        <WhiteCard>
-          <SegmentedControl
-            options={themeOptions}
-            value={settings.theme}
-            onChange={settings.setTheme}
-            label="Interface Theme"
-            description="Change the dark mode, light mode, or respect system defaults"
-          />
-          {/* Accent Color Selection */}
-          <div className="flex items-center justify-between py-4 px-1 select-none">
-            <div className="space-y-0.5 pr-4">
-              <span className="text-[14px] font-bold text-text-primary block">Accent Color</span>
-              <span className="text-[12px] text-text-secondary block leading-normal">Personalize the main interface highlight tones</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {colors.map((color) => {
-                const isSelected = settings.accentColor === color.name
-                return (
-                  <button
-                    key={color.name}
-                    type="button"
-                    onClick={() => {
-                      playClickSound("click")
-                      settings.setAccentColor(color.name)
-                    }}
-                    className={`w-6 h-6 rounded-full ${color.bgClass} flex items-center justify-center transition-all duration-150 active:scale-[0.8] hover:scale-[1.05] cursor-pointer focus:outline-none relative border border-black/10 dark:border-white/10`}
-                    aria-label={`Select ${color.name} accent`}
-                  >
-                    {isSelected && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="white"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="w-3.5 h-3.5"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
+        </div>
+        <SegmentedControl
+          options={themeOptions}
+          value={settings.theme}
+          onChange={settings.setTheme}
+          label="Interface Theme"
+          description="Change the dark mode, light mode, or respect system defaults"
+        />
+        {/* Accent Color Selection */}
+        <div className="flex items-center justify-between py-4 px-1 select-none">
+          <div className="space-y-0.5 pr-4">
+            <span className="text-[14px] font-bold text-text-primary block">Accent Color</span>
+            <span className="text-[12px] text-text-secondary block leading-normal">Personalize the main interface highlight tones</span>
           </div>
-        </WhiteCard>
-      </div>
+          <div className="flex items-center gap-2">
+            {colors.map((color) => {
+              const isSelected = settings.accentColor === color.name
+              return (
+                <button
+                  key={color.name}
+                  type="button"
+                  onClick={() => {
+                    playClickSound("click")
+                    settings.setAccentColor(color.name)
+                  }}
+                  className={`w-6 h-6 rounded-full ${color.bgClass} flex items-center justify-center transition-all duration-150 active:scale-[0.8] hover:scale-[1.05] cursor-pointer focus:outline-none relative border border-black/10 dark:border-white/10`}
+                  aria-label={`Select ${color.name} accent`}
+                >
+                  {isSelected && (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="white"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-3.5 h-3.5"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-      {/* Category 2: Audio & Sounds */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
+        {/* Section 2: Audio Settings */}
+        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
           Audio Settings
-        </h3>
-        <WhiteCard>
-          <Switch
-            checked={settings.typingSounds}
-            onChange={settings.setTypingSounds}
-            label="Keyboard Clicks"
-            description="Play mechanical click sounds as you type letters"
-          />
-          <Switch
-            checked={settings.achievementSounds}
-            onChange={settings.setAchievementSounds}
-            label="Achievement Chimes"
-            description="Crisp audio reward when unlocked achievement milestones"
-          />
-          <Switch
-            checked={settings.notificationSounds}
-            onChange={settings.setNotificationSounds}
-            label="Notification Alerts"
-            description="Acoustic alerts on interface alerts or achievements"
-          />
-        </WhiteCard>
-      </div>
+        </div>
+        <Switch
+          checked={settings.typingSounds}
+          onChange={settings.setTypingSounds}
+          label="Keyboard Clicks"
+          description="Play mechanical click sounds as you type letters"
+        />
+        <Switch
+          checked={settings.achievementSounds}
+          onChange={settings.setAchievementSounds}
+          label="Achievement Chimes"
+          description="Crisp audio reward when unlocked achievement milestones"
+        />
+        <Switch
+          checked={settings.notificationSounds}
+          onChange={settings.setNotificationSounds}
+          label="Notification Alerts"
+          description="Acoustic alerts on interface alerts or achievements"
+        />
 
-      {/* Category 3: Interface & Motion */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
+        {/* Section 3: Interface & Motion */}
+        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
           Interface Preferences
-        </h3>
-        <WhiteCard>
-          <Switch
-            checked={settings.reducedMotion}
-            onChange={settings.setReducedMotion}
-            label="Reduced Motion"
-            description="Minimize slide drawers spring physics transitions"
-          />
-          <Switch
-            checked={settings.animations}
-            onChange={settings.setAnimations}
-            label="Smooth Transitions"
-            description="Render subtle fades and hover scale transitions"
-          />
-          <Switch
-            checked={settings.achievementToasts}
-            onChange={settings.setAchievementToasts}
-            label="Milestone Toasts"
-            description="Display overlay rewards when typing perfect streaks"
-          />
-        </WhiteCard>
-      </div>
+        </div>
+        <Switch
+          checked={settings.reducedMotion}
+          onChange={settings.setReducedMotion}
+          label="Reduced Motion"
+          description="Minimize slide drawers spring physics transitions"
+        />
+        <Switch
+          checked={settings.animations}
+          onChange={settings.setAnimations}
+          label="Smooth Transitions"
+          description="Render subtle fades and hover scale transitions"
+        />
+        <Switch
+          checked={settings.achievementToasts}
+          onChange={settings.setAchievementToasts}
+          label="Milestone Toasts"
+          description="Display overlay rewards when typing perfect streaks"
+        />
 
-      {/* Category 4: Typing Configurations */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
+        {/* Section 4: Typing Engine */}
+        <div className="px-4 py-2 bg-surface-secondary/40 text-[13px] font-bold text-text-primary">
           Typing Engine
-        </h3>
-        <WhiteCard>
-          <SegmentedControl
-            options={sizeOptions}
-            value={settings.fontSize}
-            onChange={settings.setFontSize}
-            label="Display Font Size"
-            description="Change the size of the letter outputs"
-          />
-          <SegmentedControl
-            options={widthOptions}
-            value={settings.textWidth}
-            onChange={settings.setTextWidth}
-            label="Container Width"
-            description="Limit the maximum width of the typing text box"
-          />
-          <SegmentedControl
-            options={caretOptions}
-            value={settings.caretStyle}
-            onChange={settings.setCaretStyle}
-            label="Caret Cursor Style"
-            description="Choose layout shape representation for typing cursor"
-          />
-        </WhiteCard>
-      </div>
+        </div>
+        <SegmentedControl
+          options={sizeOptions}
+          value={settings.fontSize}
+          onChange={settings.setFontSize}
+          label="Display Font Size"
+          description="Change the size of the letter outputs"
+        />
+        <SegmentedControl
+          options={widthOptions}
+          value={settings.textWidth}
+          onChange={settings.setTextWidth}
+          label="Container Width"
+          description="Limit the maximum width of the typing text box"
+        />
+        <SegmentedControl
+          options={caretOptions}
+          value={settings.caretStyle}
+          onChange={settings.setCaretStyle}
+          label="Caret Cursor Style"
+          description="Choose layout shape representation for typing cursor"
+        />
+      </WhiteCard>
 
       {/* Reset settings button */}
       <div className="pt-4 flex justify-center">
@@ -331,6 +313,6 @@ export default function SettingsPage() {
           Reset to defaults
         </button>
       </div>
-    </Container>
+    </div>
   )
 }
