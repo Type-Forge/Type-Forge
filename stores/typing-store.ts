@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { SessionConfig, SessionState, SessionStatus, WordData } from "@/types"
+import type { SessionConfig, SessionState, SessionStatus, WordData, RawKeystroke } from "@/types"
 import { initializeWords } from "@/engine/typing-engine"
 import { getRandomWords } from "@/lib/words"
 import { getBattleWords } from "@/lib/words/battle"
@@ -23,6 +23,7 @@ interface TypingStore extends SessionState {
   incrementCorrect: () => void
   incrementIncorrect: () => void
   incrementTotal: () => void
+  logKeystroke: (keystroke: RawKeystroke) => void
 }
 
 const initialState: SessionState = {
@@ -37,12 +38,16 @@ const initialState: SessionState = {
   totalKeystrokes: 0,
   correctKeystrokes: 0,
   incorrectKeystrokes: 0,
+  keystrokes: [],
 }
 
 export const useTypingStore = create<TypingStore>((set, get) => ({
   ...initialState,
 
   initSession: (config) => {
+    // Reset streak at the beginning of any session
+    useYoloStore.setState({ streak: 0 })
+
     let rawWords: string[] = []
 
     if (config.mode === "drill") {
@@ -164,5 +169,8 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
   })),
   incrementTotal: () => set((s) => ({
     totalKeystrokes: s.totalKeystrokes + 1,
+  })),
+  logKeystroke: (keystroke) => set((s) => ({
+    keystrokes: [...s.keystrokes, keystroke]
   })),
 }))

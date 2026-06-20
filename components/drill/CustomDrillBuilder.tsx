@@ -144,12 +144,9 @@ export default function CustomDrillBuilder({
   }
 
   return (
-    <div className="font-sans select-none relative">
-      {/* Settings Grid */}
-      <div className="bg-surface-secondary/40 border border-border/10 rounded-[24px] p-6 space-y-6">
-        
-        {/* iOS Settings Toggles (Switches) and Focus Configurations */}
-        <WhiteCard>
+    <div className="font-sans select-none relative space-y-6">
+      {/* iOS Settings Toggles (Switches) and Focus Configurations */}
+      <WhiteCard>
           <Switch
             checked={isSpeedCapEnabled}
             onChange={setIsSpeedCapEnabled}
@@ -439,7 +436,6 @@ export default function CustomDrillBuilder({
             </div>
           )}
         </WhiteCard>
-      </div>
 
       {/* Start Drill Confirmation Modal */}
       <AnimatePresence>

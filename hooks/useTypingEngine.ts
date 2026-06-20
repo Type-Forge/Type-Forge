@@ -14,7 +14,7 @@ import {
   countCorrectChars,
   initializeWords,
 } from "@/engine/typing-engine"
-import { calculateWpm, calculateAccuracy, generateId } from "@/lib/utils"
+import { calculateWpm, calculateAccuracy, generateId, computeSessionTimelineAndErrors } from "@/lib/utils"
 import { playClickSound } from "@/lib/audio"
 
 /**
@@ -41,6 +41,7 @@ export function useTypingEngine() {
   const incrementCorrect = useTypingStore((s) => s.incrementCorrect)
   const incrementIncorrect = useTypingStore((s) => s.incrementIncorrect)
   const incrementTotal = useTypingStore((s) => s.incrementTotal)
+  const logKeystroke = useTypingStore((s) => s.logKeystroke)
 
   const addResult = useStatsStore((s) => s.addResult)
 
@@ -116,12 +117,16 @@ export function useTypingEngine() {
             incrementIncorrect()
             setWords(nextWords)
             setCurrentLetterIndex(newLetterIndex)
-            keystrokesLogRef.current.push({ char: typed, expectedChar, time: Date.now(), isCorrect: false })
+            const kData = { char: typed, expectedChar, time: Date.now(), isCorrect: false }
+            keystrokesLogRef.current.push(kData)
+            logKeystroke(kData)
             return
           }
         }
 
-        keystrokesLogRef.current.push({ char: typed, expectedChar, time: Date.now(), isCorrect })
+        const kData = { char: typed, expectedChar, time: Date.now(), isCorrect }
+        keystrokesLogRef.current.push(kData)
+        logKeystroke(kData)
 
         if (isCorrect) {
           incrementCorrect()
@@ -140,6 +145,13 @@ export function useTypingEngine() {
           // Read latest keystroke counts directly from store to get post-increment values
           const latestStore = useTypingStore.getState()
           const accVal = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
+          const duration = finalElapsed / 1000
+
+          const { timeline, errorKeys } = computeSessionTimelineAndErrors(
+            latestStore.keystrokes,
+            store.startTime || Date.now(),
+            duration
+          )
 
           addResult({
             id: generateId(),
@@ -150,8 +162,10 @@ export function useTypingEngine() {
             totalKeystrokes: latestStore.totalKeystrokes,
             correctKeystrokes: latestStore.correctKeystrokes,
             incorrectKeystrokes: latestStore.incorrectKeystrokes,
-            duration: finalElapsed / 1000,
+            duration,
             wordsCompleted: currentWordIndex + 1,
+            timeline,
+            errorKeys,
           })
 
           if (currentConfig.mode === "battle") {
@@ -197,23 +211,27 @@ export function useTypingEngine() {
         if (spaceResult) {
           const { words: nextWords, newWordIndex, newLetterIndex } = spaceResult
 
-          keystrokesLogRef.current.push({ char: " ", expectedChar: " ", time: Date.now(), isCorrect: true })
+          const spaceData = { char: " ", expectedChar: " ", time: Date.now(), isCorrect: true }
+          keystrokesLogRef.current.push(spaceData)
+          logKeystroke(spaceData)
 
           setWords(nextWords)
           setCurrentWordIndex(newWordIndex)
           setCurrentLetterIndex(newLetterIndex)
-          incrementTotal()
+          incrementCorrect()
+
+          // Record word results for streak milestones (all modes)
+          const yoloStore = useYoloStore.getState()
+          const completedWord = nextWords[currentWordIndex]
+          const wasWordCorrect = completedWord && completedWord.state === "completed"
+          
+          const latestStore = useTypingStore.getState()
+          const currentAcc = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
+          
+          yoloStore.recordWordResult(wasWordCorrect, currentAcc)
 
           // YOLO mode updates
           if (currentConfig.mode === "yolo") {
-            const yoloStore = useYoloStore.getState()
-            const completedWord = nextWords[currentWordIndex]
-            const wasWordCorrect = completedWord && completedWord.state === "completed"
-            
-            const latestStore = useTypingStore.getState()
-            const currentAcc = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
-            
-            yoloStore.recordWordResult(wasWordCorrect, currentAcc)
             yoloStore.incrementWordsCompleted(1)
 
             if (newWordIndex > 0 && newWordIndex % 20 === 0) {
@@ -234,6 +252,13 @@ export function useTypingEngine() {
           const wpmVal = calculateWpm(finalCorrect, finalElapsed)
           const latestStore = useTypingStore.getState()
           const accVal = calculateAccuracy(latestStore.correctKeystrokes, latestStore.totalKeystrokes)
+          const duration = finalElapsed / 1000
+
+          const { timeline, errorKeys } = computeSessionTimelineAndErrors(
+            latestStore.keystrokes,
+            store.startTime || Date.now(),
+            duration
+          )
 
           addResult({
             id: generateId(),
@@ -244,8 +269,10 @@ export function useTypingEngine() {
             totalKeystrokes: latestStore.totalKeystrokes,
             correctKeystrokes: latestStore.correctKeystrokes,
             incorrectKeystrokes: latestStore.incorrectKeystrokes,
-            duration: finalElapsed / 1000,
+            duration,
             wordsCompleted: currentWordIndex + 1,
+            timeline,
+            errorKeys,
           })
 
           if (battleState.status === "racing") {

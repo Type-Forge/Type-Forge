@@ -12,7 +12,7 @@ interface DrillDashboardProps {
 
 /**
  * DrillDashboard component.
- * Layout displays Bletchley intelligent adaptive trainer followed by
+ * Layout displays intelligent adaptive trainer followed by
  * custom builder controls on a single integrated page.
  * Optimizes re-renders using granular sub-components.
  */

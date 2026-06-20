@@ -97,6 +97,13 @@ export interface DrillHistoryEntry {
   weakKeysImproved: string[]
 }
 
+export interface RawKeystroke {
+  char: string
+  expectedChar: string
+  time: number
+  isCorrect: boolean
+}
+
 export interface SessionState {
   config: SessionConfig
   status: SessionStatus
@@ -109,6 +116,7 @@ export interface SessionState {
   totalKeystrokes: number
   correctKeystrokes: number
   incorrectKeystrokes: number
+  keystrokes: RawKeystroke[]
 }
 
 // ===== STATS =====
@@ -123,6 +131,8 @@ export interface SessionResult {
   incorrectKeystrokes: number
   duration: number             // actual seconds taken
   wordsCompleted: number
+  timeline?: { second: number; wpm: number; accuracy: number }[]
+  errorKeys?: Record<string, number>
 }
 
 export interface StatsState {

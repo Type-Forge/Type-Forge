@@ -5,6 +5,7 @@ import { motion } from "motion/react"
 import Caret from "./Caret"
 import WordDisplay from "./WordDisplay"
 import { useTypingStore } from "@/stores/typing-store"
+import { useSettingsStore } from "@/stores/settings-store"
 import { useCaret } from "@/hooks/useCaret"
 import { useTypingEngine } from "@/hooks/useTypingEngine"
 import { useKeyboardHandler } from "@/hooks/useKeyboardHandler"
@@ -69,6 +70,9 @@ export default function TypingArea() {
   const innerRef = useRef<HTMLDivElement>(null)
   const [isFocused, setIsFocused] = useState(false)
   const [scrollY, setScrollY] = useState(0)
+
+  const fontSize = useSettingsStore((s) => s.fontSize)
+  const textWidth = useSettingsStore((s) => s.textWidth)
 
   // Granular subscriptions — only the fields this component renders
   const words = useTypingStore((s) => s.words)
@@ -146,7 +150,14 @@ export default function TypingArea() {
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="w-full min-h-[192px] max-h-[192px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans text-2xl sm:text-[30px] font-medium leading-[1.6] tracking-[-0.02em] select-none cursor-text"
+        className={`w-full min-h-[192px] max-h-[192px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans font-medium leading-[1.6] tracking-[-0.02em] select-none cursor-text ${
+          textWidth === "narrow"
+            ? "max-w-2xl mx-auto"
+            : textWidth === "medium"
+            ? "max-w-4xl mx-auto"
+            : "w-full max-w-none"
+        }`}
+        style={{ fontSize: `${fontSize}px` }}
         onClick={focusContainer}
       >
         <motion.div
@@ -175,9 +186,8 @@ export default function TypingArea() {
 
       {/* Footer tips */}
       {status === "running" && (
-        <div className="flex justify-between mt-6 px-1 text-xs font-medium text-text-tertiary font-sans">
+        <div className="flex justify-center mt-6 px-1 text-xs font-medium text-text-tertiary font-sans">
           <span>Press Esc / Tab to restart</span>
-          <span>Bletchley decrypt mode</span>
         </div>
       )}
     </div>

@@ -3,18 +3,33 @@ import { persist } from "zustand/middleware"
 import { useDrillStore } from "./drill-store"
 import { useStatsStore } from "./stats-store"
 import { useTypingStore } from "./typing-store"
+import { useSettingsStore } from "./settings-store"
 import { generateYoloWords } from "@/lib/words/drill"
 import { initializeWords } from "@/engine/typing-engine"
 import type { YoloLetterProfile } from "@/types"
 import { createElement } from "react"
 import { toast } from "sonner"
 import { YoloToastBanner } from "@/components/yolo/YoloToastBanner"
+import { playAchievementSound } from "@/lib/audio"
+
+let lastToastTimestamp = 0
 
 // Touch-typing progression sequence
 export const YOLO_SEQUENCE = [
   "e", "t", "a", "o", "i", "n", "s", "h", "r", "d", "l", "c", "u",
   "m", "w", "f", "g", "y", "p", "b", "v", "k", "j", "x", "q", "z"
 ]
+
+export const STREAK_MILESTONES: Record<number, { title: string; desc: string; icon: string }> = {
+  3: { title: "Warmup", desc: "3 perfect words in a row", icon: "🔹" },
+  5: { title: "Focused", desc: "5 perfect words in a row", icon: "⚡" },
+  10: { title: "Locked In", desc: "10 perfect words in a row", icon: "🔷" },
+  20: { title: "High Voltage", desc: "20 perfect words in a row", icon: "🔥" },
+  30: { title: "Machine Mode", desc: "30 perfect words in a row", icon: "🤖" },
+  50: { title: "Legendary", desc: "50 perfect words in a row", icon: "🏆" },
+  75: { title: "Absolute Legend", desc: "75 perfect words in a row", icon: "👑" },
+  100: { title: "Legendary Run", desc: "100 perfect words in a row", icon: "💎" },
+}
 
 export interface YoloSessionSummary {
   wordsCompleted: number
@@ -29,6 +44,8 @@ export interface YoloToast {
   icon: string
   title: string
   description: string
+  category: string
+  reward?: string
   type: "streak" | "confidence" | "rank" | "speed" | "mastery"
 }
 
@@ -41,13 +58,6 @@ interface YoloState {
   hasActiveRun: boolean
   sessionSummary: YoloSessionSummary
 
-  // Mastery Banner Overlay State
-  masteryBanner: {
-    letter: string
-    nextLetter: string
-    confidence: number
-  } | null
-
   // Actions
   initYoloRun: () => void
   startFresh: () => void
@@ -58,7 +68,6 @@ interface YoloState {
     sessionWpm: number
   ) => void
   incrementWordsCompleted: (count: number) => void
-  closeMasteryBanner: () => void
   finishYoloSession: (wpm: number, accuracy: number, duration: number) => void
 }
 
@@ -150,7 +159,6 @@ export const useYoloStore = create<YoloState>()(
       sessionCount: 0,
       hasActiveRun: false,
       sessionSummary: initialSummary,
-      masteryBanner: null,
 
       initYoloRun: () => {
         let currentActive = get().activeLetter
@@ -177,7 +185,6 @@ export const useYoloStore = create<YoloState>()(
             startTime: Date.now(),
           },
           sessionCount: get().sessionCount + 1,
-          masteryBanner: null,
         })
       },
 
@@ -193,11 +200,21 @@ export const useYoloStore = create<YoloState>()(
             ...initialSummary,
             startTime: Date.now(),
           },
-          masteryBanner: null,
         })
       },
 
       addYoloToast: (toastData) => {
+        const settings = useSettingsStore.getState()
+        if (!settings.achievementToasts) return
+
+        const now = Date.now()
+        if (now - lastToastTimestamp < 3000) return
+        lastToastTimestamp = now
+
+        if (settings.achievementSounds) {
+          playAchievementSound()
+        }
+
         toast.custom(
           (t) =>
             createElement(YoloToastBanner, {
@@ -205,23 +222,99 @@ export const useYoloStore = create<YoloState>()(
               icon: toastData.icon,
               title: toastData.title,
               description: toastData.description,
+              category: toastData.category,
+              reward: toastData.reward,
               onClose: (id) => toast.dismiss(id),
             }),
-          { duration: 2000 }
+          { duration: 2500 }
         )
       },
 
       recordWordResult: (wasWordCorrect, currentAccuracy) => {
+        const isYolo = useTypingStore.getState().config.mode === "yolo"
+        const active = get().activeLetter
+
         const newStreak = wasWordCorrect ? get().streak + 1 : 0
         set({ streak: newStreak })
 
-        // Trigger streak toast on multiples of 10
-        if (newStreak > 0 && newStreak % 10 === 0) {
-          get().addYoloToast({
-            icon: "🔥",
-            title: `Accuracy Streak x${newStreak}`,
-            description: `Current Accuracy: ${currentAccuracy}%\nKeep it up.`,
-            type: "streak"
+        // 1. Encourage streaks (milestones with custom styles) only if currentAccuracy >= 80
+        if (currentAccuracy >= 80) {
+          const milestone = STREAK_MILESTONES[newStreak]
+          if (milestone) {
+            get().addYoloToast({
+              icon: milestone.icon,
+              title: milestone.title,
+              description: milestone.desc,
+              category: "",
+              type: "streak"
+            })
+          }
+        }
+
+        // 2. Letter switch at 15 back-to-back correct words (YOLO mode only!)
+        if (isYolo && active && newStreak === 15) {
+          const profiles = { ...get().letterProfiles }
+          if (!profiles[active]) {
+            profiles[active] = { letter: active, attempts: 0, correct: 0, avgReactionMs: 0, confidence: 0 }
+          }
+          profiles[active].confidence = 100 // Mark as fully mastered
+
+          let newActive = active
+
+          const currentIndex = YOLO_SEQUENCE.indexOf(active)
+          const nextIndex = currentIndex + 1
+          
+          if (nextIndex < YOLO_SEQUENCE.length) {
+            newActive = YOLO_SEQUENCE[nextIndex]
+            
+            while (nextIndex < YOLO_SEQUENCE.length && profiles[newActive] && profiles[newActive].confidence >= 90) {
+              const nextLetterIdx = YOLO_SEQUENCE.indexOf(newActive) + 1
+              if (nextLetterIdx < YOLO_SEQUENCE.length) {
+                newActive = YOLO_SEQUENCE[nextLetterIdx]
+              } else {
+                break
+              }
+            }
+
+            get().addYoloToast({
+              icon: "🏆",
+              title: `${active.toUpperCase()} Reached Legendary!`,
+              description: `${active.toUpperCase()} mastered successfully`,
+              category: "🏆 LETTER MASTERED",
+              reward: `Next Focus: ${newActive.toUpperCase()}`,
+              type: "mastery"
+            })
+
+            const currentMastered = get().sessionSummary.lettersMasteredThisSession
+            if (!currentMastered.includes(active)) {
+              set((s) => ({
+                sessionSummary: {
+                  ...s.sessionSummary,
+                  lettersMasteredThisSession: [...currentMastered, active]
+                }
+              }))
+            }
+
+            // Regenerate future words immediately for the new active letter
+            const typingStore = useTypingStore.getState()
+            const activeWords = typingStore.words
+            const currentIdx = typingStore.currentWordIndex
+            
+            const sliced = activeWords.slice(0, currentIdx + 1)
+            const newWords = generateYoloWords(newActive, 25)
+            const initializedNew = initializeWords(newWords)
+            const lastIndex = sliced[sliced.length - 1]?.index ?? 0
+            const mappedNew = initializedNew.map((w, idx) => ({
+              ...w,
+              index: lastIndex + 1 + idx
+            }))
+            typingStore.setWords([...sliced, ...mappedNew])
+          }
+
+          set({
+            letterProfiles: profiles,
+            activeLetter: newActive,
+            streak: 0, // Reset streak for the new active letter
           })
         }
       },
@@ -277,24 +370,26 @@ export const useYoloStore = create<YoloState>()(
         const confidenceGain = finalConfidence - oldConfidence
 
         // Trigger Live Feed toasts:
-        // A. Confidence Gain Toast (if improved by 2%+)
+        // A. Mastery Gain Toast (if improved by 2%+)
         if (confidenceGain >= 2 && finalConfidence < 90) {
           get().addYoloToast({
             icon: "⚡",
-            title: `${active.toUpperCase()} +${confidenceGain} Confidence`,
-            description: `Current Confidence: ${finalConfidence}%\nStrong improvement.`,
+            title: `${active.toUpperCase()} MASTERY UP`,
+            description: `Letter mastery progress increased.`,
+            category: "⚡ MASTERY UP",
+            reward: `Mastery: ${oldConfidence}% → ${finalConfidence}%`,
             type: "confidence"
           })
         }
 
         // B. Rank Promotion Toast
         if (newRank !== oldRank && finalConfidence < 90) {
-          const nextInfo = getNextRankInfo(finalConfidence)
-          const distLabel = nextInfo ? `${nextInfo.diff}% away from ${nextInfo.nextRank}.` : "Max rank achieved."
           get().addYoloToast({
             icon: "🏆",
-            title: `${active.toUpperCase()} Reached ${newRank}`,
-            description: `Confidence: ${finalConfidence}%\n${distLabel}`,
+            title: `${active.toUpperCase()} PROMOTED`,
+            description: `${active.toUpperCase()} is now performing at ${newRank} level.`,
+            category: "🚀 RANK UP",
+            reward: `Rank: ${oldRank} → ${newRank}`,
             type: "rank"
           })
         }
@@ -304,8 +399,10 @@ export const useYoloStore = create<YoloState>()(
         if (sessionWpm > historicalBestWpm && historicalBestWpm > 0) {
           get().addYoloToast({
             icon: "🚀",
-            title: "New Best Speed",
-            description: `Current WPM: ${sessionWpm}\nPrevious Best: ${historicalBestWpm}`,
+            title: "NEW SPEED RECORD",
+            description: `${sessionWpm} WPM achieved.`,
+            category: "⚡ NEW BEST",
+            reward: `WPM: ${historicalBestWpm} → ${sessionWpm}`,
             type: "speed"
           })
         }
@@ -332,70 +429,8 @@ export const useYoloStore = create<YoloState>()(
           }
         })
 
-        // 3. Switch focus letter if mastered
-        let newActive = active
-        let banner = null
-
-        if (profiles[active].confidence >= 90 && totalAttempts >= 30) {
-          const currentIndex = YOLO_SEQUENCE.indexOf(active)
-          const nextIndex = currentIndex + 1
-          if (nextIndex < YOLO_SEQUENCE.length) {
-            newActive = YOLO_SEQUENCE[nextIndex]
-            
-            while (nextIndex < YOLO_SEQUENCE.length && profiles[newActive] && profiles[newActive].confidence >= 90) {
-              const nextLetterIdx = YOLO_SEQUENCE.indexOf(newActive) + 1
-              if (nextLetterIdx < YOLO_SEQUENCE.length) {
-                newActive = YOLO_SEQUENCE[nextLetterIdx]
-              } else {
-                break
-              }
-            }
-
-            // Create Full mastery Banner
-            banner = {
-              letter: active.toUpperCase(),
-              nextLetter: newActive.toUpperCase(),
-              confidence: profiles[active].confidence,
-            }
-
-            // Trigger Mastered Toast
-            get().addYoloToast({
-              icon: "✓",
-              title: "Letter Mastered",
-              description: `${active.toUpperCase()} mastered successfully\nNext Focus: ${newActive.toUpperCase()}`,
-              type: "mastery"
-            })
-
-            const currentMastered = get().sessionSummary.lettersMasteredThisSession
-            if (!currentMastered.includes(active)) {
-              set((s) => ({
-                sessionSummary: {
-                  ...s.sessionSummary,
-                  lettersMasteredThisSession: [...currentMastered, active]
-                }
-              }))
-            }
-
-            // Regenerate future words immediately for the new active letter
-            const typingStore = useTypingStore.getState()
-            const activeWords = typingStore.words
-            const currentIdx = typingStore.currentWordIndex
-            const sliced = activeWords.slice(0, currentIdx + 1)
-            const newWords = generateYoloWords(newActive, 25)
-            const initializedNew = initializeWords(newWords)
-            const lastIndex = sliced[sliced.length - 1]?.index ?? 0
-            const mappedNew = initializedNew.map((w, idx) => ({
-              ...w,
-              index: lastIndex + 1 + idx
-            }))
-            typingStore.setWords([...sliced, ...mappedNew])
-          }
-        }
-
         set({
           letterProfiles: profiles,
-          activeLetter: newActive,
-          masteryBanner: banner,
         })
       },
 
@@ -407,10 +442,6 @@ export const useYoloStore = create<YoloState>()(
             wordsCompleted: s.sessionSummary.wordsCompleted + count,
           },
         }))
-      },
-
-      closeMasteryBanner: () => {
-        set({ masteryBanner: null })
       },
 
       finishYoloSession: (wpm, accuracy, duration) => {

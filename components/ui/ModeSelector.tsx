@@ -31,17 +31,17 @@ const BATTLE_OPTIONS: SubOption<BattleDifficulty>[] = [
   {
     value: "easy",
     label: "easy (35 wpm)",
-    tooltip: "Simulation speed set to slow. Suitable for decryption practice.",
+    tooltip: "Slower opponent speed. Great for warming up.",
   },
   {
     value: "medium",
     label: "medium (60 wpm)",
-    tooltip: "Standard Bletchley operational pace. A solid race.",
+    tooltip: "Standard opponent pace. A solid challenge.",
   },
   {
     value: "hard",
     label: "hard (90 wpm)",
-    tooltip: "Elite Enigma machine rotor sync. Speeds running hot!",
+    tooltip: "Elite opponent speed. Only for experienced typists.",
   },
 ]
 

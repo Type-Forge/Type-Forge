@@ -7,6 +7,7 @@ import type { SessionResult } from "@/types"
 import AlertModal from "@/components/ui/AlertModal"
 import FloatingPillTabs, { TabOption } from "@/components/ui/FloatingPillTabs"
 import { GroupedList, GroupedListItem, ChevronIcon } from "@/components/ui/GroupedList"
+import AnalysisDrawer from "./AnalysisDrawer"
 
 // Icons representing each session mode
 const WordsIcon = (
@@ -183,110 +184,14 @@ export default function StatsHistory() {
         </div>
       )}
 
-      {/* iOS-style Session Details Modal */}
-      <AnimatePresence>
-        {selectedSession && (
-          <div className="fixed inset-0 z-55 flex items-center justify-center p-4">
-            {/* Backdrop overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-[4px] cursor-pointer"
-              onClick={() => setSelectedSession(null)}
-            />
-
-            {/* Modal Box Container */}
-            <div className="relative w-full max-w-sm p-6 flex flex-col z-10">
-              {/* Modal background element */}
-              <div className="absolute inset-0 bg-surface border border-border rounded-[30px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] -z-10" />
-
-              {/* Content */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col w-full relative z-10"
-              >
-                {/* Close Button */}
-                <button
-                  onClick={() => setSelectedSession(null)}
-                  className="absolute top-4 right-4 w-7 h-7 rounded-full bg-surface-secondary/80 hover:bg-surface-secondary text-text-muted hover:text-text-primary flex items-center justify-center transition-colors active:scale-[0.97] cursor-pointer focus:outline-none"
-                  aria-label="Close"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-
-                {/* Title Section */}
-                <div className="text-center mb-6 mt-2">
-                  <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1">
-                    Decryption summary
-                  </span>
-                  <h3 className="text-lg font-sans font-bold text-text-primary">
-                    {selectedSession.config.mode === "words" 
-                      ? `${selectedSession.config.wordCount} words` 
-                      : selectedSession.config.mode === "battle"
-                        ? `Battle (${selectedSession.config.difficulty})`
-                        : selectedSession.config.mode === "drill"
-                          ? `Drill (${selectedSession.config.difficulty})`
-                          : `${selectedSession.config.duration}s timed`}
-                  </h3>
-                  <span className="text-[11px] text-text-muted font-sans mt-0.5 block">
-                    {formatDate(selectedSession.timestamp)}
-                  </span>
-                </div>
-
-                 {/* Stats Grouped List */}
-                <GroupedList className="mb-6 font-sans">
-                  <GroupedListItem
-                    title="Speed"
-                    rightElement={<span className="font-bold text-accent tabular-nums">{selectedSession.wpm} WPM</span>}
-                  />
-                  <GroupedListItem
-                    title="Accuracy"
-                    rightElement={<span className="font-semibold text-text-primary tabular-nums">{selectedSession.accuracy}%</span>}
-                  />
-                  <GroupedListItem
-                    title="Time Taken"
-                    rightElement={<span className="font-semibold text-text-primary tabular-nums">{selectedSession.duration.toFixed(1)}s</span>}
-                  />
-                  <GroupedListItem
-                    title="Keystrokes"
-                    rightElement={<span className="font-semibold text-text-primary tabular-nums">{selectedSession.correctKeystrokes} / {selectedSession.totalKeystrokes}</span>}
-                  />
-                </GroupedList>
-
-                {/* Metadata Grouped List */}
-                <GroupedList className="mb-6 font-sans">
-                  <GroupedListItem
-                    title="Words decrypted"
-                    className="py-2.5"
-                    rightElement={<span className="font-semibold text-text-primary">{selectedSession.wordsCompleted}</span>}
-                  />
-                  <GroupedListItem
-                    title="Keystroke errors"
-                    className="py-2.5"
-                    destructive
-                    rightElement={<span className="font-semibold text-incorrect">{selectedSession.incorrectKeystrokes}</span>}
-                  />
-                </GroupedList>
-
-                {/* Primary Dismiss Button */}
-                <button
-                  onClick={() => setSelectedSession(null)}
-                  className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 text-white font-sans text-[15px] font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm"
-                >
-                  Done
-                </button>
-              </motion.div>
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* iOS-style Session Details Modal reusing AnalysisDrawer */}
+      {selectedSession && (
+        <AnalysisDrawer
+          isOpen={!!selectedSession}
+          onClose={() => setSelectedSession(null)}
+          result={selectedSession}
+        />
+      )}
 
       <AlertModal
         isOpen={isClearModalOpen}

@@ -20,8 +20,13 @@ function getAudioContext(): AudioContext | null {
   }
 }
 
+import { useSettingsStore } from "@/stores/settings-store"
+
 export function playClickSound(key: string) {
   try {
+    const { typingSounds } = useSettingsStore.getState()
+    if (!typingSounds) return
+
     const ctx = getAudioContext()
     if (!ctx) return
 
@@ -99,5 +104,45 @@ export function playClickSound(key: string) {
     }
   } catch {
     // Fail silently if audio context cannot play
+  }
+}
+
+export function playAchievementSound() {
+  try {
+    const { achievementSounds } = useSettingsStore.getState()
+    if (!achievementSounds) return
+
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    if (ctx.state === "suspended") {
+      void ctx.resume()
+    }
+
+    const now = ctx.currentTime
+
+    // Crisp high C-major arpeggio: C6 (1047Hz), E6 (1319Hz), G6 (1568Hz)
+    const notes = [1046.5, 1318.5, 1568.0]
+    const times = [0, 0.08, 0.16]
+
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gainNode = ctx.createGain()
+
+      osc.type = "sine"
+      osc.frequency.setValueAtTime(freq, now + times[idx])
+
+      // Envelope: quick crisp decay
+      gainNode.gain.setValueAtTime(0.06, now + times[idx])
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + times[idx] + 0.22)
+
+      osc.connect(gainNode)
+      gainNode.connect(ctx.destination)
+
+      osc.start(now + times[idx])
+      osc.stop(now + times[idx] + 0.22)
+    })
+  } catch {
+    // Fail silently
   }
 }

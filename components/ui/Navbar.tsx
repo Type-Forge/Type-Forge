@@ -6,6 +6,7 @@ import { useTheme } from "@/components/providers/ThemeProvider"
 import { useEffect, useState } from "react"
 import { motion } from "motion/react"
 import Logo from "@/components/ui/Logo"
+import { playClickSound } from "@/lib/audio"
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -37,7 +38,7 @@ export default function Navbar() {
             <Link
               href="/"
               className="w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-all duration-150 active:scale-[0.95] cursor-pointer"
-              aria-label="Back to practice"
+              aria-label="Back to trainer"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -115,9 +116,34 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Profile link */}
+          {/* Settings Route Link */}
+          <Link
+            href="/settings"
+            onClick={() => playClickSound("click")}
+            className={`w-9 h-9 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none ${
+              pathname === "/settings" ? "border-accent/30 text-accent bg-accent/5 shadow-[0_0_8px_rgba(10,132,255,0.1)]" : ""
+            }`}
+            aria-label="Open Settings"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </Link>
+
+          {/* Profile Route Link */}
           <Link
             href="/profile"
+            onClick={() => playClickSound("click")}
             className={`w-9 h-9 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer ${
               pathname === "/profile" ? "border-accent/30 text-accent bg-accent/5 shadow-[0_0_8px_rgba(10,132,255,0.1)]" : ""
             }`}
