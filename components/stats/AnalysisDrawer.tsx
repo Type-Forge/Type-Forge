@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import type { SessionResult } from "@/types"
 import { playClickSound } from "@/lib/audio"
@@ -52,7 +51,6 @@ function getAccuracyStyle(accuracy: number): { color: string; label?: string } {
 }
 
 export default function AnalysisDrawer({ isOpen, onClose, result }: AnalysisDrawerProps) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const reducedMotion = useSettingsStore((s) => s.reducedMotion)
   const timeline = result.timeline ?? []
   const errorKeys = result.errorKeys ?? {}
@@ -101,57 +99,11 @@ export default function AnalysisDrawer({ isOpen, onClose, result }: AnalysisDraw
   const wpmPoints = timeline.map(t => t.wpm)
   const maxWpm = Math.max(80, ...wpmPoints, result.wpm)
   const minWpm = Math.min(10, ...wpmPoints)
-  const rangeWpm = maxWpm - minWpm || 1
   
   // 2. Calculations for Accuracy Chart
   const accPoints = timeline.map(t => t.accuracy)
   const maxAcc = 100
   const minAcc = Math.min(80, ...accPoints)
-  const rangeAcc = maxAcc - minAcc || 1
-
-  const width = 400
-  const height = 120
-  const paddingX = 15
-  const paddingY = 15
-
-  // Map value to Y coordinate with nice headroom and footroom (zoom out)
-  const getWpmY = (val: number) => {
-    const minYCoord = paddingY + 12 // top headroom
-    const maxYCoord = height - paddingY - 10 // bottom footroom
-    const rangeY = maxYCoord - minYCoord
-    return maxYCoord - ((val - minWpm) / rangeWpm) * rangeY
-  }
-
-  const getAccY = (val: number) => {
-    const minYCoord = paddingY + 12 // top headroom
-    const maxYCoord = height - paddingY - 10 // bottom footroom
-    const rangeY = maxYCoord - minYCoord
-    return maxYCoord - ((val - minAcc) / rangeAcc) * rangeY
-  }
-
-  const wpmPointsSvg = timeline.map((t, i) => {
-    const x = paddingX + (i / (timeline.length - 1)) * (width - paddingX * 2)
-    const y = getWpmY(t.wpm)
-    return { x, y }
-  })
-
-  const accPointsSvg = timeline.map((t, i) => {
-    const x = paddingX + (i / (timeline.length - 1)) * (width - paddingX * 2)
-    const y = getAccY(t.accuracy)
-    return { x, y }
-  })
-
-  const wpmPathD = wpmPointsSvg.reduce((acc, p, i) => {
-    return i === 0 ? `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}` : `${acc} L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
-  }, "")
-
-  const accPathD = accPointsSvg.reduce((acc, p, i) => {
-    return i === 0 ? `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}` : `${acc} L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
-  }, "")
-
-  const wpmAreaD = wpmPointsSvg.length > 0
-    ? `${wpmPathD} L ${wpmPointsSvg[wpmPointsSvg.length - 1].x.toFixed(1)} ${(height - paddingY).toFixed(1)} L ${wpmPointsSvg[0].x.toFixed(1)} ${(height - paddingY).toFixed(1)} Z`
-    : ""
 
   // Keyboard layout for Error Heatmap
   const keyboardRows = [
@@ -322,129 +274,101 @@ export default function AnalysisDrawer({ isOpen, onClose, result }: AnalysisDraw
             {/* Timeline Charts Section */}
             <div className="space-y-6 flex-1 mt-4">
               {timeline.length >= 2 ? (
-                <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5 font-sans relative group/chart">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="flex items-center gap-3">
+                <>
+                  {/* WPM Timeline */}
+                  <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                    <div className="flex justify-between items-center mb-3">
                       <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
-                        Session Timeline
+                        WPM Timeline
                       </span>
-                      <div className="flex items-center gap-2.5 text-[9px] font-bold">
-                        <span className="flex items-center gap-1 text-accent">
-                          <span className="w-2 h-0.5 bg-accent inline-block rounded" />
-                          WPM (Peak: {Math.max(...wpmPoints)} WPM)
-                        </span>
-                        <span className="flex items-center gap-1 text-correct">
-                          <span className="w-2 h-0.5 bg-correct inline-block rounded" />
-                          ACCURACY
-                        </span>
-                      </div>
+                      <span className="text-sm font-bold text-accent font-sans tabular-nums">
+                        Peak: {Math.max(...wpmPoints)} WPM
+                      </span>
                     </div>
-                    <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider">
-                      {result.duration.toFixed(1)}s total
-                    </span>
-                  </div>
 
-                  <div className="relative w-full overflow-hidden">
-                    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
-                      {/* Horizontal Grid lines */}
-                      <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} className="stroke-border/10" strokeDasharray="3" />
-                      <line x1={paddingX} y1={height / 2} x2={width - paddingX} y2={height / 2} className="stroke-border/10" strokeDasharray="3" />
-                      <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} className="stroke-border/10" />
-
-                      {/* Hover Vertical Guide Line */}
-                      {hoveredIndex !== null && wpmPointsSvg[hoveredIndex] && (
-                        <line
-                          x1={wpmPointsSvg[hoveredIndex].x}
-                          y1={paddingY}
-                          x2={wpmPointsSvg[hoveredIndex].x}
-                          y2={height - paddingY}
-                          className="stroke-border/30"
-                          strokeWidth="1.2"
-                          strokeDasharray="2"
-                        />
-                      )}
-
-                      {/* WPM Area */}
-                      {wpmAreaD && (
-                        <path d={wpmAreaD} fill="url(#timeline-wpm-grad)" className="opacity-[0.06]" />
-                      )}
-
-                      {/* WPM Sparkline Path */}
-                      {wpmPathD && (
+                    <div className="relative h-28 w-full mt-2">
+                      <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                        <defs>
+                          <linearGradient id="wpmGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Gridlines */}
+                        <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                        <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                        <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                        
+                        {/* Area */}
                         <path
-                          d={wpmPathD}
+                          d={generateSvgAreaPath(wpmPoints, minWpm, maxWpm, 400, 100)}
+                          fill="url(#wpmGrad)"
+                        />
+                        
+                        {/* Line */}
+                        <path
+                          d={generateSvgPath(wpmPoints, minWpm, maxWpm, 400, 100)}
                           fill="none"
                           stroke="var(--color-accent)"
-                          strokeWidth="2"
+                          strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-                      )}
+                      </svg>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
+                      <span>Start</span>
+                      <span>{result.duration.toFixed(1)}s</span>
+                    </div>
+                  </div>
 
-                      {/* Accuracy Sparkline Path */}
-                      {accPathD && (
+                  {/* Accuracy Timeline */}
+                  <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                        Accuracy Timeline
+                      </span>
+                      <span className="text-sm font-bold text-correct font-sans tabular-nums">
+                        Current: {result.accuracy}%
+                      </span>
+                    </div>
+
+                    <div className="relative h-28 w-full mt-2">
+                      <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                        <defs>
+                          <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-correct)" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="var(--color-correct)" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Gridlines */}
+                        <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                        <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                        <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                        
+                        {/* Area */}
                         <path
-                          d={accPathD}
+                          d={generateSvgAreaPath(accPoints, minAcc, maxAcc, 400, 100)}
+                          fill="url(#accGrad)"
+                        />
+                        
+                        {/* Line */}
+                        <path
+                          d={generateSvgPath(accPoints, minAcc, maxAcc, 400, 100)}
                           fill="none"
                           stroke="var(--color-correct)"
-                          strokeWidth="1.8"
+                          strokeWidth="2.5"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                         />
-                      )}
-
-                      {/* Invisible interactive hover bands */}
-                      {wpmPointsSvg.map((p, i) => (
-                        <g key={i}>
-                          {hoveredIndex === i && accPointsSvg[i] && (
-                            <>
-                              <circle cx={wpmPointsSvg[i].x} cy={wpmPointsSvg[i].y} r="4" className="fill-bg stroke-accent" strokeWidth="1.5" />
-                              <circle cx={accPointsSvg[i].x} cy={accPointsSvg[i].y} r="4" className="fill-bg stroke-correct" strokeWidth="1.5" />
-                            </>
-                          )}
-                          <rect
-                            x={p.x - (width / (timeline.length - 1)) / 2}
-                            y={paddingY}
-                            width={width / (timeline.length - 1)}
-                            height={height - paddingY * 2}
-                            fill="transparent"
-                            onMouseEnter={() => setHoveredIndex(i)}
-                            onMouseLeave={() => setHoveredIndex(null)}
-                            className="cursor-pointer animate-none"
-                          />
-                        </g>
-                      ))}
-
-                      {/* Gradient definitions */}
-                      <defs>
-                        <linearGradient id="timeline-wpm-grad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="var(--color-accent)" />
-                          <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-
-                    {/* Combined Tooltip */}
-                    {hoveredIndex !== null && timeline[hoveredIndex] && wpmPointsSvg[hoveredIndex] && accPointsSvg[hoveredIndex] && (
-                      <div
-                        className="absolute bg-surface/95 border border-border/15 backdrop-blur-md rounded-xl p-2 px-2.5 shadow-lg flex flex-col gap-0.5 pointer-events-none select-none text-[9px] z-10 transition-all duration-75 font-sans min-w-[75px]"
-                        style={{
-                          left: `${(wpmPointsSvg[hoveredIndex].x / width) * 100}%`,
-                          top: `${(Math.min(wpmPointsSvg[hoveredIndex].y, accPointsSvg[hoveredIndex].y) / height) * 100 - 15}%`,
-                          transform: 'translate(-50%, -100%)',
-                        }}
-                      >
-                        <span className="font-bold text-accent font-sans leading-none">{timeline[hoveredIndex].wpm} WPM</span>
-                        <span className="font-bold text-correct font-sans leading-none">{timeline[hoveredIndex].accuracy}% ACC</span>
-                      </div>
-                    )}
+                      </svg>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
+                      <span>Start</span>
+                      <span>{result.duration.toFixed(1)}s</span>
+                    </div>
                   </div>
-
-                  <div className="flex justify-between text-[9px] text-text-tertiary mt-3 font-sans">
-                    <span>Start</span>
-                    <span>End ({result.duration.toFixed(1)}s)</span>
-                  </div>
-                </div>
+                </>
               ) : (
                 <div className="bg-surface-secondary/30 border border-border/10 rounded-2xl p-8 text-center text-xs text-text-tertiary">
                   Timeline data unavailable for this run duration.

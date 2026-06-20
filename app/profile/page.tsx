@@ -7,13 +7,14 @@ import Container from "@/components/ui/Container"
 import StatsHistory from "@/components/stats/StatsHistory"
 import type { SessionResult } from "@/types"
 import { GroupedList, GroupedListItem } from "@/components/ui/GroupedList"
+import WhiteCard from "@/components/ui/WhiteCard"
 
 function PerformanceTrendChart({ data }: { data: { x: number; y: number; accuracy: number }[] }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
   if (data.length < 2) {
     return (
-      <div className="h-44 flex flex-col items-center justify-center text-text-tertiary text-xs bg-surface/50 border border-border/10 rounded-[20px] p-6 text-center">
+      <div className="h-44 flex flex-col items-center justify-center text-text-tertiary text-xs bg-surface-secondary/20 border border-border/10 rounded-[20px] p-6 text-center select-none font-sans">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -48,17 +49,17 @@ function PerformanceTrendChart({ data }: { data: { x: number; y: number; accurac
   const paddingX = 25
   const paddingY = 20
 
-  // Map value to Y coordinate with nice headroom and footroom (zoom out)
+  // Zoomed-out map value to Y coordinate (added more top headroom to prevent data/tooltip clipping)
   const getWpmY = (val: number) => {
-    const minYCoord = paddingY + 15 // top headroom
-    const maxYCoord = height - paddingY - 10 // bottom footroom
+    const minYCoord = paddingY + 35 // Increased top headroom
+    const maxYCoord = height - paddingY - 10
     const rangeY = maxYCoord - minYCoord
     return maxYCoord - ((val - minWpm) / rangeWpm) * rangeY
   }
 
   const getAccY = (val: number) => {
-    const minYCoord = paddingY + 15 // top headroom
-    const maxYCoord = height - paddingY - 10 // bottom footroom
+    const minYCoord = paddingY + 35 // Increased top headroom
+    const maxYCoord = height - paddingY - 10
     const rangeY = maxYCoord - minYCoord
     return maxYCoord - ((val - minAcc) / rangeAcc) * rangeY
   }
@@ -86,29 +87,24 @@ function PerformanceTrendChart({ data }: { data: { x: number; y: number; accurac
   const wpmAreaD = `${wpmPathD} L ${wpmPoints[wpmPoints.length - 1].x} ${height - paddingY} L ${wpmPoints[0].x} ${height - paddingY} Z`
 
   return (
-    <div className="bg-surface/50 backdrop-blur-md border border-border/10 rounded-[20px] p-5 relative group/chart font-sans">
+    <div className="p-1 relative group/chart font-sans">
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
-          <span className="text-[12px] uppercase font-bold tracking-wider text-text-secondary">
-            Performance Trends
+        <div className="flex items-center gap-3 text-[10px] font-bold">
+          <span className="flex items-center gap-1 text-accent">
+            <span className="w-2.5 h-0.5 bg-accent inline-block rounded" />
+            WPM (Speed)
           </span>
-          <div className="flex items-center gap-3 text-[10px] font-bold">
-            <span className="flex items-center gap-1 text-accent">
-              <span className="w-2.5 h-0.5 bg-accent inline-block rounded" />
-              WPM
-            </span>
-            <span className="flex items-center gap-1 text-correct">
-              <span className="w-2.5 h-0.5 bg-correct inline-block rounded" />
-              ACCURACY
-            </span>
-          </div>
+          <span className="flex items-center gap-1 text-correct">
+            <span className="w-2.5 h-0.5 bg-correct inline-block rounded" />
+            ACCURACY
+          </span>
         </div>
         <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider">
           Last {data.length} sessions
         </span>
       </div>
 
-      <div className="relative w-full overflow-hidden">
+      <div className="relative w-full">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           {/* Horizontal Grid lines */}
           <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} className="stroke-border/10" strokeDasharray="4" />
@@ -240,16 +236,13 @@ function KeyboardHeatmapWithStats({
   }
 
   return (
-    <div className="bg-surface/50 backdrop-blur-md border border-border/10 rounded-[20px] p-5 font-sans w-full">
+    <div className="p-1 font-sans w-full">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
         {/* Left: Heatmap (8 columns) */}
         <div className="md:col-span-8 flex flex-col items-center justify-center">
           <div className="flex justify-between items-center w-full mb-6">
-            <span className="text-[12px] uppercase font-bold tracking-wider text-text-secondary">
-              Mistake Heatmap
-            </span>
-            <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider">
-              {totalErrors} total key errors
+            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
+              Mistake Heatmap ({totalErrors} total errors)
             </span>
           </div>
 
@@ -270,7 +263,7 @@ function KeyboardHeatmapWithStats({
                       >
                         {char.toUpperCase()}
                       </div>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max max-w-[150px] opacity-0 group-hover:opacity-100 pointer-events-none z-50 bg-surface/95 border border-border/15 backdrop-blur-xl px-2.5 py-1.5 rounded-lg text-[10px] text-text-secondary text-center shadow-lg leading-normal font-sans">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max max-w-[150px] opacity-0 group-hover:opacity-100 pointer-events-none z-50 bg-surface/95 border border-border/15 backdrop-blur-xl px-2.5 py-1.5 rounded-lg text-[10px] text-text-secondary text-center shadow-lg leading-normal font-sans font-semibold">
                         {tooltipText}
                       </div>
                     </div>
@@ -339,6 +332,126 @@ function KeyboardHeatmapWithStats({
   )
 }
 
+function ActivityCalendar({ history }: { history: SessionResult[] }) {
+  const days = useMemo(() => {
+    const today = new Date()
+    today.setHours(12, 0, 0, 0) // Normalize to noon to avoid DST/timezone shift issues
+    const endDate = new Date(today)
+    // Align to the Saturday of the current week
+    endDate.setDate(today.getDate() + (6 - today.getDay()))
+
+    // Start date is Sunday of 26 weeks ago (endDate - 181 days)
+    const startDate = new Date(endDate)
+    startDate.setDate(endDate.getDate() - 181)
+
+    const list: Date[] = []
+    const temp = new Date(startDate)
+    for (let i = 0; i < 182; i++) {
+      list.push(new Date(temp))
+      temp.setDate(temp.getDate() + 1)
+    }
+    return list
+  }, [history])
+
+  const activityMap = useMemo(() => {
+    const counts: Record<string, number> = {}
+    history.forEach((run) => {
+      const dateKey = new Date(run.timestamp).toDateString()
+      counts[dateKey] = (counts[dateKey] || 0) + 1
+    })
+    return counts
+  }, [history])
+
+  const monthLabels = useMemo(() => {
+    const labels: { index: number; text: string }[] = []
+    let lastMonth = -1
+    for (let i = 0; i < 26; i++) {
+      const day = days[i * 7]
+      const currentMonth = day.getMonth()
+      if (currentMonth !== lastMonth) {
+        labels.push({
+          index: i,
+          text: day.toLocaleDateString(undefined, { month: "short" }),
+        })
+        lastMonth = currentMonth
+      }
+    }
+    return labels
+  }, [days])
+
+  return (
+    <div className="w-full flex flex-col font-sans select-none overflow-x-auto py-2">
+      <div className="min-w-[360px] self-start">
+        {/* Month Labels */}
+        <div className="flex text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-2 h-4 relative">
+          {monthLabels.map((label, idx) => (
+            <span
+              key={idx}
+              className="absolute"
+              style={{ left: `${(label.index / 26) * 100}%` }}
+            >
+              {label.text}
+            </span>
+          ))}
+        </div>
+
+        {/* Grid and Day Labels */}
+        <div className="flex gap-2.5">
+          {/* Day column */}
+          <div className="grid grid-rows-7 text-[8px] font-bold text-text-tertiary/70 uppercase select-none pt-[2px] pb-[2px] pr-1.5 leading-none h-[90px] justify-between">
+            <span>Sun</span>
+            <span className="invisible">Mon</span>
+            <span>Tue</span>
+            <span className="invisible">Wed</span>
+            <span>Thu</span>
+            <span className="invisible">Fri</span>
+            <span>Sat</span>
+          </div>
+
+          {/* 7 rows by 26 columns grid */}
+          <div className="grid grid-flow-col grid-rows-7 gap-1 h-[90px]">
+            {days.map((day, idx) => {
+              const dateStr = day.toDateString()
+              const count = activityMap[dateStr] || 0
+
+              // Premium theme colors based on typing activity counts
+              let colorClass = "bg-text-muted/10 dark:bg-white/5 border border-transparent"
+              if (count > 0 && count <= 2) colorClass = "bg-accent/25 border border-accent/10"
+              else if (count > 2 && count <= 4) colorClass = "bg-accent/55 border border-accent/20"
+              else if (count > 4) colorClass = "bg-accent border border-accent-hover/30"
+
+              const tooltipText = count > 0
+                ? `${count} session${count > 1 ? "s" : ""} on ${day.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
+                : `No activity on ${day.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
+
+              return (
+                <div className="relative group" key={idx}>
+                  <div
+                    className={`w-[10px] h-[10px] rounded-[2px] transition-all duration-150 hover:scale-[1.15] ${colorClass}`}
+                  />
+                  {/* Tooltip Popup using app-standard style */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-max max-w-[200px] opacity-0 group-hover:opacity-100 pointer-events-none z-50 transform scale-95 group-hover:scale-100 transition-all duration-150 bg-surface/95 border border-border/15 backdrop-blur-xl px-2.5 py-1.5 rounded-xl text-[10px] text-text-secondary text-center shadow-lg leading-normal font-sans font-semibold">
+                    {tooltipText}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex justify-end items-center gap-1.5 mt-2.5 text-[9px] text-text-tertiary font-bold uppercase tracking-wider pr-1">
+          <span>Less</span>
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-text-muted/10 dark:bg-white/5" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-accent/25" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-accent/55" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-accent" />
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function ProfilePage() {
   const { history } = useStatsStore()
@@ -398,86 +511,111 @@ export default function ProfilePage() {
 
   if (!mounted) {
     return (
-      <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-8 text-center animate-pulse">
-        <div className="h-8 w-48 bg-surface-secondary rounded mx-auto mb-8" />
-        <div className="h-64 bg-surface-secondary rounded-[20px] mb-8" />
-        <div className="h-64 bg-surface-secondary rounded-[20px] mb-8" />
+      <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-pulse font-sans">
+        <div className="bg-surface/50 border border-border/10 rounded-[20px] p-6 space-y-6 w-full h-[600px]">
+          <div className="border-b border-border/10 pb-5">
+            <div className="h-6 w-32 bg-surface-secondary rounded mb-2" />
+            <div className="h-4 w-64 bg-surface-secondary rounded" />
+          </div>
+          <div className="space-y-4">
+            <div className="h-4 w-24 bg-surface-secondary rounded" />
+            <div className="h-20 w-full bg-surface-secondary rounded" />
+            <div className="h-32 w-full bg-surface-secondary rounded" />
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 space-y-8 animate-fade-in font-sans select-none">
-      {/* Page Header */}
-      <div className="border-b border-border/10 pb-4">
-        <h2 className="text-xl font-bold tracking-tight text-text-primary">Profile</h2>
-        <p className="text-xs text-text-secondary mt-1">
-          View your personal statistics, visual performance trends, and typing history.
-        </p>
-      </div>
+    <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-fade-in font-sans select-none">
+      <WhiteCard>
+        {/* Main Profile Header */}
+        <div className="px-1 py-5 select-none">
+          <h2 className="text-xl font-bold tracking-tight text-text-primary">Profile</h2>
+          <p className="text-xs text-text-secondary mt-1">
+            View your personal statistics, visual performance trends, and typing history.
+          </p>
+        </div>
 
-      {/* Section 1: Personal Statistics */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-          Personal Statistics
-        </h3>
-        <GroupedList>
-          <GroupedListItem
-            title="Best Speed"
-            rightElement={
-              <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
-                {statsSummary.bestWpm} WPM
-              </span>
-            }
-          />
-          <GroupedListItem
-            title="Average Speed"
-            rightElement={
-              <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
-                {statsSummary.avgWpm} WPM
-              </span>
-            }
-          />
-          <GroupedListItem
-            title="Total Sessions"
-            rightElement={
-              <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
-                {statsSummary.totalSessions} run{statsSummary.totalSessions !== 1 && "s"}
-              </span>
-            }
-          />
-          <GroupedListItem
-            title="Average Accuracy"
-            rightElement={
-              <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
-                {statsSummary.avgAccuracy}%
-              </span>
-            }
-          />
-        </GroupedList>
-      </div>
+        {/* Section 1: Personal Statistics */}
+        <div className="py-4">
+          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+            Personal Statistics
+          </div>
+          <GroupedList>
+            <GroupedListItem
+              title="Best Speed"
+              rightElement={
+                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                  {statsSummary.bestWpm} WPM
+                </span>
+              }
+            />
+            <GroupedListItem
+              title="Average Speed"
+              rightElement={
+                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                  {statsSummary.avgWpm} WPM
+                </span>
+              }
+            />
+            <GroupedListItem
+              title="Total Sessions"
+              rightElement={
+                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                  {statsSummary.totalSessions} run{statsSummary.totalSessions !== 1 && "s"}
+                </span>
+              }
+            />
+            <GroupedListItem
+              title="Average Accuracy"
+              rightElement={
+                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                  {statsSummary.avgAccuracy}%
+                </span>
+              }
+            />
+          </GroupedList>
+        </div>
 
-      {/* Section 2: Performance Trends */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-          Performance Trends
-        </h3>
-        <PerformanceTrendChart data={chartData} />
-      </div>
+        {/* Section 2: Performance Trends */}
+        <div className="py-4">
+          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+            Performance Trends
+          </div>
+          <PerformanceTrendChart data={chartData} />
+        </div>
 
-      {/* Section 3: Keyboard Heatmap */}
-      <div className="space-y-2">
-        <h3 className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider pl-4">
-          Keyboard Heatmap
-        </h3>
-        <KeyboardHeatmapWithStats 
-          errorKeys={totalErrorKeys} 
-          strengthsAndWeaknesses={strengthsAndWeaknesses} 
-        />
-      </div>
+        {/* Section 3: Keyboard Heatmap */}
+        <div className="py-4">
+          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+            Keyboard Heatmap
+          </div>
+          <KeyboardHeatmapWithStats 
+            errorKeys={totalErrorKeys} 
+            strengthsAndWeaknesses={strengthsAndWeaknesses} 
+          />
+        </div>
 
-      {/* Section 4: Session History */}
-      <StatsHistory />
+        {/* Section 4: Activity Logs */}
+        <div className="py-4">
+          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+            Activity Logs
+          </div>
+          <ActivityCalendar history={history} />
+        </div>
+
+        {/* Section 5: Session History */}
+        <div className="py-4">
+          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+            Session History
+          </div>
+          <div className="[&>div:first-child]:mt-0 [&_.mb-6]:mb-4 [&_.border-b]:border-none [&_span.text-xs.font-semibold.text-text-secondary]:hidden">
+            <StatsHistory />
+          </div>
+        </div>
+      </WhiteCard>
     </div>
   )
 }
