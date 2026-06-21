@@ -1,4 +1,4 @@
-# TypeForge (TuringType)
+# TypeForge 
 
 TypeForge is a premium, minimalist speed-typing application styled in accordance with **Apple's Human Interface Guidelines (HIG)**. Built with React, Next.js, Tailwind CSS, and Zustand, it provides a typing trainer with multiple game modes, detailed statistics, customizable settings, and local database persistence.
 
@@ -43,16 +43,13 @@ npm run start
 
 ### Game Modes
 TypeForge supports multiple typing styles:
-
-**Words**: Standard word-count benchmarks (15, 25, 50, 75).
-
-**Timed**: Practice under a countdown clock (15s, 30s, 60s, 120s).
-
-**Battle**: Race head-to-head against a customizable AI opponent cursor.
-
-**Drill**: Build custom typing drills targeted to target character clusters (e.g., bigrams/trigrams).
-
-**YOLO**: Single-mistake survival mode with active multiplier streaks.
+```bash
+words   # Standard word-count benchmarks (15, 25, 50, 75)
+timed   # Practice under a countdown clock (15s, 30s, 60s, 120s)
+battle  # Race head-to-head against a customizable AI opponent cursor
+drill   # Build custom typing drills targeted to character clusters
+yolo    # Single-mistake survival mode with active multiplier streaks
+```
 
 ### Word Difficulty System
 Select from Easy (top 1,000 common English words), Medium (top 5,000 words), and Hard (full 10,000-word vocabulary) pools dynamically.
