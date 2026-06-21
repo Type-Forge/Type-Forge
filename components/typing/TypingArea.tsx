@@ -125,12 +125,20 @@ export default function TypingArea() {
       const wrapperEl = container.querySelector("[data-word-index]")?.parentElement as HTMLElement | null
       const wrapperHeight = wrapperEl ? wrapperEl.clientHeight : 0
 
-      if (wrapperHeight <= 260) {
+      // If wrapperHeight fits inside container with safe margins, no need to scroll
+      if (wrapperHeight <= container.clientHeight - 20) {
         setScrollY(0)
         return
       }
 
-      setScrollY(offsetTop > 0 ? -offsetTop : 0)
+      const lh = activeWordEl.offsetHeight
+      // If the active word is on line 3 or below (offsetTop > 1.5 * line height),
+      // scroll so it is positioned on the second line (index 1 of visible lines).
+      if (offsetTop > 1.5 * lh) {
+        setScrollY(-(offsetTop - lh))
+      } else {
+        setScrollY(0)
+      }
     } else {
       setScrollY(0)
     }
@@ -150,7 +158,7 @@ export default function TypingArea() {
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className={`w-full min-h-[272px] max-h-[272px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans font-medium leading-[1.6] tracking-[0.06em] select-none cursor-text ${
+        className={`w-full min-h-[300px] max-h-[300px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans font-medium leading-[1.6] tracking-[0.06em] select-none cursor-text ${
           textWidth === "narrow"
             ? "max-w-4xl mx-auto"
             : textWidth === "medium"

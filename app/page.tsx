@@ -140,7 +140,7 @@ export default function Home() {
           (config.mode === "drill" && isDrillActive) ||
           (config.mode === "yolo" && status !== "finished") ||
           (config.mode === "battle" && (battleStatus === "racing" || battleStatus === "finished"))) && (
-          <Container size="6xl" className="py-4">
+          <Container size="7xl" className="py-4 px-6 md:px-6">
             <TypingArea />
           </Container>
         )}

@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useState, useEffect } from "react"
+import { memo } from "react"
 import { motion } from "motion/react"
 import type { LetterData } from "@/types"
 
@@ -16,20 +16,7 @@ interface LetterProps {
  */
 export const Letter = memo(
   function Letter({ letter, wordIndex, letterIndex }: LetterProps) {
-    const { char, cipherChar, state } = letter
-    const [displayedChar, setDisplayedChar] = useState(char)
-
-    useEffect(() => {
-      if (state === "correct") {
-        setDisplayedChar(cipherChar)
-        const timer = setTimeout(() => {
-          setDisplayedChar(char)
-        }, 80)
-        return () => clearTimeout(timer)
-      } else {
-        setDisplayedChar(char)
-      }
-    }, [state, char, cipherChar])
+    const { char, state } = letter
 
     // Minimal opacity-driven color states
     let colorClass = "text-text-primary opacity-[0.28]"
@@ -51,18 +38,17 @@ export const Letter = memo(
         <motion.span
           data-word-index={wordIndex}
           data-letter-index={letterIndex}
-          className={`inline-block transition-all duration-150 ${colorClass}`}
+          className={`inline-block transition-colors duration-150 ${colorClass}`}
           animate={isCorrect ? { rotateX: [0, 90, 0] } : { rotateX: 0 }}
           transition={{ duration: 0.16, ease: "easeInOut" }}
           style={{ transformStyle: "preserve-3d" }}
         >
-          {state === "extra" ? char : displayedChar}
+          {char}
         </motion.span>
       </span>
     )
   },
   (prev, next) =>
     prev.letter.state === next.letter.state &&
-    prev.letter.char === next.letter.char &&
-    prev.letter.cipherChar === next.letter.cipherChar
+    prev.letter.char === next.letter.char
 )

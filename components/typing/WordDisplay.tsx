@@ -14,7 +14,7 @@ interface WordDisplayProps {
  */
 export default function WordDisplay({ words, currentWordIndex }: WordDisplayProps) {
   return (
-    <div className="flex flex-wrap justify-start gap-y-2 select-none w-full">
+    <div className="flex flex-wrap justify-start gap-y-[0.4em] select-none w-full">
       {words.map((word) => (
         <Word
           key={`word-${word.index}`}
