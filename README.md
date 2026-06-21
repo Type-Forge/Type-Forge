@@ -1,10 +1,10 @@
-# ⌨️ TypeForge (TuringType)
+# TypeForge (TuringType)
 
 TypeForge is a premium, minimalist speed-typing application styled in accordance with **Apple's Human Interface Guidelines (HIG)**. Built with React, Next.js, Tailwind CSS, and Zustand, it provides a typing trainer with multiple game modes, detailed statistics, customizable settings, and local database persistence.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Follow these steps to run the application locally on your machine.
 
@@ -22,7 +22,7 @@ Start the Next.js dev server:
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser to start typing.
+Open http://localhost:3000 in your browser to start typing.
 
 ### 3. Verify Code / Typecheck
 Ensure all TypeScript definitions and configurations compile cleanly:
@@ -39,22 +39,36 @@ npm run start
 
 ---
 
-## ✨ Features
+## Features
 
-- **🎯 Game Modes**:
-  - **Words**: Standard word-count benchmarks (15, 25, 50, 75).
-  - **Timed**: Practice under a countdown clock (15s, 30s, 60s, 120s).
-  - **Battle**: Race head-to-head against a customizable AI opponent cursor.
-  - **Drill**: Build custom typing drills targeted to target character clusters (e.g., bigrams/trigrams).
-  - **YOLO**: Single-mistake survival mode with active multiplier streaks.
-- **⚙️ Word Difficulty System**: Select from Easy (top 1,000 common English words), Medium (top 5,000 words), and Hard (full 10,000-word vocabulary) pools dynamically.
-- **↩️ Backspace to Previous Word**: Press Backspace at the beginning of a word to return and correct the previous word, *only if that previous word contains typing mistakes*.
-- **📊 Analytics & Heatmaps**: Review WPM speed history, accuracy charts, and a visual keyboard heatmap displaying typing error densities.
-- **🎵 Sound Feedback**: Mechanical click and click-bell sound effects powered by the high-performance Web Audio API.
+### Game Modes
+TypeForge supports multiple typing styles:
+
+**Words**: Standard word-count benchmarks (15, 25, 50, 75).
+
+**Timed**: Practice under a countdown clock (15s, 30s, 60s, 120s).
+
+**Battle**: Race head-to-head against a customizable AI opponent cursor.
+
+**Drill**: Build custom typing drills targeted to target character clusters (e.g., bigrams/trigrams).
+
+**YOLO**: Single-mistake survival mode with active multiplier streaks.
+
+### Word Difficulty System
+Select from Easy (top 1,000 common English words), Medium (top 5,000 words), and Hard (full 10,000-word vocabulary) pools dynamically.
+
+### Backspace to Previous Word
+Press Backspace at the beginning of a word to return and correct the previous word, only if that previous word contains typing mistakes.
+
+### Analytics & Heatmaps
+Review WPM speed history, accuracy charts, and a visual keyboard heatmap displaying typing error densities.
+
+### Sound Feedback
+Mechanical click and click-bell sound effects powered by the high-performance Web Audio API.
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 TypeForge follows a decoupled unidirectional state flow powered by Zustand stores, custom hooks, and pure logic layers.
 
@@ -115,7 +129,7 @@ sequenceDiagram
 
 ---
 
-## 📂 Codebase Layout
+## Codebase Layout
 
 ```txt
 ├── app/                  # Next.js App Router folders (pages & routing)
