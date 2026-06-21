@@ -74,13 +74,13 @@ export function GroupedListItem({
         {/* Title and Subtitle */}
         <div className="flex flex-col">
           <span className={cn(
-            "text-[14px] font-semibold tracking-tight leading-snug",
+            "text-[15px] font-semibold tracking-tight leading-snug",
             destructive ? "text-danger" : selected ? "text-accent font-bold" : "text-text-primary"
           )}>
             {title}
           </span>
           {subtitle && (
-            <span className="text-[11px] text-text-tertiary mt-0.5 leading-none">
+            <span className="text-[13px] text-text-tertiary mt-0.5 leading-none">
               {subtitle}
             </span>
           )}

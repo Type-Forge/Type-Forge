@@ -2,7 +2,8 @@ import { WORDS } from "./word-pool";
 import { EASY_INDICES } from "./easy";
 import { MEDIUM_INDICES } from "./medium";
 import { HARD_INDICES } from "./hard";
-import { isAllowedWord } from "../words";
+import { isAllowedWord, EASY_WORDS, MEDIUM_WORDS, HARD_WORDS, CORE_COMMON_WORDS } from "../words";
+import { useSettingsStore } from "../../stores/settings-store";
 
 export interface BattleDifficultyConfig {
   wordComplexity: "easy" | "medium" | "hard";
@@ -36,30 +37,38 @@ export const BATTLE_DIFFICULTY_PRESETS: Record<"easy" | "medium" | "hard" | "ver
 const PUNCTUATIONS = [".", ",", ";", ":", "?"];
 
 /**
- * Returns N random words for a Battle session based on difficulty configurations
+ * Returns N random words for a Battle session based on settings difficulty and battle configs
  */
 export function getBattleWords(count: number, difficulty: "easy" | "medium" | "hard" | "veryhard"): string[] {
   const config = BATTLE_DIFFICULTY_PRESETS[difficulty] || BATTLE_DIFFICULTY_PRESETS.medium;
+  const globalDifficulty = useSettingsStore.getState().difficulty;
+
+  let basePool = HARD_WORDS;
+  if (globalDifficulty === "easy") {
+    basePool = EASY_WORDS;
+  } else if (globalDifficulty === "medium") {
+    basePool = MEDIUM_WORDS;
+  }
+
   const words: string[] = [];
 
-  // Determine main pool and rare pool
-  let mainPoolIndices: number[] = [];
-  if (config.wordComplexity === "easy") mainPoolIndices = EASY_INDICES;
-  else if (config.wordComplexity === "medium") mainPoolIndices = MEDIUM_INDICES;
-  else mainPoolIndices = HARD_INDICES;
-
-  const rarePoolIndices = HARD_INDICES; // Hard words serve as the "rare" words in easier modes
-
   for (let i = 0; i < count; i++) {
-    const isRare = Math.random() < config.rareWordChance;
-    const pool = isRare && rarePoolIndices.length > 0 ? rarePoolIndices : mainPoolIndices;
-    let randIndex = pool[Math.floor(Math.random() * pool.length)];
-    let word = WORDS[randIndex] || "the";
+    // 20% chance to pick a core common word, to keep standard flow
+    const useCommonBoost = Math.random() < 0.20;
+    let word = "";
+    if (useCommonBoost) {
+      word = CORE_COMMON_WORDS[Math.floor(Math.random() * CORE_COMMON_WORDS.length)];
+    } else {
+      word = basePool[Math.floor(Math.random() * basePool.length)];
+    }
     
     let attempts = 0;
     while (!isAllowedWord(word) && attempts < 15) {
-      randIndex = pool[Math.floor(Math.random() * pool.length)];
-      word = WORDS[randIndex] || "the";
+      if (useCommonBoost) {
+        word = CORE_COMMON_WORDS[Math.floor(Math.random() * CORE_COMMON_WORDS.length)];
+      } else {
+        word = basePool[Math.floor(Math.random() * basePool.length)];
+      }
       attempts++;
     }
     if (!isAllowedWord(word)) {

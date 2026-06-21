@@ -47,13 +47,6 @@ export const Letter = memo(
 
     return (
       <span className="relative inline-block select-none font-sans px-[0.5px]">
-        {/* Subtle, faint background cipher grid text */}
-        {(state === "pending" || state === "active") && (
-          <span className="absolute inset-0 text-[16px] text-accent/10 flex items-center justify-center font-sans select-none pointer-events-none transform -translate-y-[2px]">
-            {cipherChar}
-          </span>
-        )}
-
         {/* Foreground letter */}
         <motion.span
           data-word-index={wordIndex}

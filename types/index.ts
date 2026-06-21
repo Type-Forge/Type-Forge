@@ -26,6 +26,8 @@ export interface WordData {
   index: number
   /** Any extra characters the user typed beyond the word length */
   extras: LetterData[]
+  /** The number of characters typed by the user when they space-transitioned */
+  typedLength?: number
 }
 
 // ===== SESSION =====

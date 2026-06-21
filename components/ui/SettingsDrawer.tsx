@@ -90,10 +90,10 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
             {/* Title */}
             <div className="mb-6">
-              <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-0.5 uppercase">
+              <span className="text-[13px] font-semibold tracking-wide text-accent font-sans block mb-0.5 uppercase">
                 System Preferences
               </span>
-              <h3 className="text-xl font-sans font-bold text-text-primary">
+              <h3 className="text-[21px] font-sans font-bold text-text-primary">
                 TypeForge Settings
               </h3>
             </div>

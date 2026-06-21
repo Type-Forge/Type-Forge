@@ -7,6 +7,7 @@ import { generateDrillText, calculateKeyWeakness, getWeaknessRatio } from "@/eng
 import { useDrillStore } from "./drill-store"
 import { generateYoloWords } from "@/lib/words/drill"
 import { useYoloStore } from "./yolo-store"
+import { useSettingsStore } from "./settings-store"
 
 interface TypingStore extends SessionState {
   // Actions
@@ -90,9 +91,9 @@ export const useTypingStore = create<TypingStore>((set, get) => ({
 
       // In drill mode, we generate plenty of words to fill any timed duration or just keep typing
       const wordCount = config.targetDuration ? 150 : 35
-      const drillDifficulty = config.difficulty === "veryhard" ? "hard" : (config.difficulty ?? "easy")
+      const activeDifficulty = useSettingsStore.getState().difficulty
       rawWords = generateDrillText({
-        difficulty: drillDifficulty,
+        difficulty: activeDifficulty,
         focusKeys,
         focusBigrams,
         weaknessRatio,

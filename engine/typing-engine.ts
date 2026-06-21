@@ -111,6 +111,10 @@ export function processSpace(
   const currentWord = updatedWords[wordIndex]
   if (!currentWord) return null
 
+  // Store how much they typed before forcing states
+  const firstPendingIdx = currentWord.letters.findIndex(l => l.state === "pending" || l.state === "active")
+  currentWord.typedLength = firstPendingIdx !== -1 ? firstPendingIdx : currentWord.letters.length
+
   // Check if current word has errors or untyped characters
   let hasErrors = currentWord.extras.length > 0
   currentWord.letters.forEach((letter) => {
@@ -147,21 +151,56 @@ export function processSpace(
 /**
  * Process a backspace keystroke.
  * Rules:
+ * - If letterIndex === 0 and wordIndex > 0 and previous word is incorrect: go back to previous word
  * - If there are extras: remove last extra, don't change letterIndex
  * - If letterIndex > 0: decrement letterIndex, reset that letter to "pending"
- * - If letterIndex === 0: do nothing (can't go to previous word)
  * - The new current letter position becomes "active"
  */
 export function processBackspace(
   words: WordData[],
   wordIndex: number,
   letterIndex: number
-): { words: WordData[]; newLetterIndex: number } {
+): { words: WordData[]; newWordIndex?: number; newLetterIndex: number } {
   const updatedWords = words.map((w) => ({
     ...w,
     letters: w.letters.map((l) => ({ ...l })),
     extras: w.extras.map((l) => ({ ...l })),
   }))
+
+  // If at start of a word, and there is a previous incorrect word, allow going back!
+  if (letterIndex === 0 && wordIndex > 0) {
+    const prevWord = updatedWords[wordIndex - 1]
+    if (prevWord && prevWord.state === "incorrect") {
+      prevWord.state = "active"
+      
+      const currentWord = updatedWords[wordIndex]
+      currentWord.state = "untouched"
+      currentWord.letters.forEach((l) => {
+        l.state = "pending"
+      })
+      currentWord.extras = []
+
+      const typedLen = prevWord.typedLength !== undefined ? prevWord.typedLength : prevWord.letters.length
+      const newLetterIndex = prevWord.extras.length > 0
+        ? (prevWord.letters.length + prevWord.extras.length)
+        : typedLen
+
+      // Revert forced letters to pending
+      for (let i = typedLen; i < prevWord.letters.length; i++) {
+        prevWord.letters[i].state = "pending"
+      }
+
+      if (newLetterIndex < prevWord.letters.length) {
+        prevWord.letters[newLetterIndex].state = "active"
+      }
+
+      return {
+        words: updatedWords,
+        newWordIndex: wordIndex - 1,
+        newLetterIndex,
+      }
+    }
+  }
 
   const word = updatedWords[wordIndex]
   if (!word) return { words: updatedWords, newLetterIndex: letterIndex }
@@ -192,13 +231,41 @@ export function processBackspace(
  */
 export function processWordDelete(
   words: WordData[],
-  wordIndex: number
-): { words: WordData[]; newLetterIndex: number } {
+  wordIndex: number,
+  letterIndex: number
+): { words: WordData[]; newWordIndex?: number; newLetterIndex: number } {
   const updatedWords = words.map((w) => ({
     ...w,
     letters: w.letters.map((l) => ({ ...l })),
     extras: w.extras.map((l) => ({ ...l })),
   }))
+
+  // If at start of a word, and there is a previous incorrect word, allow going back and deleting it!
+  if (letterIndex === 0 && wordIndex > 0) {
+    const prevWord = updatedWords[wordIndex - 1]
+    if (prevWord && prevWord.state === "incorrect") {
+      prevWord.state = "active"
+      
+      const currentWord = updatedWords[wordIndex]
+      currentWord.state = "untouched"
+      currentWord.letters.forEach((l) => {
+        l.state = "pending"
+      })
+      currentWord.extras = []
+
+      // Delete the previous word completely
+      prevWord.letters.forEach((l, idx) => {
+        l.state = idx === 0 ? "active" : "pending"
+      })
+      prevWord.extras = []
+
+      return {
+        words: updatedWords,
+        newWordIndex: wordIndex - 1,
+        newLetterIndex: 0
+      }
+    }
+  }
 
   const word = updatedWords[wordIndex]
   if (!word) return { words: updatedWords, newLetterIndex: 0 }

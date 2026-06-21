@@ -2,6 +2,7 @@ import { WORDS } from "./words/word-pool";
 import { EASY_INDICES } from "./words/easy";
 import { MEDIUM_INDICES } from "./words/medium";
 import { HARD_INDICES } from "./words/hard";
+import { useSettingsStore } from "../stores/settings-store";
 
 export const ALLOWED_2_LETTER_WORDS = new Set([
   "am", "an", "as", "at", "be", "by", "do", "go", "he", "hi", "if", "in", "is",
@@ -14,8 +15,17 @@ export const BANNED_WORDS = new Set([
   "naked", "erotic", "nude", "orgasm", "clitoris", "semen", "sperm", "vagina",
   "penis", "anal", "rape", "weed", "cocaine", "heroin", "faggot", "nigger", "kike",
   "dyke", "retard", "bastards", "bitches", "fucks", "fucking", "fucked", "shits", "shitting",
-  "asshole", "assholes", "pissed", "pisses", "balls", "butt", "boob", "boobs", "tit", "tits", "sexes", "sexual"
+  "asshole", "assholes", "pissed", "pisses", "balls", "butt", "boob", "boobs", "tit", "tits", "sexes", "sexual",
+  "sexy", "blowjob", "gays"
 ]);
+
+export const EASY_WORDS = WORDS.slice(0, 1000);
+export const MEDIUM_WORDS = WORDS.slice(0, 5000);
+export const HARD_WORDS = WORDS;
+
+export const CORE_COMMON_WORDS = [
+  "the", "with", "fact", "make", "up", "we", "over", "as", "face", "and", "of", "to", "in", "for", "is", "on", "that", "by", "this", "you", "it", "not", "or", "be", "are", "from", "at", "your", "all", "have", "new", "more", "an", "was", "will", "home", "can", "us", "about", "if", "page", "my", "has", "but", "our", "one", "other", "do", "no", "time", "they", "he", "what", "which", "their", "news", "out", "use", "any", "there", "see", "only", "so", "his", "when", "here", "who", "also", "now", "help", "get", "view", "first", "been", "would", "how", "were", "me", "some", "these", "like", "than", "find", "back", "people", "had", "just", "state", "year", "day", "into", "two", "world", "next", "go", "work", "last", "most", "them", "should", "good", "well", "where", "after", "best", "then", "know", "take", "come"
+];
 
 /**
  * Returns true if the word is not in the profanity list
@@ -45,34 +55,39 @@ export function isAllowedWord(word: string): boolean {
 export const WORD_BANK = WORDS;
 
 /**
- * Pick N random words from the expanded word bank, filtered optionally by difficulty.
+ * Pick N random words from the active difficulty vocabulary pool, boosted by core common words.
  */
 export function getRandomWords(count: number, difficulty?: "easy" | "medium" | "hard" | "custom"): string[] {
-  let poolIndices: number[] = [];
+  // Use settings difficulty if not explicitly passed
+  const activeDifficulty = difficulty && difficulty !== "custom"
+    ? difficulty
+    : useSettingsStore.getState().difficulty;
 
-  if (difficulty === "easy") {
-    poolIndices = EASY_INDICES;
-  } else if (difficulty === "medium") {
-    poolIndices = MEDIUM_INDICES;
-  } else if (difficulty === "hard") {
-    poolIndices = HARD_INDICES;
-  } else {
-    // Blended default pool (Easy + Medium words) to provide standard balanced typing experience
-    poolIndices = [...EASY_INDICES, ...MEDIUM_INDICES];
-  }
-
-  if (poolIndices.length === 0) {
-    poolIndices = Array.from({ length: WORDS.length }, (_, i) => i);
+  let pool = HARD_WORDS;
+  if (activeDifficulty === "easy") {
+    pool = EASY_WORDS;
+  } else if (activeDifficulty === "medium") {
+    pool = MEDIUM_WORDS;
   }
 
   const result: string[] = [];
   for (let i = 0; i < count; i++) {
-    let randIndex = poolIndices[Math.floor(Math.random() * poolIndices.length)];
-    let word = WORDS[randIndex] || "the";
+    // 25% chance to pick a core common word, to ensure baseline vocabulary is typed
+    const useCommonBoost = Math.random() < 0.25;
+    let word = "";
+    if (useCommonBoost) {
+      word = CORE_COMMON_WORDS[Math.floor(Math.random() * CORE_COMMON_WORDS.length)];
+    } else {
+      word = pool[Math.floor(Math.random() * pool.length)];
+    }
+    
     let attempts = 0;
     while (!isAllowedWord(word) && attempts < 15) {
-      randIndex = poolIndices[Math.floor(Math.random() * poolIndices.length)];
-      word = WORDS[randIndex] || "the";
+      if (useCommonBoost) {
+        word = CORE_COMMON_WORDS[Math.floor(Math.random() * CORE_COMMON_WORDS.length)];
+      } else {
+        word = pool[Math.floor(Math.random() * pool.length)];
+      }
       attempts++;
     }
     if (!isAllowedWord(word)) {

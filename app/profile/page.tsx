@@ -532,22 +532,22 @@ export default function ProfilePage() {
       <WhiteCard>
         {/* Main Profile Header */}
         <div className="px-1 py-5 select-none">
-          <h2 className="text-xl font-bold tracking-tight text-text-primary">Profile</h2>
-          <p className="text-xs text-text-secondary mt-1">
+          <h2 className="text-[21px] font-bold tracking-tight text-text-primary">Profile</h2>
+          <p className="text-sm text-text-secondary mt-1">
             View your personal statistics, visual performance trends, and typing history.
           </p>
         </div>
 
         {/* Section 1: Personal Statistics */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
             Personal Statistics
           </div>
           <GroupedList>
             <GroupedListItem
               title="Best Speed"
               rightElement={
-                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.bestWpm} WPM
                 </span>
               }
@@ -555,7 +555,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Average Speed"
               rightElement={
-                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.avgWpm} WPM
                 </span>
               }
@@ -563,7 +563,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Total Sessions"
               rightElement={
-                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.totalSessions} run{statsSummary.totalSessions !== 1 && "s"}
                 </span>
               }
@@ -571,7 +571,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Average Accuracy"
               rightElement={
-                <span className="text-[14px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.avgAccuracy}%
                 </span>
               }
@@ -581,7 +581,7 @@ export default function ProfilePage() {
 
         {/* Section 2: Performance Trends */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
             Performance Trends
           </div>
           <PerformanceTrendChart data={chartData} />
@@ -589,7 +589,7 @@ export default function ProfilePage() {
 
         {/* Section 3: Keyboard Heatmap */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
             Keyboard Heatmap
           </div>
           <KeyboardHeatmapWithStats 
@@ -600,7 +600,7 @@ export default function ProfilePage() {
 
         {/* Section 4: Activity Logs */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
             Activity Logs
           </div>
           <ActivityCalendar history={history} />
@@ -608,7 +608,7 @@ export default function ProfilePage() {
 
         {/* Section 5: Session History */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[13px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
             Session History
           </div>
           <div className="[&>div:first-child]:mt-0 [&_.mb-6]:mb-4 [&_.border-b]:border-none [&_span.text-xs.font-semibold.text-text-secondary]:hidden">

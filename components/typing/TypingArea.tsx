@@ -25,7 +25,7 @@ function AiCaret({ containerRef, wordIndex, letterIndex }: AiCaretProps) {
   
   return (
     <motion.div
-      className="absolute top-0 left-0 w-[3px] rounded-full bg-text-tertiary opacity-45 z-10 pointer-events-none"
+      className="absolute top-0 left-0 w-[3px] rounded-full bg-[#8e8e93] dark:bg-[#d1d1d6] opacity-100 z-10 pointer-events-none"
       animate={{
         transform: `translate(${position.left}px, ${position.top}px)`,
       }}
@@ -125,7 +125,7 @@ export default function TypingArea() {
       const wrapperEl = container.querySelector("[data-word-index]")?.parentElement as HTMLElement | null
       const wrapperHeight = wrapperEl ? wrapperEl.clientHeight : 0
 
-      if (wrapperHeight <= 185) {
+      if (wrapperHeight <= 260) {
         setScrollY(0)
         return
       }
@@ -150,11 +150,11 @@ export default function TypingArea() {
         tabIndex={0}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className={`w-full min-h-[192px] max-h-[192px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans font-medium leading-[1.6] tracking-[-0.02em] select-none cursor-text ${
+        className={`w-full min-h-[272px] max-h-[272px] overflow-hidden py-4 px-0 bg-transparent outline-none border-none focus:outline-none focus:ring-0 relative font-sans font-medium leading-[1.6] tracking-[0.06em] select-none cursor-text ${
           textWidth === "narrow"
-            ? "max-w-2xl mx-auto"
-            : textWidth === "medium"
             ? "max-w-4xl mx-auto"
+            : textWidth === "medium"
+            ? "max-w-6xl mx-auto"
             : "w-full max-w-none"
         }`}
         style={{ fontSize: `${fontSize}px` }}

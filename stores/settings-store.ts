@@ -13,6 +13,7 @@ export interface SettingsState {
   textWidth: "narrow" | "medium" | "wide"
   caretStyle: "line" | "block" | "underline" | "none"
   accentColor: "blue" | "purple" | "green" | "orange" | "red"
+  difficulty: "easy" | "medium" | "hard"
 
   setTheme: (theme: "light" | "dark" | "system") => void
   setTypingSounds: (val: boolean) => void
@@ -25,6 +26,7 @@ export interface SettingsState {
   setTextWidth: (val: "narrow" | "medium" | "wide") => void
   setCaretStyle: (val: "line" | "block" | "underline" | "none") => void
   setAccentColor: (val: "blue" | "purple" | "green" | "orange" | "red") => void
+  setDifficulty: (val: "easy" | "medium" | "hard") => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -37,10 +39,11 @@ export const useSettingsStore = create<SettingsState>()(
       reducedMotion: false,
       achievementToasts: true,
       animations: true,
-      fontSize: 30,
-      textWidth: "medium",
+      fontSize: 36,
+      textWidth: "wide",
       caretStyle: "line",
       accentColor: "blue",
+      difficulty: "easy",
 
       setTheme: (theme) => set({ theme }),
       setTypingSounds: (val) => set({ typingSounds: val }),
@@ -53,6 +56,7 @@ export const useSettingsStore = create<SettingsState>()(
       setTextWidth: (val) => set({ textWidth: val }),
       setCaretStyle: (val) => set({ caretStyle: val }),
       setAccentColor: (val) => set({ accentColor: val }),
+      setDifficulty: (val) => set({ difficulty: val }),
     }),
     { name: "turing-type-settings-v3" }
   )

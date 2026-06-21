@@ -292,12 +292,28 @@ export function useTypingEngine() {
         playClickSound(key)
         const isWordDelete = e.ctrlKey || e.altKey || e.metaKey
         if (isWordDelete) {
-          const { words: nextWords, newLetterIndex } = processWordDelete(words, currentWordIndex)
+          const { words: nextWords, newWordIndex, newLetterIndex } = processWordDelete(words, currentWordIndex, currentLetterIndex)
           setWords(nextWords)
+          if (newWordIndex !== undefined) {
+            setCurrentWordIndex(newWordIndex)
+            const battleState = useBattleStore.getState()
+            if (battleState.status === "racing") {
+              const completedRatio = newWordIndex / battleState.config.wordCount
+              battleState.setPlayerProgress(completedRatio)
+            }
+          }
           setCurrentLetterIndex(newLetterIndex)
         } else {
-          const { words: nextWords, newLetterIndex } = processBackspace(words, currentWordIndex, currentLetterIndex)
+          const { words: nextWords, newWordIndex, newLetterIndex } = processBackspace(words, currentWordIndex, currentLetterIndex)
           setWords(nextWords)
+          if (newWordIndex !== undefined) {
+            setCurrentWordIndex(newWordIndex)
+            const battleState = useBattleStore.getState()
+            if (battleState.status === "racing") {
+              const completedRatio = newWordIndex / battleState.config.wordCount
+              battleState.setPlayerProgress(completedRatio)
+            }
+          }
           setCurrentLetterIndex(newLetterIndex)
         }
         incrementTotal()

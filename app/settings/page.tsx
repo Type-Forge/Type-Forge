@@ -19,8 +19,8 @@ function Switch({ checked, onChange, label, description }: SwitchProps) {
   return (
     <div className="flex items-center justify-between py-4 px-1 select-none">
       <div className="space-y-0.5 pr-4">
-        <span className="text-[14px] font-bold text-text-primary block">{label}</span>
-        {description && <span className="text-[12px] text-text-secondary block leading-normal">{description}</span>}
+        <span className="text-[15px] font-bold text-text-primary block">{label}</span>
+        {description && <span className="text-[14px] text-text-secondary block leading-normal">{description}</span>}
       </div>
       <button
         type="button"
@@ -64,8 +64,8 @@ function SegmentedControl<T extends string | number>({
     <div className="py-4 px-1 space-y-3">
       <div className="flex items-center justify-between">
         <div className="space-y-0.5 pr-4">
-          <span className="text-[14px] font-bold text-text-primary block">{label}</span>
-          {description && <span className="text-[12px] text-text-secondary block leading-normal">{description}</span>}
+          <span className="text-[15px] font-bold text-text-primary block">{label}</span>
+          {description && <span className="text-[14px] text-text-secondary block leading-normal">{description}</span>}
         </div>
       </div>
       <div className="bg-surface-secondary p-0.5 rounded-xl flex items-center justify-between border border-border/10 max-w-md">
@@ -135,10 +135,11 @@ export default function SettingsPage() {
     settings.setReducedMotion(false)
     settings.setAchievementToasts(true)
     settings.setAnimations(true)
-    settings.setFontSize(30)
-    settings.setTextWidth("medium")
+    settings.setFontSize(36)
+    settings.setTextWidth("wide")
     settings.setCaretStyle("line")
     settings.setAccentColor("blue")
+    settings.setDifficulty("easy")
   }
 
   const themeOptions = [
@@ -148,9 +149,17 @@ export default function SettingsPage() {
   ]
 
   const sizeOptions = [
-    { label: "20px", value: 20 },
     { label: "24px", value: 24 },
     { label: "30px", value: 30 },
+    { label: "36px", value: 36 },
+    { label: "42px", value: 42 },
+    { label: "50px", value: 50 },
+  ]
+
+  const difficultyOptions = [
+    { label: "Easy", value: "easy" as const },
+    { label: "Medium", value: "medium" as const },
+    { label: "Hard", value: "hard" as const },
   ]
 
   const widthOptions = [
@@ -179,8 +188,8 @@ export default function SettingsPage() {
       <WhiteCard>
         {/* Main Settings Header */}
         <div className="px-1 py-5 select-none">
-          <h2 className="text-xl font-bold tracking-tight text-text-primary">Settings</h2>
-          <p className="text-xs text-text-secondary mt-1">
+          <h2 className="text-[21px] font-bold tracking-tight text-text-primary">Settings</h2>
+          <p className="text-sm text-text-secondary mt-1">
             Customize your trainer visual appearance, typing sound feedback, and typing metrics.
           </p>
         </div>
@@ -263,6 +272,13 @@ export default function SettingsPage() {
         <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
           Typing
         </div>
+        <SegmentedControl
+          options={difficultyOptions}
+          value={settings.difficulty}
+          onChange={settings.setDifficulty}
+          label="Word Difficulty"
+          description="Select vocabulary complexity pool (Easy: top 1k common, Medium: top 5k common, Hard: full 10k pool)"
+        />
         <SegmentedControl
           options={sizeOptions}
           value={settings.fontSize}

@@ -31,8 +31,8 @@ function Switch({ checked, onChange, label, description }: SwitchProps) {
   return (
     <div className="flex items-center justify-between py-4 px-1 select-none">
       <div className="space-y-0.5 pr-4">
-        <span className="text-[14px] font-bold text-text-primary block">{label}</span>
-        {description && <span className="text-[12px] text-text-secondary block leading-normal">{description}</span>}
+        <span className="text-[15px] font-bold text-text-primary block">{label}</span>
+        {description && <span className="text-[14px] text-text-secondary block leading-normal">{description}</span>}
       </div>
       <button
         onClick={() => {
@@ -149,8 +149,8 @@ export default function CustomDrillBuilder({
       <WhiteCard>
         {/* Title and Description Header inside the card */}
         <div className="px-1 py-5  select-none">
-          <h2 className="text-xl font-bold tracking-tight mt-5 text-text-primary">Custom Drill Builder</h2>
-          <p className="text-xs text-text-secondary mt-1">
+          <h2 className="text-[21px] font-bold tracking-tight mt-5 text-text-primary">Custom Drill Builder</h2>
+          <p className="text-sm text-text-secondary mt-1">
             Configure custom keys, transition patterns, speed targets, and duration limits for typing practice.
           </p>
         </div>
