@@ -6,6 +6,7 @@ import { useTheme } from "@/components/providers/ThemeProvider"
 import { useEffect, useState } from "react"
 import { motion } from "motion/react"
 import Logo from "@/components/ui/Logo"
+import AuthNavButton from "@/components/auth/AuthNavButton"
 import { playClickSound } from "@/lib/audio"
 
 export default function Navbar() {
@@ -156,6 +157,9 @@ export default function Navbar() {
               <circle cx="12" cy="7" r="4" />
             </svg>
           </Link>
+
+          {/* Sign In / Sign Out control */}
+          <AuthNavButton />
         </div>
       </div>
     </nav>

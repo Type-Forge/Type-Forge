@@ -1,0 +1,26 @@
+// Prisma schema for TypeForge authentication.
+// Docs: https://pris.ly/d/prisma-schema
+//
+// Sessions are handled by Auth.js (NextAuth v5) using the JWT strategy, so there
+// is no Session table here — the Credentials provider only supports JWT sessions.
+// The User table is the source of truth and is ready for future profile/cloud-sync data.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  username     String?  @unique
+  email        String   @unique
+  passwordHash String
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
