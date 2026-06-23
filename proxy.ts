@@ -9,7 +9,7 @@ import type { NextRequest } from "next/server"
 // by the Next.js auth guide.
 
 // Routes that require authentication. Add /account, /leaderboard, etc. here later.
-const PROTECTED_PREFIXES = ["/profile"]
+const PROTECTED_PREFIXES = ["/profile", "/friends", "/battle"]
 
 // Auth pages that an already-authenticated user should be redirected away from.
 const AUTH_PAGES = ["/signin", "/signup"]

@@ -5,6 +5,8 @@ import Navbar from "@/components/ui/Navbar"
 import Footer from "@/components/ui/Footer"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { AuthProvider } from "@/components/providers/AuthProvider"
+import WebSocketProvider from "@/components/providers/WebSocketProvider"
+import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -25,8 +27,11 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <script
+      <head />
+      <body className="min-h-full flex flex-col bg-bg text-text-primary transition-colors duration-150">
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -54,21 +59,21 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col bg-bg text-text-primary transition-colors duration-150">
         <AuthProvider>
-          <ThemeProvider>
-            {/* Top persistent navigation bar */}
-            <Navbar />
+          <WebSocketProvider>
+            <ThemeProvider>
+              {/* Top persistent navigation bar */}
+              <Navbar />
 
-            {/* Main Layout Content */}
-            <main className="flex-1 flex flex-col pt-16 pb-8">
-              {children}
-            </main>
+              {/* Main Layout Content */}
+              <main className="flex-1 flex flex-col pt-16 pb-8">
+                {children}
+              </main>
 
-            {/* Clean minimal footer */}
-            <Footer />
-          </ThemeProvider>
+              {/* Clean minimal footer */}
+              <Footer />
+            </ThemeProvider>
+          </WebSocketProvider>
         </AuthProvider>
       </body>
     </html>

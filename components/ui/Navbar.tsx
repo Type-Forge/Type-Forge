@@ -6,7 +6,6 @@ import { useTheme } from "@/components/providers/ThemeProvider"
 import { useEffect, useState } from "react"
 import { motion } from "motion/react"
 import Logo from "@/components/ui/Logo"
-import AuthNavButton from "@/components/auth/AuthNavButton"
 import { playClickSound } from "@/lib/audio"
 
 export default function Navbar() {
@@ -110,6 +109,33 @@ export default function Navbar() {
             </button>
           )}
 
+          {/* Leaderboard Route Link */}
+          <Link
+            href="/leaderboard"
+            onClick={() => playClickSound("click")}
+            className={`w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none ${
+              pathname === "/leaderboard" ? "border-accent/30 text-accent bg-accent/5 shadow-[0_0_8px_rgba(10,132,255,0.1)]" : ""
+            }`}
+            aria-label="View Leaderboard"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+              <path d="M4 22h16" />
+              <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+              <path d="M12 2a6 6 0 0 0-6 6v3.5c0 1.66 1.34 3 3 3h6c1.66 0 3-1.34 3-3V8a6 6 0 0 0-6-6z" />
+            </svg>
+          </Link>
+
           {/* Settings Route Link */}
           <Link
             href="/settings"
@@ -157,9 +183,6 @@ export default function Navbar() {
               <circle cx="12" cy="7" r="4" />
             </svg>
           </Link>
-
-          {/* Sign In / Sign Out control */}
-          <AuthNavButton />
         </div>
       </div>
     </nav>

@@ -31,6 +31,13 @@ support database sessions).
 To protect more routes later (e.g. `/account`, `/leaderboard`), add the prefix to
 `PROTECTED_PREFIXES` in `proxy.ts` and add a server `auth()` guard in that route's layout.
 
+### Password Security & Hashing
+
+Passwords are **never** stored as plain text. We utilize a secure, adaptive hashing function to protect credentials:
+- **Hashing Algorithm**: We use `bcrypt` (`bcryptjs` library) with `12` salt rounds (work factor) to hash passwords on signup in [app/api/auth/register/route.ts](file:///c:/Users/sayan/typeforge/app/api/auth/register/route.ts).
+- **Encoding & Representation**: The resulting bcrypt string (e.g., starting with `$2a$` or `$2b$`) contains the work factor, the salt, and the encrypted checksum. This entire block is represented using a custom base64/radix-64 alphabet (`./`, `0-9`, `A-Z`, `a-z`) and is wire-compatible with hexadecimal-encoded raw binary digests.
+- **Verification**: In [lib/auth.ts](file:///c:/Users/sayan/typeforge/lib/auth.ts), the credentials provider retrieves the stored hash and compares incoming plain-text passwords securely using `bcrypt.compare`.
+
 ## Setup
 
 ### 1. Environment variables

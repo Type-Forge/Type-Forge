@@ -1,6 +1,6 @@
 import "server-only"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "@/generated/prisma/client"
+import { PrismaClient } from "@/generated/prisma"
 
 // Prisma 7 uses the query compiler, so a driver adapter is required at runtime.
 // PrismaPg (node-postgres) is wire-compatible with standard Postgres AND Aurora

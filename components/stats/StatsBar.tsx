@@ -18,11 +18,16 @@ interface StatsBarProps {
 export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
   const status = useTypingStore((s) => s.status)
   const startTime = useTypingStore((s) => s.startTime)
+  const endTime = useTypingStore((s) => s.endTime)
   const currentWordIndex = useTypingStore((s) => s.currentWordIndex)
   const words = useTypingStore((s) => s.words)
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
+    if (status === "finished" && startTime && endTime) {
+      setElapsed(Math.floor((endTime - startTime) / 1000))
+      return
+    }
     if (status !== "running" || !startTime) {
       requestAnimationFrame(() => setElapsed(0))
       return
@@ -33,9 +38,9 @@ export default function StatsBar({ wpm, accuracy, time, mode }: StatsBarProps) {
     }, 500)
 
     return () => clearInterval(interval)
-  }, [status, startTime])
+  }, [status, startTime, endTime])
 
-  if (status !== "running") return null
+  if (status !== "running" && !(status === "finished" && mode === "battle")) return null
 
   const isTimed = mode === "timed" || (mode === "drill" && time !== null)
   const displayTime = isTimed ? formatTime(time ?? 0) : formatTime(elapsed)

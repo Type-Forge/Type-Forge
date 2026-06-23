@@ -45,13 +45,5 @@ export default function AuthNavButton() {
     )
   }
 
-  return (
-    <Link
-      href="/signin"
-      className="h-8 px-3.5 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary text-[13px] font-semibold hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
-      aria-label="Sign in"
-    >
-      Sign In
-    </Link>
-  )
+  return null
 }

@@ -1,12 +1,8 @@
-// Prisma schema for TypeForge authentication.
+// Prisma schema for TypeForge database.
 // Docs: https://pris.ly/d/prisma-schema
-//
-// Sessions are handled by Auth.js (NextAuth v5) using the JWT strategy, so there
-// is no Session table here — the Credentials provider only supports JWT sessions.
-// The User table is the source of truth and is ready for future profile/cloud-sync data.
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -14,13 +10,206 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id           String   @id @default(cuid())
-  name         String?
-  username     String?  @unique
-  email        String   @unique
-  passwordHash String
+enum SessionMode {
+  words
+  timed
+  battle
+  drill
+  yolo
+}
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model User {
+  id           String        @id @default(cuid())
+  name         String?       // Display name
+  username     String?       @unique
+  email        String        @unique
+  passwordHash String?       // Optional for Google/GitHub OAuth compatibility
+  image        String?       // Avatar URL for leaderboards
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Social links
+  githubUrl    String?
+  twitterUrl   String?
+  websiteUrl   String?
+
+  // Cached best metrics for high-performance O(1) leaderboard querying
+  bestWpm      Float         @default(0)
+  bestScore    Float         @default(0)
+  bestAccuracy Float         @default(0)
+
+  settings           UserSettings?
+  results            SessionResult[]
+  yoloProfile        YoloProfile?
+  drillProfile       DrillProfile?
+  leaderboardEntries LeaderboardEntry[]
+
+  sentFriendRequests     FriendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests FriendRequest[] @relation("ReceivedFriendRequests")
+  friendshipsOne         Friendship[]    @relation("UserOneFriendships")
+  friendshipsTwo         Friendship[]    @relation("UserTwoFriendships")
+  playerOneRooms         BattleRoom[]    @relation("PlayerOneRooms")
+  playerTwoRooms         BattleRoom[]    @relation("PlayerTwoRooms")
+  wonRooms               BattleRoom[]    @relation("RoomWinner")
+
+  @@index([bestScore(sort: Desc)])
+}
+
+// 1. Settings persistence (1-to-1 relationship with User)
+model UserSettings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme              String   @default("dark")
+  typingSounds       Boolean  @default(true)
+  achievementSounds  Boolean  @default(true)
+  notificationSounds Boolean  @default(true)
+  reducedMotion      Boolean  @default(false)
+  achievementToasts  Boolean  @default(true)
+  animations         Boolean  @default(true)
+  fontSize           Int      @default(36)
+  textWidth          String   @default("wide")
+  caretStyle         String   @default("line")
+  accentColor        String   @default("blue")
+  difficulty         String   @default("easy")
+}
+
+// 2. Individual Typing Run results (1-to-many relationship with User)
+model SessionResult {
+  id                 String      @id @default(cuid()) // DB-side key creation
+  userId             String
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  timestamp          DateTime    @default(now())
+  wpm                Float
+  accuracy           Float
+  totalKeystrokes    Int
+  correctKeystrokes  Int
+  incorrectKeystrokes Int
+  duration           Int
+  wordsCompleted     Int
+  mode               SessionMode
+  config             Json        // SessionConfig metadata
+  timeline           Json        // Raw graph metrics
+  errorKeys          Json?       // Mistake counts per key
+
+  @@index([userId, timestamp])
+  @@index([mode])
+}
+
+// 3. Yolo mode stats (1-to-1 relationship with User)
+model YoloProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeLetter        String?
+  streak              Int      @default(0)
+  totalWordsCompleted Int      @default(0)
+  sessionCount        Int      @default(0)
+  hasActiveRun        Boolean  @default(false)
+  letterProfiles      Json     // Dictionary mapping letters to YoloLetterProfile JSON structures
+}
+
+// 4. Drill practice stats (1-to-1 relationship with User)
+model DrillProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyStats       Json     // Map of key to KeyStats structure
+  bigramStats    Json     // Map of bigram sequence to BigramStats structure
+  trigramStats   Json     // Map of trigram sequence to TrigramStats structure
+  mistakeRecords Json     // List of MistakeRecord JSON structures
+  drillHistory   Json     // Array of DrillHistoryEntry JSON structures
+}
+
+model LeaderboardEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // e.g. "words-50", "timed-60", "battle-elo"
+  wpm       Float
+  accuracy  Float
+  score     Float
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type])
+  @@index([type, score(sort: Desc)])
+}
+
+enum BattleRoomStatus {
+  waiting
+  countdown
+  active
+  disconnected
+  finished
+  abandoned
+}
+
+model FriendRequest {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+model Friendship {
+  id         String   @id @default(cuid())
+  userOneId  String
+  userOne    User     @relation("UserOneFriendships", fields: [userOneId], references: [id], onDelete: Cascade)
+  userTwoId  String
+  userTwo    User     @relation("UserTwoFriendships", fields: [userTwoId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userOneId, userTwoId])
+  @@index([userOneId])
+  @@index([userTwoId])
+}
+
+model BattleRoom {
+  id                 String           @id @default(cuid())
+  playerOneId        String
+  playerOne          User             @relation("PlayerOneRooms", fields: [playerOneId], references: [id], onDelete: Cascade)
+  playerTwoId        String
+  playerTwo          User             @relation("PlayerTwoRooms", fields: [playerTwoId], references: [id], onDelete: Cascade)
+  
+  status             BattleRoomStatus
+  seed               String           // Seed for generating identical words dynamically on both clients
+  
+  createdAt          DateTime         @default(now())
+  countdownStartedAt DateTime?
+  startedAt          DateTime?
+  finishedAt         DateTime?
+  
+  playerOneWpm       Float?
+  playerTwoWpm       Float?
+  playerOneAcc       Float?
+  playerTwoAcc       Float?
+  
+  winnerId           String?
+  winner             User?            @relation("RoomWinner", fields: [winnerId], references: [id], onDelete: SetNull)
+
+  @@index([playerOneId, status])
+  @@index([playerTwoId, status])
+  @@index([status])
+}
+
+model BattleHistory {
+  id                String   @id @default(cuid())
+  roomId            String
+  playerOneId       String
+  playerTwoId       String
+  winnerId          String?
+  playerOneWpm      Float
+  playerTwoWpm      Float
+  playerOneAccuracy Float
+  playerTwoAccuracy Float
+  createdAt         DateTime @default(now())
+
+  @@index([playerOneId])
+  @@index([playerTwoId])
 }
