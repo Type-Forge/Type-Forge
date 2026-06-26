@@ -149,16 +149,15 @@ h1, h2, h3, h4, h5, h6 {
   height: 48px;
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  box-shadow: none;
-  border-bottom: none;
+  background: transparent;
 }
 
 .dark .apple-navbar {
-  background: rgba(28, 28, 30, 0.72);
+  background: transparent;
 }
 
 .light .apple-navbar {
-  background: rgba(255, 255, 255, 0.72);
+  background: transparent;
 }
 
 /* Fade-in animation utility */

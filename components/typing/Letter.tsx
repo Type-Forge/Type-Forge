@@ -39,9 +39,6 @@ export const Letter = memo(
           data-word-index={wordIndex}
           data-letter-index={letterIndex}
           className={`inline-block transition-colors duration-150 ${colorClass}`}
-          animate={isCorrect ? { rotateX: [0, 90, 0] } : { rotateX: 0 }}
-          transition={{ duration: 0.16, ease: "easeInOut" }}
-          style={{ transformStyle: "preserve-3d" }}
         >
           {char}
         </motion.span>

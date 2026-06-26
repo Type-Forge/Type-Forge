@@ -74,12 +74,12 @@ export default function FriendsView() {
     }
   }
 
-  const handleSendRequest = async (targetId: string, username: string) => {
+  const handleSendRequest = async (targetId: string, name: string, username: string) => {
     setActionLoading(`send-${targetId}`)
     playClickSound("click")
     const res = await sendFriendRequest(targetId)
     if (res.success) {
-      toast.success(`Request sent to @${username}`)
+      toast.success(`Friend request sent to ${name || username}`)
       setSearchQuery("")
       setSearchResults([])
     } else {
@@ -265,7 +265,7 @@ export default function FriendsView() {
                               <span className="text-xs font-bold text-text-tertiary select-none">Pending Inv</span>
                             ) : (
                               <button
-                                onClick={() => handleSendRequest(user.id, user.username)}
+                                onClick={() => handleSendRequest(user.id, user.name || "", user.username || "")}
                                 disabled={actionLoading !== null}
                                 className="px-3 py-1.5 text-[11px] font-bold rounded-[8px] bg-accent text-white hover:opacity-90 transition-all duration-150 active:scale-[0.97] cursor-pointer disabled:opacity-50"
                               >

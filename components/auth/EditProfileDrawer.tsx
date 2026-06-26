@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import { playClickSound } from "@/lib/audio"
-import AuthField from "@/components/auth/AuthField"
+import Input from "@/components/auth/Input"
 import { updateProfileData, updatePassword } from "@/app/actions/profile"
 
 const AVATAR_PRESETS = [
@@ -28,8 +28,6 @@ export default function EditProfileDrawer({
   initialUser,
   onSaveSuccess,
 }: EditProfileDrawerProps) {
-  const [activeTab, setActiveTab] = useState<"info" | "password">("info")
-  
   // Profile state
   const [name, setName] = useState("")
   const [username, setUsername] = useState("")
@@ -69,7 +67,6 @@ export default function EditProfileDrawer({
     setSuccess(null)
     setLoading(true)
 
-    // Form validation
     if (username && !/^[a-zA-Z0-9_]{3,15}$/.test(username)) {
       setError("Username must be 3-15 characters and contain only letters, numbers, or underscores")
       setLoading(false)
@@ -149,7 +146,7 @@ export default function EditProfileDrawer({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 250, mass: 0.9 }}
-            className="relative w-full max-w-lg mx-auto bg-surface/90 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-10 shadow-[0_-15px_50px_rgba(0,0,0,0.25)] pointer-events-auto flex flex-col select-none max-h-[85vh] overflow-y-auto"
+            className="relative w-full max-w-3xl mx-auto bg-surface/90 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-10 shadow-[0_-15px_50px_rgba(0,0,0,0.25)] pointer-events-auto flex flex-col select-none max-h-[90vh] overflow-y-auto"
           >
             {/* iOS Drag Handle */}
             <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-5 mt-1 shrink-0" />
@@ -178,42 +175,6 @@ export default function EditProfileDrawer({
               </h3>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex bg-surface-secondary/50 p-1.5 rounded-xl border border-border/10 mb-6 max-w-sm shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  playClickSound("click")
-                  setActiveTab("info")
-                  setError(null)
-                  setSuccess(null)
-                }}
-                className={`flex-1 text-[12px] font-bold py-2 rounded-lg transition-all cursor-pointer ${
-                  activeTab === "info"
-                    ? "bg-surface text-accent shadow-sm"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                Profile Info
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  playClickSound("click")
-                  setActiveTab("password")
-                  setError(null)
-                  setSuccess(null)
-                }}
-                className={`flex-1 text-[12px] font-bold py-2 rounded-lg transition-all cursor-pointer ${
-                  activeTab === "password"
-                    ? "bg-surface text-accent shadow-sm"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                Security & Password
-              </button>
-            </div>
-
             {/* Notification messages */}
             {error && (
               <div className="rounded-[10px] bg-incorrect/10 border border-incorrect/30 px-3.5 py-2.5 text-[13px] text-incorrect font-medium mb-4 shrink-0">
@@ -226,149 +187,153 @@ export default function EditProfileDrawer({
               </div>
             )}
 
-            {activeTab === "info" ? (
-              <form onSubmit={handleSaveProfile} className="space-y-5 flex-1">
-                {/* 1. Name & Username */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <AuthField
-                    id="displayName"
-                    label="Display Name"
-                    value={name}
-                    onChange={setName}
-                    placeholder="Ada Lovelace"
-                    disabled={loading}
-                  />
-                  <AuthField
-                    id="username"
-                    label="Username"
-                    value={username}
-                    onChange={setUsername}
-                    placeholder="ada_lovelace"
-                    disabled={loading}
-                  />
-                </div>
+            {/* Profile Info Section */}
+            <form onSubmit={handleSaveProfile} className="space-y-5">
+              <div className="px-1 pb-1 text-[13px] font-bold text-text-secondary select-none">
+                Profile Info
+              </div>
 
-                {/* 2. Avatar Selection Presets */}
-                <div className="space-y-2">
-                  <label className="text-[13px] font-semibold text-text-secondary">
-                    Select Avatar Picture
-                  </label>
-                  <div className="grid grid-cols-6 gap-2">
-                    {AVATAR_PRESETS.map((preset, idx) => {
-                      const isSelected = image === preset
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            playClickSound("click")
-                            setImage(preset)
-                          }}
-                          className={`relative aspect-square rounded-full overflow-hidden border-2 cursor-pointer transition-all duration-150 active:scale-[0.95] ${
-                            isSelected ? "border-accent scale-[1.05]" : "border-border/10"
-                          }`}
-                        >
-                          <img src={preset} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover" />
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* 3. Custom Image URL */}
-                <AuthField
-                  id="avatarUrl"
-                  label="Or enter custom Image URL"
-                  value={image}
-                  onChange={setImage}
-                  placeholder="https://example.com/avatar.jpg"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  id="displayName"
+                  label="Display Name"
+                  value={name}
+                  onChange={setName}
+                  placeholder="Ada Lovelace"
                   disabled={loading}
                 />
-
-                {/* 4. Social Links */}
-                <div className="border-t border-border/10 pt-4 space-y-4">
-                  <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider block mb-1">
-                    Social Profiles
-                  </span>
-                  <div className="space-y-4">
-                    <AuthField
-                      id="githubUrl"
-                      label="GitHub Profile URL"
-                      value={githubUrl}
-                      onChange={setGithubUrl}
-                      placeholder="https://github.com/username"
-                      disabled={loading}
-                    />
-                    <AuthField
-                      id="twitterUrl"
-                      label="Twitter/X Profile URL"
-                      value={twitterUrl}
-                      onChange={setTwitterUrl}
-                      placeholder="https://twitter.com/username"
-                      disabled={loading}
-                    />
-                    <AuthField
-                      id="websiteUrl"
-                      label="Personal Website URL"
-                      value={websiteUrl}
-                      onChange={setWebsiteUrl}
-                      placeholder="https://example.com"
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 disabled:opacity-50 text-white font-sans text-sm font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0 mt-6"
-                >
-                  {loading ? "Saving Changes..." : "Save Profile Details"}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleUpdatePassword} className="space-y-5 flex-1">
-                {initialUser?.passwordHash && (
-                  <AuthField
-                    id="currentPassword"
-                    label="Current Password"
-                    type="password"
-                    value={currentPassword}
-                    onChange={setCurrentPassword}
-                    placeholder="••••••••"
-                    disabled={loading}
-                  />
-                )}
-                <AuthField
-                  id="newPassword"
-                  label="New Password"
-                  type="password"
-                  value={newPassword}
-                  onChange={setNewPassword}
-                  placeholder="At least 8 characters"
+                <Input
+                  id="username"
+                  label="Username"
+                  value={username}
+                  onChange={setUsername}
+                  placeholder="ada_lovelace"
                   disabled={loading}
                 />
-                <AuthField
-                  id="confirmPassword"
-                  label="Confirm New Password"
+              </div>
+
+              {/* Avatar Selection Presets */}
+              <div className="space-y-2">
+                <label className="text-[13px] font-semibold text-text-secondary">
+                  Select Avatar Picture
+                </label>
+                <div className="grid grid-cols-6 gap-2">
+                  {AVATAR_PRESETS.map((preset, idx) => {
+                    const isSelected = image === preset
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          playClickSound("click")
+                          setImage(preset)
+                        }}
+                        className={`relative aspect-square rounded-full overflow-hidden border-2 cursor-pointer transition-all duration-150 active:scale-[0.95] ${
+                          isSelected ? "border-accent scale-[1.05]" : "border-border/10"
+                        }`}
+                      >
+                        <img src={preset} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <Input
+                id="avatarUrl"
+                label="Or enter custom Image URL"
+                value={image}
+                onChange={setImage}
+                placeholder="https://example.com/avatar.jpg"
+                disabled={loading}
+              />
+
+              {/* Social Links */}
+              <div className="border-t border-border/10 pt-4 space-y-4">
+                <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider block mb-1">
+                  Social Profiles
+                </span>
+                <div className="space-y-4">
+                  <Input
+                    id="githubUrl"
+                    label="GitHub Profile URL"
+                    value={githubUrl}
+                    onChange={setGithubUrl}
+                    placeholder="https://github.com/username"
+                    disabled={loading}
+                  />
+                  <Input
+                    id="twitterUrl"
+                    label="Twitter/X Profile URL"
+                    value={twitterUrl}
+                    onChange={setTwitterUrl}
+                    placeholder="https://twitter.com/username"
+                    disabled={loading}
+                  />
+                  <Input
+                    id="websiteUrl"
+                    label="Personal Website URL"
+                    value={websiteUrl}
+                    onChange={setWebsiteUrl}
+                    placeholder="https://example.com"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 disabled:opacity-50 text-white font-sans text-sm font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0"
+              >
+                {loading ? "Saving Changes..." : "Save Profile Details"}
+              </button>
+            </form>
+
+            {/* Security & Password Section */}
+            <form onSubmit={handleUpdatePassword} className="space-y-5 mt-8 pt-8 border-t border-border/10">
+              <div className="px-1 pb-1 text-[13px] font-bold text-text-secondary select-none">
+                Security & Password
+              </div>
+
+              {initialUser?.passwordHash && (
+                <Input
+                  id="currentPassword"
+                  label="Current Password"
                   type="password"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
+                  value={currentPassword}
+                  onChange={setCurrentPassword}
                   placeholder="••••••••"
                   disabled={loading}
                 />
+              )}
+              <Input
+                id="newPassword"
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="At least 8 characters"
+                disabled={loading}
+              />
+              <Input
+                id="confirmPassword"
+                label="Confirm New Password"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="••••••••"
+                disabled={loading}
+              />
 
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 disabled:opacity-50 text-white font-sans text-sm font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0 mt-6"
-                >
-                  {loading ? "Updating Password..." : "Update Password"}
-                </button>
-              </form>
-            )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 disabled:opacity-50 text-white font-sans text-sm font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0"
+              >
+                {loading ? "Updating Password..." : "Update Password"}
+              </button>
+            </form>
           </motion.div>
         </div>
       )}

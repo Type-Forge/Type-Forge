@@ -535,10 +535,10 @@ export default function ProfilePage() {
     }
   }
 
-  const handleDeclineRequestPrompt = (requestId: string, username: string) => {
+  const handleDeclineRequestPrompt = (requestId: string, name: string) => {
     playClickSound("click")
     setSelectedDeclineReqId(requestId)
-    setDeclinePromptUsername(username)
+    setDeclinePromptUsername(name)
   }
 
   const handleSendBattleChallenge = (friendId: string, name: string) => {
@@ -620,7 +620,13 @@ export default function ProfilePage() {
     <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-fade-in font-sans select-none">
       <WhiteCard>
         {/* Main Profile Header / Info Card */}
-        <div className="px-1 py-5 flex flex-col md:flex-row md:items-center justify-between border-b border-border/10 select-none gap-4">
+        <div
+          className="px-1 py-5 flex flex-col md:flex-row md:items-center justify-between border-b border-border/10 select-none gap-4 cursor-pointer hover:bg-surface-hover/30 transition-colors duration-150 rounded-t-[20px]"
+          onClick={() => {
+            playClickSound("click")
+            setIsEditDrawerOpen(true)
+          }}
+        >
           <div className="flex items-center gap-4">
             {/* Avatar container */}
             <div className="w-14 h-14 rounded-full border border-border/10 bg-surface-secondary/40 flex items-center justify-center overflow-hidden shrink-0">
@@ -640,7 +646,7 @@ export default function ProfilePage() {
             </div>
             {/* Name and Username/Email */}
             <div className="flex flex-col">
-              <h2 className="text-[21px] font-bold tracking-tight text-text-primary leading-none">
+              <h2 className="text-[24px] font-bold tracking-tight text-text-primary leading-none">
                 {profileData?.name || "Anonymous User"}
               </h2>
               <div className="flex items-center gap-2 mt-2 text-sm text-text-secondary">
@@ -716,14 +722,14 @@ export default function ProfilePage() {
 
         {/* Section 1: Personal Statistics */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
             Personal Statistics
           </div>
           <GroupedList>
             <GroupedListItem
               title="Best Speed"
               rightElement={
-                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.bestWpm} WPM
                 </span>
               }
@@ -731,7 +737,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Average Speed"
               rightElement={
-                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.avgWpm} WPM
                 </span>
               }
@@ -739,7 +745,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Total Sessions"
               rightElement={
-                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.totalSessions} run{statsSummary.totalSessions !== 1 && "s"}
                 </span>
               }
@@ -747,7 +753,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Average Accuracy"
               rightElement={
-                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.avgAccuracy}%
                 </span>
               }
@@ -755,7 +761,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Leaderboard Rank"
               rightElement={
-                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
                   {rank !== null ? `#${rank}` : "Unranked"}
                 </span>
               }
@@ -763,7 +769,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Account Created"
               rightElement={
-                <span className="text-[14px] font-bold text-accent font-sans">
+                <span className="text-[15px] font-bold text-accent font-sans">
                   {profileData?.createdAt
                     ? new Date(profileData.createdAt).toLocaleDateString(undefined, {
                         month: "long",
@@ -778,7 +784,7 @@ export default function ProfilePage() {
 
         {/* Section 1b: Friends & Social */}
         <div className="py-4 border-t border-border/10 mt-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none flex justify-between items-center">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none flex justify-between items-center">
             <span>Friends & Social</span>
             <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-sans select-none">
               {friends.length} friend{friends.length !== 1 && "s"}
@@ -801,7 +807,7 @@ export default function ProfilePage() {
                           {req.sender.name || req.sender.username || "Anonymous"}
                         </span>
                         <span className="text-[10px] text-text-tertiary">
-                          @{req.sender.username} has sent you a friend request.
+                          {req.sender.name || req.sender.username} has sent you a friend request.
                         </span>
                       </div>
                     }
@@ -844,7 +850,7 @@ export default function ProfilePage() {
                         {/* Decline request button: Cross */}
                         <button
                           onClick={() =>
-                            handleDeclineRequestPrompt(req.id, req.sender.username || "this user")
+                            handleDeclineRequestPrompt(req.id, req.sender.name || req.sender.username || "this user")
                           }
                           className="w-7 h-7 flex items-center justify-center rounded-full bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20 hover:bg-[#ff3b30]/20 transition-all duration-150 active:scale-[0.9] cursor-pointer"
                           title="Decline"
@@ -946,7 +952,7 @@ export default function ProfilePage() {
 
         {/* Section 2: Performance Trends */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
             Performance Trends
           </div>
           <PerformanceTrendChart data={chartData} />
@@ -954,7 +960,7 @@ export default function ProfilePage() {
 
         {/* Section 3: Keyboard Heatmap */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
             Keyboard Heatmap
           </div>
           <KeyboardHeatmapWithStats 
@@ -965,7 +971,7 @@ export default function ProfilePage() {
 
         {/* Section 4: Activity Logs */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
             Activity Logs
           </div>
           <ActivityCalendar history={history} />
@@ -973,7 +979,7 @@ export default function ProfilePage() {
 
         {/* Section 5: Session History */}
         <div className="py-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
             Session History
           </div>
           <div className="[&>div:first-child]:mt-0 [&_.mb-6]:mb-4 [&_.border-b]:border-none [&_span.text-xs.font-semibold.text-text-secondary]:hidden">
@@ -983,7 +989,7 @@ export default function ProfilePage() {
 
         {/* Section 6: Account Actions */}
         <div className="py-4 border-t border-border/10 mt-4">
-          <div className="px-1 pb-3 text-[15px] font-bold text-text-secondary select-none">
+          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
             Account Options
           </div>
           <GroupedList>
@@ -1044,7 +1050,7 @@ export default function ProfilePage() {
           }
         }}
         title="Decline Request"
-        message={`Are you sure you want to cancel the friend request from @${declinePromptUsername}?`}
+        message={`Are you sure you want to decline the friend request from ${declinePromptUsername}?`}
         confirmText="Yes, Decline"
         cancelText="No"
         type="destructive"

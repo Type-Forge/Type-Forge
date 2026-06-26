@@ -13,44 +13,22 @@ export async function getProfileData() {
 
     const userId = session.user.id
 
-    // Fetch user details with fallback for unmigrated social fields
-    let userRecord: any = null
-    try {
-      userRecord = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          email: true,
-          image: true,
-          createdAt: true,
-          bestScore: true,
-          githubUrl: true,
-          twitterUrl: true,
-          websiteUrl: true,
-        },
-      })
-    } catch (err) {
-      // Fallback if schema is modified but DB migration is not yet applied
-      userRecord = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          email: true,
-          image: true,
-          createdAt: true,
-          bestScore: true,
-        },
-      })
-      if (userRecord) {
-        userRecord.githubUrl = null
-        userRecord.twitterUrl = null
-        userRecord.websiteUrl = null
-      }
-    }
+    // Fetch user details
+    const userRecord = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        image: true,
+        createdAt: true,
+        bestScore: true,
+        githubUrl: true,
+        twitterUrl: true,
+        websiteUrl: true,
+      },
+    })
 
     if (!userRecord) {
       return { success: false, error: "User not found" }

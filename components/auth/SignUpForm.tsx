@@ -4,9 +4,10 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { signUpSchema } from "@/lib/validations/auth"
-import AuthField from "@/components/auth/AuthField"
+import Input from "@/components/auth/Input"
 import SubmitButton from "@/components/auth/SubmitButton"
 import SocialAuth from "@/components/auth/SocialAuth"
+import { toast } from "sonner"
 
 export default function SignUpForm() {
   const router = useRouter()
@@ -46,7 +47,9 @@ export default function SignUpForm() {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
       setLoading(false)
-      setFormError(data.error ?? "Something went wrong. Please try again.")
+      const msg = data.error ?? "Something went wrong. Please try again."
+      toast.error(msg)
+      setFormError(msg)
       return
     }
 
@@ -60,11 +63,12 @@ export default function SignUpForm() {
     setLoading(false)
 
     if (!result || result.error) {
-      // Account exists but auto sign-in failed — send them to sign in.
+      toast.error("Account created but sign-in failed. Please sign in manually.")
       router.push("/signin")
       return
     }
 
+    toast.success("Account created! Welcome to TypeForge!")
     router.push("/")
     router.refresh()
   }
@@ -77,7 +81,7 @@ export default function SignUpForm() {
         </div>
       )}
 
-      <AuthField
+      <Input
         id="name"
         label="Name (optional)"
         value={name}
@@ -87,7 +91,7 @@ export default function SignUpForm() {
         placeholder="Ada Lovelace"
         disabled={loading}
       />
-      <AuthField
+      <Input
         id="email"
         label="Email"
         type="email"
@@ -98,7 +102,7 @@ export default function SignUpForm() {
         placeholder="you@example.com"
         disabled={loading}
       />
-      <AuthField
+      <Input
         id="password"
         label="Password"
         type="password"
@@ -109,7 +113,7 @@ export default function SignUpForm() {
         placeholder="At least 8 characters"
         disabled={loading}
       />
-      <AuthField
+      <Input
         id="confirmPassword"
         label="Confirm Password"
         type="password"

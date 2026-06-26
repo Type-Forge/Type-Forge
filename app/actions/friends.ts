@@ -272,22 +272,22 @@ export async function getSocialRelationsMap() {
       return { success: true, relations: {} }
     }
 
-    const friendships = await prisma.friendship.findMany({
-      where: {
-        OR: [
-          { userOneId: userId },
-          { userTwoId: userId },
-        ],
-      },
-    })
-
-    const sent = await prisma.friendRequest.findMany({
-      where: { senderId: userId },
-    })
-
-    const received = await prisma.friendRequest.findMany({
-      where: { receiverId: userId },
-    })
+    const [friendships, sent, received] = await Promise.all([
+      prisma.friendship.findMany({
+        where: {
+          OR: [
+            { userOneId: userId },
+            { userTwoId: userId },
+          ],
+        },
+      }),
+      prisma.friendRequest.findMany({
+        where: { senderId: userId },
+      }),
+      prisma.friendRequest.findMany({
+        where: { receiverId: userId },
+      }),
+    ])
 
     const relations: Record<
       string,

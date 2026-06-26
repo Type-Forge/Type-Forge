@@ -62,7 +62,7 @@ export default function WebSocketProvider({ children }: WebSocketProviderProps) 
         onClose={handleDeclineChallenge}
         onConfirm={handleAcceptChallenge}
         title="Battle Challenge"
-        message={`@${incomingChallenge?.challenger.username || "Friend"} has challenged you to a ${
+        message={`${incomingChallenge?.challenger.name || incomingChallenge?.challenger.username || "Friend"} has challenged you to a ${
           incomingChallenge?.mode === "timed"
             ? `${incomingChallenge?.value}s timed`
             : `${incomingChallenge?.value} words`

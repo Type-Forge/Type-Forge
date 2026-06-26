@@ -142,7 +142,7 @@ export default function MultiplayerResultsCard({
             </div>
             {/* Opponent Speed & Accuracy Row */}
             <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-              <span className="text-text-secondary font-medium">@{opponentUsername}'s Stats</span>
+              <span className="text-text-secondary font-medium">{opponentUsername}'s Stats</span>
               <span className="text-text-primary font-semibold tabular-nums">
                 {opponentWpm} WPM <span className="text-xs text-text-tertiary font-medium">({opponentAcc}% Acc)</span>
               </span>

@@ -504,8 +504,8 @@ wss.on("connection", async (ws, req) => {
               : room.playerOneWpm !== null
 
             if (opponentFinished) {
-              // Both players have now finished
-              const finalRoomState = await prisma.battleRoom.update({
+              // Both players have now finished — determine winner by WPM
+              const updatedRoom = await prisma.battleRoom.update({
                 where: { id: roomId },
                 data: {
                   ...dbUpdate,
@@ -517,11 +517,24 @@ wss.on("connection", async (ws, req) => {
               // Clear from activeRooms cache
               activeRooms.delete(roomId)
 
-              const p1Wpm = finalRoomState.playerOneWpm || 0
-              const p1Acc = finalRoomState.playerOneAcc || 0
-              const p2Wpm = finalRoomState.playerTwoWpm || 0
-              const p2Acc = finalRoomState.playerTwoAcc || 0
-              const winnerId = finalRoomState.winnerId || userId
+              const p1Wpm = updatedRoom.playerOneWpm || 0
+              const p1Acc = updatedRoom.playerOneAcc || 0
+              const p2Wpm = updatedRoom.playerTwoWpm || 0
+              const p2Acc = updatedRoom.playerTwoAcc || 0
+
+              // Winner is the player with higher WPM; tie goes to the first finisher
+              let winnerId = updatedRoom.winnerId || userId
+              if (p1Wpm !== p2Wpm) {
+                winnerId = p1Wpm > p2Wpm ? updatedRoom.playerOneId : updatedRoom.playerTwoId
+              }
+
+              // Update winnerId in DB
+              if (winnerId !== updatedRoom.winnerId) {
+                await prisma.battleRoom.update({
+                  where: { id: roomId },
+                  data: { winnerId },
+                })
+              }
 
               // Create completed battle record in BattleHistory
               await prisma.battleHistory.create({

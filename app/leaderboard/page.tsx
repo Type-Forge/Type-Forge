@@ -4,25 +4,45 @@ import LeaderboardView from "./LeaderboardView"
 export const dynamic = "force-dynamic"
 
 export default async function LeaderboardPage() {
-  // 1. Fetch Timed-60 Leaders (with dynamic fallback if DB migration is not yet run)
+  // Fetch both timed and words leaders in a single query
   let timedLeaders: any[] = []
+  let wordsLeaders: any[] = []
+
   try {
-    const entries = await prisma.leaderboardEntry.findMany({
-      where: { type: "timed" },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            image: true,
+    const [timedEntries, wordsEntries] = await Promise.all([
+      prisma.leaderboardEntry.findMany({
+        where: { type: "timed" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+            },
           },
         },
-      },
-      orderBy: { score: "desc" },
-      take: 200,
-    })
-    timedLeaders = entries
+        orderBy: { score: "desc" },
+        take: 200,
+      }),
+      prisma.leaderboardEntry.findMany({
+        where: { type: "words" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: { score: "desc" },
+        take: 200,
+      }),
+    ])
+    timedLeaders = timedEntries
+    wordsLeaders = wordsEntries
   } catch (err) {
     // Database fallback to cached User score if LeaderboardEntry table doesn't exist
     const users = await prisma.user.findMany({
@@ -58,30 +78,6 @@ export default async function LeaderboardPage() {
         image: u.image,
       },
     }))
-  }
-
-  // 2. Fetch Words-50 Leaders
-  let wordsLeaders: any[] = []
-  try {
-    const entries = await prisma.leaderboardEntry.findMany({
-      where: { type: "words" },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            image: true,
-          },
-        },
-      },
-      orderBy: { score: "desc" },
-      take: 200,
-    })
-    wordsLeaders = entries
-  } catch (err) {
-    // If the LeaderboardEntry table is not yet created, return empty array for words-50
-    wordsLeaders = []
   }
 
   return <LeaderboardView initialTimed={timedLeaders} initialWords={wordsLeaders} />

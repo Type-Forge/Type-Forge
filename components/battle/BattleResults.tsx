@@ -60,10 +60,10 @@ export default function BattleResults({ result, onRestart, onNewSession }: Battl
         animate={animateProps}
         exit={exitProps}
         transition={transitionProps}
-        className="relative w-full max-w-xl mx-auto bg-surface/80 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto flex flex-col select-none"
+        className="relative w-full max-w-xl mx-auto bg-surface/80 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto flex flex-col select-none max-h-[90vh] min-h-[85vh]"
       >
         {/* iOS Drag Handle */}
-        <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-6 mt-1 cursor-grab active:cursor-grabbing" />
+        <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-6 mt-1 cursor-grab active:cursor-grabbing shrink-0" />
 
         {/* Circular Close Button (tactile, high contrast) */}
         <button
@@ -79,90 +79,93 @@ export default function BattleResults({ result, onRestart, onNewSession }: Battl
           </svg>
         </button>
 
-        {/* Header Title */}
-        <div className="text-center mt-2 mb-2">
-          <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1">
-            Battle Outcome Report
-          </span>
-        </div>
-
-        {/* Hero stats layout - WPM & Win/Loss Outcome side-by-side */}
-        <div className="grid grid-cols-2 divide-x divide-border/10 my-6 font-sans">
-          {/* Left Column: WPM */}
-          <div className="text-center">
-            <span className="text-[48px] font-sans font-bold text-text-primary leading-none tracking-tight">
-              {result.wpm}
-            </span>
-            <span className="block text-[11px] text-text-secondary font-semibold uppercase tracking-wider mt-2.5">
-              Speed (WPM)
+        {/* Main content — flex-1 fills remaining space */}
+        <div className="flex-1 flex flex-col">
+          {/* Header Title */}
+          <div className="text-center mt-2 mb-2">
+            <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1">
+              Battle Outcome Report
             </span>
           </div>
 
-          {/* Right Column: Outcome */}
-          <div className="text-center">
-            <span className={`text-[36px] font-sans font-bold leading-none tracking-tight block h-[48px] flex items-center justify-center ${
-              playerWon ? "text-correct" : "text-incorrect"
-            }`}>
-              {playerWon ? "SUCCESS" : "LOCKED"}
-            </span>
-            <span className="block text-[11px] text-text-secondary font-semibold uppercase tracking-wider mt-2.5">
-              Status: {playerWon ? "Decrypted" : "Lockout"}
-            </span>
-          </div>
-        </div>
+          {/* Hero stats layout - WPM & Win/Loss Outcome side-by-side */}
+          <div className="grid grid-cols-2 divide-x divide-border/10 my-6 font-sans">
+            {/* Left Column: WPM */}
+            <div className="text-center">
+              <span className="text-[48px] font-sans font-bold text-text-primary leading-none tracking-tight">
+                {result.wpm}
+              </span>
+              <span className="block text-[11px] text-text-secondary font-semibold uppercase tracking-wider mt-2.5">
+                Speed (WPM)
+              </span>
+            </div>
 
-        {/* Grouped List layout for secondary stats */}
-        <div className="w-full my-6 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans">
-          {/* Accuracy Row */}
-          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Your Accuracy</span>
-            <div className="flex items-center gap-1.5 font-semibold tabular-nums">
-              {accStyle.label && (
-                <span className={`text-[10px] uppercase tracking-wider font-bold ${accStyle.color}`}>
-                  {accStyle.label}
-                </span>
-              )}
-              <span className={accStyle.color}>{result.accuracy}%</span>
+            {/* Right Column: Outcome */}
+            <div className="text-center">
+              <span className={`text-[36px] font-sans font-bold leading-none tracking-tight block h-[48px] flex items-center justify-center ${
+                playerWon ? "text-correct" : "text-incorrect"
+              }`}>
+                {playerWon ? "SUCCESS" : "LOCKED"}
+              </span>
+              <span className="block text-[11px] text-text-secondary font-semibold uppercase tracking-wider mt-2.5">
+                Status: {playerWon ? "Decrypted" : "Lockout"}
+              </span>
             </div>
           </div>
-          {/* Time Duration Row */}
-          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Race Duration</span>
-            <span className="text-text-primary font-semibold tabular-nums">{result.duration.toFixed(1)}s</span>
-          </div>
-          {/* Opponent Speed Row */}
-          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Enigma Speed</span>
-            <span className="text-text-primary font-semibold tabular-nums">{aiWpm} WPM</span>
-          </div>
-          {/* Detailed Analysis Row */}
-          <button
-            type="button"
-            onClick={() => {
-              playClickSound("click")
-              setIsAnalysisOpen(true)
-            }}
-            className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] hover:bg-surface-hover/50 text-accent font-semibold text-left transition-colors cursor-pointer active:scale-[0.99] focus:outline-none border-none"
-          >
-            <span>Detailed Analysis</span>
-            <span className="flex items-center gap-1 text-[12px] font-semibold text-accent">
-              Charts & Heatmap
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </button>
-        </div>
 
-        {/* Performance status review subtext */}
-        <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 mb-6">
-          {playerWon
-            ? `You outpaced the opponent at ${result.config.difficulty} difficulty. Great performance.`
-            : `The opponent finished first this time. Keep practicing to improve your speed.`}
+          {/* Grouped List layout for secondary stats */}
+          <div className="w-full my-6 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans">
+            {/* Accuracy Row */}
+            <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+              <span className="text-text-secondary font-medium">Your Accuracy</span>
+              <div className="flex items-center gap-1.5 font-semibold tabular-nums">
+                {accStyle.label && (
+                  <span className={`text-[10px] uppercase tracking-wider font-bold ${accStyle.color}`}>
+                    {accStyle.label}
+                  </span>
+                )}
+                <span className={accStyle.color}>{result.accuracy}%</span>
+              </div>
+            </div>
+            {/* Time Duration Row */}
+            <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+              <span className="text-text-secondary font-medium">Race Duration</span>
+              <span className="text-text-primary font-semibold tabular-nums">{result.duration.toFixed(1)}s</span>
+            </div>
+            {/* Opponent Speed Row */}
+            <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+              <span className="text-text-secondary font-medium">Enigma Speed</span>
+              <span className="text-text-primary font-semibold tabular-nums">{aiWpm} WPM</span>
+            </div>
+            {/* Detailed Analysis Row */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound("click")
+                setIsAnalysisOpen(true)
+              }}
+              className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] hover:bg-surface-hover/50 text-accent font-semibold text-left transition-colors cursor-pointer active:scale-[0.99] focus:outline-none border-none"
+            >
+              <span>Detailed Analysis</span>
+              <span className="flex items-center gap-1 text-[12px] font-semibold text-accent">
+                Charts & Heatmap
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          {/* Performance status review subtext */}
+          <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 mb-6">
+            {playerWon
+              ? `You outpaced the opponent at ${result.config.difficulty} difficulty. Great performance.`
+              : `The opponent finished first this time. Keep practicing to improve your speed.`}
+          </div>
         </div>
 
         {/* iOS-like CTAs layout */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+        <div className="flex flex-col sm:flex-row gap-3 w-full mt-2 shrink-0">
           <button
             onClick={() => {
               playClickSound("click")

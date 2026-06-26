@@ -34,13 +34,18 @@ export default function LeaderboardView({ initialTimed, initialWords }: Leaderbo
   const [relations, setRelations] = useState<
     Record<string, { status: "friends" | "pending_sent" | "pending_received"; requestId?: string }>
   >({})
+  const [relationsLoaded, setRelationsLoaded] = useState(false)
 
   const loadRelations = async () => {
-    if (!user?.id) return
+    if (!user?.id) {
+      setRelationsLoaded(true)
+      return
+    }
     const res = await getSocialRelationsMap()
     if (res.success && res.relations) {
       setRelations(res.relations)
     }
+    setRelationsLoaded(true)
   }
 
   useEffect(() => {
@@ -57,8 +62,8 @@ export default function LeaderboardView({ initialTimed, initialWords }: Leaderbo
         {/* Header and Tab Selector */}
         <div className="px-1 py-5 flex flex-col md:flex-row md:items-center justify-between border-b border-border/10 select-none gap-4">
           <div className="flex flex-col">
-            <h2 className="text-[21px] font-bold tracking-tight text-text-primary">Leaderboard</h2>
-            <p className="text-sm text-text-secondary mt-1">
+            <h2 className="text-[24px] font-bold tracking-tight text-text-primary">Leaderboard</h2>
+            <p className="text-[15px] text-text-secondary mt-1">
               Top speed-typing runs of the community. Score is calculated as WPM &times; Accuracy.
             </p>
           </div>
@@ -136,6 +141,7 @@ export default function LeaderboardView({ initialTimed, initialWords }: Leaderbo
                     }
                     requestId={relation.requestId}
                     onActionSuccess={loadRelations}
+                    relationsLoaded={relationsLoaded}
                   />
                 )
               })}

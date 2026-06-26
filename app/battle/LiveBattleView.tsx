@@ -233,7 +233,7 @@ export default function LiveBattleView() {
           <div className="flex justify-between items-center px-4 mb-4 select-none">
             <div className="flex flex-col">
               <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider">Active Match</span>
-              <span className="text-sm font-semibold text-text-primary mt-0.5">Vs @{opponent?.username || "Friend"}</span>
+              <span className="text-sm font-semibold text-text-primary mt-0.5">Vs {opponent?.name || opponent?.username || "Friend"}</span>
             </div>
             <span className="text-[10px] font-mono bg-surface-secondary/40 border border-border/10 rounded px-2 py-0.5 text-text-tertiary">
               ROOM: {activeRoomId.substring(0, 8)}

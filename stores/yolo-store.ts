@@ -7,9 +7,8 @@ import { useSettingsStore } from "./settings-store"
 import { generateYoloWords } from "@/lib/words/drill"
 import { initializeWords } from "@/engine/typing-engine"
 import type { YoloLetterProfile } from "@/types"
-import { createElement } from "react"
 import { toast } from "sonner"
-import { YoloToastBanner } from "@/components/yolo/YoloToastBanner"
+import { STREAK_MILESTONES } from "@/components/yolo/YoloToastBanner"
 import { playAchievementSound } from "@/lib/audio"
 
 let lastToastTimestamp = 0
@@ -19,17 +18,6 @@ export const YOLO_SEQUENCE = [
   "e", "t", "a", "o", "i", "n", "s", "h", "r", "d", "l", "c", "u",
   "m", "w", "f", "g", "y", "p", "b", "v", "k", "j", "x", "q", "z"
 ]
-
-export const STREAK_MILESTONES: Record<number, { title: string; desc: string; icon: string }> = {
-  3: { title: "Warmup", desc: "3 perfect words in a row", icon: "🔹" },
-  5: { title: "Focused", desc: "5 perfect words in a row", icon: "⚡" },
-  10: { title: "Locked In", desc: "10 perfect words in a row", icon: "🔷" },
-  20: { title: "High Voltage", desc: "20 perfect words in a row", icon: "🔥" },
-  30: { title: "Machine Mode", desc: "30 perfect words in a row", icon: "🤖" },
-  50: { title: "Legendary", desc: "50 perfect words in a row", icon: "🏆" },
-  75: { title: "Absolute Legend", desc: "75 perfect words in a row", icon: "👑" },
-  100: { title: "Legendary Run", desc: "100 perfect words in a row", icon: "💎" },
-}
 
 export interface YoloSessionSummary {
   wordsCompleted: number
@@ -215,19 +203,9 @@ export const useYoloStore = create<YoloState>()(
           playAchievementSound()
         }
 
-        toast.custom(
-          (t) =>
-            createElement(YoloToastBanner, {
-              toastId: t,
-              icon: toastData.icon,
-              title: toastData.title,
-              description: toastData.description,
-              category: toastData.category,
-              reward: toastData.reward,
-              onClose: (id) => toast.dismiss(id),
-            }),
-          { duration: 2500 }
-        )
+        toast.success(`${toastData.icon} ${toastData.title} — ${toastData.description}`, {
+          duration: 2500,
+        })
       },
 
       recordWordResult: (wasWordCorrect, currentAccuracy) => {

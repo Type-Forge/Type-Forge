@@ -26,6 +26,7 @@ interface LeaderboardRowProps {
   friendshipStatus: "none" | "pending_sent" | "pending_received" | "friends" | "self"
   requestId?: string
   onActionSuccess?: () => void
+  relationsLoaded?: boolean
 }
 
 export default function LeaderboardRow({
@@ -35,6 +36,7 @@ export default function LeaderboardRow({
   friendshipStatus,
   requestId,
   onActionSuccess,
+  relationsLoaded = true,
 }: LeaderboardRowProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -56,7 +58,7 @@ export default function LeaderboardRow({
     playClickSound("click")
     const res = await sendFriendRequest(leader.user.id)
     if (res.success) {
-      toast.success(`Sent friend request to @${leader.user.username || "user"}`)
+      toast.success(`Friend request sent to ${leader.user.name || leader.user.username || "user"}`)
       onActionSuccess?.()
     } else {
       toast.error(res.error || "Failed to send request")
@@ -81,6 +83,12 @@ export default function LeaderboardRow({
   // Render the appropriate friend request button
   const renderAction = () => {
     if (friendshipStatus === "self") return null
+
+    if (!relationsLoaded) {
+      return (
+        <div className="w-[76px] h-[26px] rounded-[6px] bg-surface-secondary/60 animate-pulse" />
+      )
+    }
 
     if (!currentUserId || friendshipStatus === "none") {
       return (

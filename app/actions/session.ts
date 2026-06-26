@@ -71,43 +71,29 @@ export async function saveSessionResult(data: SaveResultInput) {
       leaderboardType = "words"
     }
 
-    // 3. Upsert the LeaderboardEntry record if qualified (with try-catch fallback for unmigrated databases)
+    // 3. Upsert the LeaderboardEntry record if qualified
     if (leaderboardType) {
       try {
-        const existingEntry = await prisma.leaderboardEntry.findUnique({
+        await prisma.leaderboardEntry.upsert({
           where: {
             userId_type: {
               userId,
               type: leaderboardType,
             },
           },
+          create: {
+            userId,
+            type: leaderboardType,
+            wpm: data.wpm,
+            accuracy: data.accuracy,
+            score,
+          },
+          update: {
+            wpm: data.wpm,
+            accuracy: data.accuracy,
+            score,
+          },
         })
-
-        if (!existingEntry) {
-          await prisma.leaderboardEntry.create({
-            data: {
-              userId,
-              type: leaderboardType,
-              wpm: data.wpm,
-              accuracy: data.accuracy,
-              score,
-            },
-          })
-        } else if (score > existingEntry.score) {
-          await prisma.leaderboardEntry.update({
-            where: {
-              userId_type: {
-                userId,
-                type: leaderboardType,
-              },
-            },
-            data: {
-              wpm: data.wpm,
-              accuracy: data.accuracy,
-              score,
-            },
-          })
-        }
       } catch (err) {
         console.warn("LeaderboardEntry table operations skipped (pending migration):", err)
       }

@@ -18,7 +18,7 @@ export default function SocialAuth({ callbackUrl = "/" }: { callbackUrl?: string
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl })}
-          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-[10px] bg-surface-secondary/50 border border-border/15 text-sm font-semibold text-text-primary transition-all duration-150 hover:bg-surface-hover active:scale-[0.97] cursor-pointer"
+          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-[10px] bg-neutral-200 dark:bg-[#2c2c2e] dark:border-transparent shadow-[inset_0_1px_1px_rgba(0,0,0,0.04)] text-sm font-semibold text-text-primary transition-all duration-150 hover:opacity-90 active:scale-[0.97] cursor-pointer"
         >
           <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" aria-hidden="true">
             <path
@@ -44,7 +44,7 @@ export default function SocialAuth({ callbackUrl = "/" }: { callbackUrl?: string
         <button
           type="button"
           onClick={() => signIn("github", { callbackUrl })}
-          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-[10px] bg-surface-secondary/50 border border-border/15 text-sm font-semibold text-text-primary transition-all duration-150 hover:bg-surface-hover active:scale-[0.97] cursor-pointer"
+          className="w-full h-11 flex items-center justify-center gap-2.5 rounded-[10px] bg-neutral-200 dark:bg-[#2c2c2e]  dark:border-transparent shadow-[inset_0_1px_1px_rgba(0,0,0,0.04)] text-sm font-semibold text-text-primary transition-all duration-150 hover:opacity-90 active:scale-[0.97] cursor-pointer"
         >
           <svg className="w-[18px] h-[18px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 .5C5.37.5 0 5.78 0 12.29c0 5.2 3.44 9.6 8.21 11.16.6.11.82-.25.82-.57v-2c-3.34.71-4.04-1.58-4.04-1.58-.55-1.36-1.34-1.73-1.34-1.73-1.09-.73.08-.72.08-.72 1.2.08 1.84 1.21 1.84 1.21 1.07 1.8 2.81 1.28 3.5.98.11-.76.42-1.28.76-1.58-2.67-.3-5.47-1.31-5.47-5.81 0-1.28.47-2.33 1.23-3.15-.12-.3-.53-1.51.12-3.14 0 0 1-.32 3.3 1.2a11.6 11.6 0 0 1 6 0c2.28-1.52 3.29-1.2 3.29-1.2.65 1.63.24 2.84.12 3.14.77.82 1.23 1.87 1.23 3.15 0 4.51-2.81 5.5-5.49 5.79.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.82.57A12.02 12.02 0 0 0 24 12.29C24 5.78 18.63.5 12 .5Z" />

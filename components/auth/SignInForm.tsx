@@ -4,9 +4,11 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { signInSchema } from "@/lib/validations/auth"
-import AuthField from "@/components/auth/AuthField"
+import Input from "@/components/auth/Input"
 import SubmitButton from "@/components/auth/SubmitButton"
 import SocialAuth from "@/components/auth/SocialAuth"
+import { toast } from "sonner"
+import { checkCredentials } from "@/app/actions/auth"
 
 export default function SignInForm() {
   const router = useRouter()
@@ -23,7 +25,6 @@ export default function SignInForm() {
     e.preventDefault()
     setFormError(null)
 
-    // Client-side validation mirrors the server schema.
     const parsed = signInSchema.safeParse({ email, password })
     if (!parsed.success) {
       const errs: Record<string, string> = {}
@@ -37,6 +38,14 @@ export default function SignInForm() {
     setFieldErrors({})
     setLoading(true)
 
+    const check = await checkCredentials(parsed.data.email, parsed.data.password)
+    if (check.error) {
+      setLoading(false)
+      toast.error(check.error)
+      setFormError(check.error)
+      return
+    }
+
     const result = await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
@@ -46,10 +55,13 @@ export default function SignInForm() {
     setLoading(false)
 
     if (!result || result.error) {
-      setFormError("Invalid email or password. Please try again.")
+      const msg = "Sign-in failed. Please try again."
+      toast.error(msg)
+      setFormError(msg)
       return
     }
 
+    toast.success("Welcome back!")
     router.push(callbackUrl)
     router.refresh()
   }
@@ -62,7 +74,7 @@ export default function SignInForm() {
         </div>
       )}
 
-      <AuthField
+      <Input
         id="email"
         label="Email"
         type="email"
@@ -73,7 +85,7 @@ export default function SignInForm() {
         placeholder="you@example.com"
         disabled={loading}
       />
-      <AuthField
+      <Input
         id="password"
         label="Password"
         type="password"

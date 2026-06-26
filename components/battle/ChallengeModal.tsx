@@ -74,7 +74,7 @@ export default function ChallengeModal({
           >
             {/* Title */}
             <h4 className="text-[17px] font-bold text-black dark:text-white tracking-tight leading-snug">
-              Challenge @{friendName}
+              Challenge {friendName}
             </h4>
 
             {/* Message */}
