@@ -82,10 +82,10 @@ export default function DrillResults({ result, onRestart, onNewSession }: DrillR
         animate={animateProps}
         exit={exitProps}
         transition={transitionProps}
-        className="relative w-full max-w-xl mx-auto bg-surface/80 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto flex flex-col select-none"
+        className="relative w-full max-w-xl mx-auto bg-surface/80 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] pointer-events-auto flex flex-col select-none max-h-[90vh] min-h-[85vh]"
       >
         {/* iOS Drag Handle */}
-        <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-6 mt-1 cursor-grab active:cursor-grabbing" />
+        <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-6 mt-1 cursor-grab active:cursor-grabbing shrink-0" />
 
         {/* Circular Close Button (tactile, high contrast) */}
         <button
@@ -101,84 +101,87 @@ export default function DrillResults({ result, onRestart, onNewSession }: DrillR
           </svg>
         </button>
 
-        {/* Header Title */}
-        <div className="text-center mt-2 mb-2">
-          <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1 uppercase">
-            Drill Training Report
-          </span>
-        </div>
-
-        {/* Hero WPM Speed */}
-        <div className="text-center my-6">
-          <span className="text-[48px] font-sans font-bold text-text-primary leading-none tracking-tight">
-            {result.wpm}
-          </span>
-          <span className="block text-[11px] text-text-secondary font-semibold uppercase tracking-wider mt-2.5">
-            Words per minute
-          </span>
-          {targetWpm ? (
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold font-sans border ${
-                isTargetMet 
-                  ? "bg-correct/10 border-correct/20 text-correct" 
-                  : "bg-incorrect/10 border-incorrect/20 text-incorrect"
-              }`}>
-                {targetBadgeText}
-              </span>
-              <span className="text-[12px] font-medium text-text-secondary font-sans">
-                {targetSubText} (Target: {targetWpm} WPM)
-              </span>
-            </div>
-          ) : (
-            <div className="mt-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold font-sans border bg-surface-secondary/50 border-border/10 text-text-secondary">
-                Practice Mode
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Grouped List layout for secondary stats */}
-        <div className="w-full my-6 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans">
-          {/* Accuracy Row */}
-          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Accuracy</span>
-            <span className="text-text-primary font-semibold tabular-nums">{result.accuracy}%</span>
-          </div>
-          {/* Time Duration Row */}
-          <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
-            <span className="text-text-secondary font-medium">Time Taken</span>
-            <span className="text-text-primary font-semibold tabular-nums">{durationSecs.toFixed(1)}s</span>
-          </div>
-          {/* Detailed Analysis Row */}
-          <button
-            type="button"
-            onClick={() => {
-              playClickSound("click")
-              setIsAnalysisOpen(true)
-            }}
-            className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] hover:bg-surface-hover/50 text-accent font-semibold text-left transition-colors cursor-pointer active:scale-[0.99] focus:outline-none border-none"
-          >
-            <div className="flex flex-col">
-              <span className="text-accent font-semibold">View Detailed Analysis</span>
-              <span className="text-[11px] text-text-secondary font-normal mt-0.5">Charts • Heatmap • Timeline</span>
-            </div>
-            <span className="flex items-center gap-1 text-[12px] font-semibold text-accent">
-              Open
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
+        {/* Main content — flex-1 fills remaining space */}
+        <div className="flex-1 flex flex-col">
+          {/* Header Title */}
+          <div className="text-center mt-2 mb-2">
+            <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-1 uppercase">
+              Drill Training Report
             </span>
-          </button>
-        </div>
+          </div>
 
-        {/* Dynamic feedback subtext */}
-        <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 mb-6">
-          {reviewText}
+          {/* Hero WPM Speed */}
+          <div className="text-center my-6">
+            <span className="text-[48px] font-sans font-bold text-text-primary leading-none tracking-tight">
+              {result.wpm}
+            </span>
+            <span className="block text-[11px] text-text-secondary font-semibold uppercase tracking-wider mt-2.5">
+              Words per minute
+            </span>
+            {targetWpm ? (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold font-sans border ${
+                  isTargetMet 
+                    ? "bg-correct/10 border-correct/20 text-correct" 
+                    : "bg-incorrect/10 border-incorrect/20 text-incorrect"
+                }`}>
+                  {targetBadgeText}
+                </span>
+                <span className="text-[12px] font-medium text-text-secondary font-sans">
+                  {targetSubText} (Target: {targetWpm} WPM)
+                </span>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold font-sans border bg-surface-secondary/50 border-border/10 text-text-secondary">
+                  Practice Mode
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Grouped List layout for secondary stats */}
+          <div className="w-full my-6 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans">
+            {/* Accuracy Row */}
+            <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+              <span className="text-text-secondary font-medium">Accuracy</span>
+              <span className="text-text-primary font-semibold tabular-nums">{result.accuracy}%</span>
+            </div>
+            {/* Time Duration Row */}
+            <div className="flex items-center justify-between px-4 py-3.5 text-[15px]">
+              <span className="text-text-secondary font-medium">Time Taken</span>
+              <span className="text-text-primary font-semibold tabular-nums">{durationSecs.toFixed(1)}s</span>
+            </div>
+            {/* Detailed Analysis Row */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSound("click")
+                setIsAnalysisOpen(true)
+              }}
+              className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] hover:bg-surface-hover/50 text-accent font-semibold text-left transition-colors cursor-pointer active:scale-[0.99] focus:outline-none border-none"
+            >
+              <div className="flex flex-col">
+                <span className="text-accent font-semibold">View Detailed Analysis</span>
+                <span className="text-[11px] text-text-secondary font-normal mt-0.5">Charts • Heatmap • Timeline</span>
+              </div>
+              <span className="flex items-center gap-1 text-[12px] font-semibold text-accent">
+                Open
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          {/* Dynamic feedback subtext */}
+          <div className="w-full text-center text-xs text-text-secondary leading-relaxed px-4 mb-6">
+            {reviewText}
+          </div>
         </div>
 
         {/* iOS-like CTAs layout */}
-        <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
+        <div className="flex flex-col sm:flex-row gap-3 w-full mt-2 shrink-0">
           <button
             onClick={() => {
               playClickSound("click")

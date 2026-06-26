@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { SessionResult, StatsState } from "@/types"
 import { MAX_HISTORY_LENGTH } from "@/lib/constants"
+import { saveSessionResult } from "@/app/actions/session"
 
 interface StatsStore extends StatsState {
   addResult: (result: SessionResult) => void
@@ -26,6 +27,21 @@ export const useStatsStore = create<StatsStore>()(
           ? Math.round(history.reduce((sum, r) => sum + r.accuracy, 0) / history.length)
           : 100
         set({ history, bestWpm, averageWpm, averageAccuracy })
+
+        // Asynchronously sync results to PostgreSQL if authenticated
+        saveSessionResult({
+          wpm: result.wpm,
+          accuracy: result.accuracy,
+          totalKeystrokes: result.totalKeystrokes,
+          correctKeystrokes: result.correctKeystrokes,
+          incorrectKeystrokes: result.incorrectKeystrokes,
+          duration: result.duration,
+          wordsCompleted: result.wordsCompleted,
+          mode: result.config.mode,
+          config: result.config,
+          timeline: result.timeline || [],
+          errorKeys: result.errorKeys || null,
+        }).catch((err) => console.error("Failed to sync result to database:", err))
       },
 
       clearHistory: () => set({

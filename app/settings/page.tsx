@@ -19,8 +19,8 @@ function Switch({ checked, onChange, label, description }: SwitchProps) {
   return (
     <div className="flex items-center justify-between py-4 px-1 select-none">
       <div className="space-y-0.5 pr-4">
-        <span className="text-[15px] font-bold text-text-primary block">{label}</span>
-        {description && <span className="text-[14px] text-text-secondary block leading-normal">{description}</span>}
+        <span className="text-[16px] font-bold text-text-primary block">{label}</span>
+        {description && <span className="text-[15px] text-text-secondary block leading-normal">{description}</span>}
       </div>
       <button
         type="button"
@@ -79,7 +79,7 @@ function SegmentedControl<T extends string | number>({
                 playClickSound("click")
                 onChange(opt.value)
               }}
-              className={`flex-1 text-[11px] font-bold py-1.5 rounded-lg transition-all cursor-pointer select-none active:scale-[0.97] ${
+              className={`flex-1 text-[13px] font-bold py-1.5 rounded-lg transition-all cursor-pointer select-none active:scale-[0.97] ${
                 isActive
                   ? "bg-surface text-accent shadow-sm"
                   : "text-text-secondary hover:text-text-primary"
@@ -188,14 +188,14 @@ export default function SettingsPage() {
       <WhiteCard>
         {/* Main Settings Header */}
         <div className="px-1 py-5 select-none">
-          <h2 className="text-[21px] font-bold tracking-tight text-text-primary">Settings</h2>
-          <p className="text-sm text-text-secondary mt-1">
+          <h2 className="text-[24px] font-bold tracking-tight text-text-primary">Settings</h2>
+          <p className="text-[15px] text-text-secondary mt-1">
             Customize your trainer visual appearance, typing sound feedback, and typing metrics.
           </p>
         </div>
 
         {/* Section 1: Appearance */}
-        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+        <div className="px-1 pt-5 pb-2 text-[14px] font-bold text-text-secondary select-none">
           Appearance
         </div>
         <SegmentedControl
@@ -208,8 +208,8 @@ export default function SettingsPage() {
         {/* Accent Color Selection */}
         <div className="flex items-center justify-between py-4 px-1 select-none">
           <div className="space-y-0.5 pr-4">
-            <span className="text-[14px] font-bold text-text-primary block">Accent Color</span>
-            <span className="text-[12px] text-text-secondary block leading-normal">Personalize the main interface highlight tones</span>
+            <span className="text-[16px] font-bold text-text-primary block">Accent Color</span>
+            <span className="text-[15px] text-text-secondary block leading-normal">Personalize the main interface highlight tones</span>
           </div>
           <div className="flex items-center gap-2">
             {colors.map((color) => {
@@ -246,7 +246,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Section 2: Audio Settings */}
-        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+        <div className="px-1 pt-5 pb-2 text-[14px] font-bold text-text-secondary select-none">
           Audio
         </div>
         <Switch
@@ -269,7 +269,7 @@ export default function SettingsPage() {
         />
 
         {/* Section 3: Typing Engine */}
-        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+        <div className="px-1 pt-5 pb-2 text-[14px] font-bold text-text-secondary select-none">
           Typing
         </div>
         <SegmentedControl
@@ -302,7 +302,7 @@ export default function SettingsPage() {
         />
 
         {/* Section 4: Accessibility */}
-        <div className="px-1 pt-5 pb-2 text-[13px] font-bold text-text-secondary select-none">
+        <div className="px-1 pt-5 pb-2 text-[14px] font-bold text-text-secondary select-none">
           Accessibility
         </div>
         <Switch
@@ -321,8 +321,8 @@ export default function SettingsPage() {
         {/* Section 5: Reset to Defaults */}
         <div className="flex items-center justify-between py-4 px-1 select-none">
           <div className="space-y-0.5 pr-4">
-            <span className="text-[14px] font-bold text-text-primary block">Reset to Defaults</span>
-            <span className="text-[12px] text-text-secondary block leading-normal">
+            <span className="text-[16px] font-bold text-text-primary block">Reset to Defaults</span>
+            <span className="text-[15px] text-text-secondary block leading-normal">
               Revert all preferences and interface styles to factory defaults
             </span>
           </div>

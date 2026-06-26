@@ -5,6 +5,17 @@ import { motion } from "motion/react"
 import { playClickSound } from "@/lib/audio"
 import { useSettingsStore } from "@/stores/settings-store"
 
+export const STREAK_MILESTONES: Record<number, { title: string; desc: string; icon: string }> = {
+  3: { title: "Warmup", desc: "3 perfect words in a row", icon: "" },
+  5: { title: "Focused", desc: "5 perfect words in a row", icon: "" },
+  10: { title: "Locked In", desc: "10 perfect words in a row", icon: "" },
+  20: { title: "High Voltage", desc: "20 perfect words in a row", icon: "" },
+  30: { title: "Machine Mode", desc: "30 perfect words in a row", icon: "" },
+  50: { title: "Legendary", desc: "50 perfect words in a row", icon: "" },
+  75: { title: "Absolute Legend", desc: "75 perfect words in a row", icon: "" },
+  100: { title: "Legendary Run", desc: "100 perfect words in a row", icon: "" },
+}
+
 interface YoloToastBannerProps {
   toastId: string | number
   icon: string

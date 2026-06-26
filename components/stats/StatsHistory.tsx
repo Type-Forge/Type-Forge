@@ -176,7 +176,7 @@ export default function StatsHistory() {
               <GroupedListItem
                 key={session.id}
                 onClick={() => setSelectedSession(session)}
-                icon={getSessionIcon(session.config.mode)}
+                icon={null}
                 title={
                   isBattleMode 
                     ? `Battle (${session.config.difficulty})` 

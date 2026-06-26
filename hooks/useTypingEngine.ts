@@ -4,6 +4,7 @@ import { useStatsStore } from "@/stores/stats-store"
 import { useBattleStore } from "@/stores/battle-store"
 import { useDrillStore } from "@/stores/drill-store"
 import { useYoloStore } from "@/stores/yolo-store"
+import { useMultiplayerStore } from "@/stores/multiplayer-store"
 import { generateYoloWords } from "@/lib/words/drill"
 import {
   processCharacter,
@@ -81,10 +82,22 @@ export function useTypingEngine() {
       const key = e.key
       const { words, currentWordIndex, currentLetterIndex, status: currentStatus, config: currentConfig } = store
 
+      // Ignore keystrokes during battle countdown
+      if (currentConfig.mode === "battle") {
+        const mpState = useMultiplayerStore.getState()
+        if (mpState.activeRoomStatus === "countdown" || mpState.countdownRemaining !== null) {
+          return
+        }
+      }
+
       // Tab or Escape triggers reset
       if (key === "Tab" || key === "Escape") {
         if (currentConfig.mode === "yolo" && currentStatus === "running") {
           finishSession()
+          return
+        }
+        if (currentConfig.mode === "battle") {
+          // Block resetting the session during a battle
           return
         }
         resetSession()

@@ -89,7 +89,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <ThemeContext.Provider value={{ theme: resolvedTheme, toggleTheme }}>
       {children}
-      <Toaster position="top-right" theme={resolvedTheme} />
+      <Toaster
+        position="top-right"
+        theme={resolvedTheme}
+        richColors
+        closeButton
+        duration={3000}
+        toastOptions={{
+          style: {
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-primary)',
+          },
+        }}
+      />
     </ThemeContext.Provider>
   )
 }

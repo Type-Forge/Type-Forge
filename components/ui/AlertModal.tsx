@@ -12,6 +12,7 @@ interface AlertModalProps {
   confirmText?: string
   cancelText?: string
   type?: "primary" | "destructive"
+  closeOnConfirm?: boolean
 }
 
 /**
@@ -28,6 +29,7 @@ export default function AlertModal({
   confirmText = "Confirm",
   cancelText = "Cancel",
   type = "primary",
+  closeOnConfirm = true,
 }: AlertModalProps) {
   return (
     <AnimatePresence>
@@ -79,7 +81,9 @@ export default function AlertModal({
                 onClick={() => {
                   playClickSound("click")
                   onConfirm()
-                  onClose()
+                  if (closeOnConfirm) {
+                    onClose()
+                  }
                 }}
                 className={`flex-1 h-9 rounded-lg text-white text-xs font-bold hover:opacity-90 transition-all duration-150 active:scale-[0.97] cursor-pointer ${
                   type === "destructive"

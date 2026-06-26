@@ -32,7 +32,7 @@ export interface SettingsState {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      theme: "dark",
+      theme: "light",
       typingSounds: true,
       achievementSounds: true,
       notificationSounds: true,
