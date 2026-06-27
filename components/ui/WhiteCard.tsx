@@ -8,7 +8,7 @@ interface WhiteCardProps {
 
 export default function WhiteCard({ children, className = "" }: WhiteCardProps) {
   return (
-    <div className={cn("divide-y divide-border/10 rounded-2xl bg-surface border border-border/10 overflow-hidden px-4 shadow-sm", className)}>
+    <div className={cn("divide-y divide-border/10 rounded-[20px] bg-surface-secondary/35 dark:bg-surface-secondary/20 border border-border/10 overflow-hidden px-4 shadow-sm", className)}>
       {children}
     </div>
   )

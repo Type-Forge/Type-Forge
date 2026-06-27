@@ -208,7 +208,7 @@ export default function LeaderboardRow({
           </div>
 
           {/* Social action button */}
-          <div className="border-l border-border/10 pl-4 h-8 flex items-center justify-center min-w-[80px]">
+          <div className="border-l border-border/10 pl-4 h-8 flex items-center justify-center min-w-[125px]">
             {renderAction()}
           </div>
         </div>

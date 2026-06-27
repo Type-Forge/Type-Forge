@@ -75,8 +75,27 @@ npm run dev
 ```
 Visit `/signup` to create an account, then `/profile` (protected).
 
+### Data Sync (Anonymous → Authenticated)
+
+When a user logs in or signs up, the `useSyncOnLogin` hook (in `hooks/useSyncOnLogin.ts`)
+automatically merges anonymous localStorage data with the database:
+
+1. **Pull**: Fetches the user's DB data (sessions, drill stats, yolo profiles, settings)
+2. **Merge**: Combines with localStorage data, preferring the more recent version
+3. **Push**: Saves any localStorage-only records to the DB
+
+This means:
+- A user can take 100 tests without signing up
+- When they finally create an account, all their progress is preserved
+- Data is synced across devices when they log in elsewhere
+
+Key files:
+- `app/actions/sync.ts` — Server actions for fetching/pushing data
+- `hooks/useSyncOnLogin.ts` — Client hook that triggers the merge
+- `components/providers/AuthProvider.tsx` — Wires the hook into the app
+
 ## Notes & future work
 - The `Session` table from the original issue is intentionally omitted because the
   Credentials provider uses JWT sessions. If you later add OAuth providers (Google,
   GitHub) you can switch to the Prisma adapter + database sessions.
-- Out of scope (per the issue): social login, 2FA, password reset, email verification.
+- Social login (Google/GitHub) is fully implemented — see `docs/OAUTH.md` for setup.

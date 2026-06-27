@@ -3,12 +3,13 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { useTheme } from "@/components/providers/ThemeProvider"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { motion } from "motion/react"
 import Logo from "@/components/ui/Logo"
 import { playClickSound } from "@/lib/audio"
 import NotificationDrawer from "@/components/notifications/NotificationDrawer"
 import { getPendingRequests } from "@/app/actions/friends"
+import { toast } from "sonner"
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -17,6 +18,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
+  const [requestsList, setRequestsList] = useState<any[]>([])
+  const requestsListRef = useRef<any[]>([])
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -36,6 +39,53 @@ export default function Navbar() {
     const res = await getPendingRequests()
     if (res.success && res.requests) {
       setPendingCount(res.requests.length)
+      
+      const prevRequests = requestsListRef.current
+      // Detect and alert on new friend requests
+      if (prevRequests.length > 0) {
+        res.requests.forEach((req: any) => {
+          const isNew = !prevRequests.some((oldReq) => oldReq.id === req.id)
+          if (isNew) {
+            const senderName = req.sender.name || req.sender.username || "Someone"
+            const senderUsername = req.sender.username ? `@${req.sender.username}` : ""
+            const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+            toast.custom((t) => (
+              <div className="w-[340px] bg-surface/95 dark:bg-[#1c1c1e]/95 backdrop-blur-xl border border-border/10 rounded-[20px] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.12)] flex items-center gap-3 relative select-none animate-fade-in pointer-events-auto">
+                {/* Left Avatar Container */}
+                <div className="w-10 h-10 rounded-[10px] bg-surface flex items-center justify-center overflow-hidden shrink-0 border border-border/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                  {req.sender.image ? (
+                    <img src={req.sender.image} alt={senderName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-text-secondary">
+                      {senderName.substring(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <span className="text-[13px] font-bold text-text-primary leading-tight">
+                    Friend Request
+                  </span>
+                  <span className="text-[11px] text-text-secondary leading-normal mt-0.5 truncate">
+                    {senderName} {senderUsername} wants to be friends.
+                  </span>
+                </div>
+
+                {/* Right Timestamp */}
+                <div className="text-[10px] text-text-tertiary font-medium self-start mt-0.5 whitespace-nowrap">
+                  {nowTime}
+                </div>
+              </div>
+            ), {
+              duration: 5000,
+            })
+          }
+        })
+      }
+      requestsListRef.current = res.requests
+      setRequestsList(res.requests)
     }
   }, [])
 
@@ -49,7 +99,9 @@ export default function Navbar() {
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 apple-navbar flex items-center select-none">
         <motion.div
-          className="mx-auto w-full flex items-center justify-between px-6 h-full"
+          className="mx-auto w-full max-w-7xl flex items-center justify-between px-6 h-full"
+          style={{ maxWidth: "80rem" }}
+          initial={false}
           animate={{
             maxWidth: scrolled ? "72rem" : "80rem",
             marginTop: scrolled ? 8 : 0,
@@ -135,19 +187,30 @@ export default function Navbar() {
               className="w-8 h-8 flex items-center justify-center rounded-full border border-border/10 bg-surface-secondary/40 text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors duration-150 active:scale-[0.97] cursor-pointer focus:outline-none relative"
               aria-label="Notifications"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-[18px] h-[18px]"
+              <motion.div
+                className="flex items-center justify-center origin-top"
+                whileHover={{
+                  rotate: [0, -18, 15, -12, 8, -4, 0],
+                  transition: {
+                    duration: 0.5,
+                    ease: "easeInOut"
+                  }
+                }}
               >
-                <path d="M10.268 21a2 2 0 0 0 3.464 0" />
-                <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-[18px] h-[18px]"
+                >
+                  <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+                  <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+                </svg>
+              </motion.div>
               {/* Red Badge */}
               {pendingCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#ff3b30] dark:bg-[#ff453a] text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-surface">
@@ -165,23 +228,32 @@ export default function Navbar() {
               }`}
               aria-label="View Leaderboard"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-[18px] h-[18px]"
+              <motion.div
+                className="flex items-center justify-center"
+                whileHover={{
+                  y: -2,
+                  scale: 1.05,
+                  transition: { type: "spring", stiffness: 400, damping: 10 }
+                }}
               >
-                <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978" />
-                <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978" />
-                <path d="M18 9h1.5a1 1 0 0 0 0-5H18" />
-                <path d="M4 22h16" />
-                <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z" />
-                <path d="M6 9H4.5a1 1 0 0 1 0-5H6" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-[18px] h-[18px]"
+                >
+                  <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978" />
+                  <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978" />
+                  <path d="M18 9h1.5a1 1 0 0 0 0-5H18" />
+                  <path d="M4 22h16" />
+                  <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z" />
+                  <path d="M6 9H4.5a1 1 0 0 1 0-5H6" />
+                </svg>
+              </motion.div>
             </Link>
 
             {/* Settings Route Link */}
@@ -193,19 +265,27 @@ export default function Navbar() {
               }`}
               aria-label="Open Settings"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-[18px] h-[18px]"
+              <motion.div
+                className="flex items-center justify-center"
+                whileHover={{
+                  rotate: 60,
+                  transition: { type: "spring", stiffness: 200, damping: 15 }
+                }}
               >
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                <circle cx="12" cy="12" r="4" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-[18px] h-[18px]"
+                >
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                  <circle cx="12" cy="12" r="4" />
+                </svg>
+              </motion.div>
             </Link>
 
             {/* Profile Route Link */}
@@ -217,19 +297,28 @@ export default function Navbar() {
               }`}
               aria-label="View Profile"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-[18px] h-[18px]"
+              <motion.div
+                className="flex items-center justify-center"
+                whileHover={{
+                  scale: 1.08,
+                  y: -1,
+                  transition: { type: "spring", stiffness: 400, damping: 12 }
+                }}
               >
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-[18px] h-[18px]"
+                >
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </motion.div>
             </Link>
           </div>
         </motion.div>

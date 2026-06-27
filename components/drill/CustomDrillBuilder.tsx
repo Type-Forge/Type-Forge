@@ -244,7 +244,7 @@ export default function CustomDrillBuilder({
                   }
                 }}
                 placeholder="Type single key or bigram (e.g. th)"
-                className="flex-1 h-8.5 bg-surface-secondary border border-border/10 rounded-xl px-3 text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-accent"
+                className="flex-1 h-8.5 bg-surface-secondary/50 border border-border/15 rounded-xl px-3 text-xs text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-accent/50 focus:bg-surface transition-all duration-150 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]"
               />
               <button
                 type="button"
@@ -384,7 +384,7 @@ export default function CustomDrillBuilder({
                 setIsStartConfirmOpen(true)
               }}
               disabled={selectedKeys.length === 0 && selectedBigrams.length === 0}
-              className="w-full sm:w-auto px-8 h-11 rounded-[12px] bg-gradient-to-r from-accent to-[#0a84ff] text-white font-bold text-[13px] tracking-tight hover:scale-[1.02] hover:shadow-[0_6px_20px_rgba(10,132,255,0.25)] disabled:hover:scale-100 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 ease-out active:scale-[0.97] cursor-pointer select-none flex items-center justify-center"
+              className="px-5 py-2 rounded-[10px] font-sans text-xs font-bold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none flex items-center justify-center shrink-0 shadow-sm bg-[#007aff] dark:bg-[#0a84ff] text-white hover:opacity-90 disabled:opacity-30 disabled:pointer-events-none"
             >
               Generate Drill
             </button>
@@ -414,7 +414,7 @@ export default function CustomDrillBuilder({
                 playClickSound("click")
                 initSession({ mode: "yolo" })
               }}
-              className="w-full sm:w-auto px-6 h-9 rounded-xl bg-surface-secondary border border-border text-text-secondary hover:text-text-primary text-[12px] font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer select-none flex items-center justify-center"
+              className="px-5 py-2 rounded-[10px] font-sans text-xs font-bold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none flex items-center justify-center shrink-0 shadow-sm bg-[#007aff] dark:bg-[#0a84ff] text-white hover:opacity-90"
             >
               Start YOLO Mode
             </button>

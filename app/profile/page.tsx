@@ -7,7 +7,6 @@ import Container from "@/components/ui/Container"
 import StatsHistory from "@/components/stats/StatsHistory"
 import type { SessionResult } from "@/types"
 import { GroupedList, GroupedListItem } from "@/components/ui/GroupedList"
-import WhiteCard from "@/components/ui/WhiteCard"
 import { useAuth } from "@/hooks/useAuth"
 import { useRouter } from "next/navigation"
 import AlertModal from "@/components/ui/AlertModal"
@@ -18,6 +17,7 @@ import { playClickSound } from "@/lib/audio"
 import { getFriendsList, getPendingRequests, respondToFriendRequest } from "@/app/actions/friends"
 import { useMultiplayerStore } from "@/stores/multiplayer-store"
 import { toast } from "sonner"
+import Button from "@/components/ui/Button"
 
 function PerformanceTrendChart({ data }: { data: { x: number; y: number; accuracy: number }[] }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -212,7 +212,6 @@ function PerformanceTrendChart({ data }: { data: { x: number; y: number; accurac
     </div>
   )
 }
-
 function KeyboardHeatmapWithStats({
   errorKeys,
   strengthsAndWeaknesses,
@@ -234,31 +233,29 @@ function KeyboardHeatmapWithStats({
   const getKeyHeatmapStyle = (key: string) => {
     const count = errorKeys[key.toLowerCase()] ?? 0
     if (count === 0) {
-      return "bg-surface-secondary/40 text-text-secondary border border-border/10"
+      return "bg-neutral-200/60 dark:bg-neutral-800/40 text-neutral-600 dark:text-neutral-400 border-neutral-300/30 dark:border-neutral-700/20"
     }
     if (count === 1) {
-      return "bg-incorrect/15 text-incorrect border border-incorrect/30 font-bold"
+      return "bg-incorrect/15 text-incorrect border-incorrect/30 font-bold"
     }
     if (count === 2) {
-      return "bg-incorrect/30 text-incorrect border border-incorrect/50 font-bold"
+      return "bg-incorrect/35 text-incorrect border-incorrect/50 font-bold"
     }
-    return "bg-incorrect/70 text-white border border-incorrect font-bold shadow-sm"
+    return "bg-incorrect/75 text-white border-incorrect font-bold shadow-sm"
   }
 
   return (
     <div className="p-1 font-sans w-full">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
         {/* Left: Heatmap (8 columns) */}
-        <div className="md:col-span-8 flex flex-col items-center justify-center">
-          <div className="flex justify-between items-center w-full mb-6">
-            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider">
-              Mistake Heatmap ({totalErrors} total errors)
-            </span>
-          </div>
+        <div className="md:col-span-8 flex flex-col items-center justify-center bg-surface-secondary/20 dark:bg-surface-secondary/10 border border-border/5 rounded-xl p-6">
+          <span className="text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-6 self-start px-1 select-none">
+            Mistake Heatmap ({totalErrors} total errors)
+          </span>
 
-          <div className="flex flex-col gap-1.5 w-full max-w-md select-none">
+          <div className="flex flex-col gap-1.5 w-full select-none items-center justify-center">
             {keyboardRows.map((row, rIdx) => (
-              <div key={rIdx} className="flex justify-center gap-1 w-full">
+              <div key={rIdx} className="flex justify-center gap-1.5 w-full">
                 {row.map((char) => {
                   const count = errorKeys[char.toLowerCase()] ?? 0
                   const tooltipText = count > 0
@@ -267,13 +264,13 @@ function KeyboardHeatmapWithStats({
                   return (
                     <div className="relative group" key={char}>
                       <div
-                        className={`w-8 h-8 rounded-md flex items-center justify-center text-[12px] font-sans border transition-colors ${getKeyHeatmapStyle(
+                        className={`w-9 h-9 rounded-md flex items-center justify-center text-[12px] font-sans border transition-all duration-150 hover:scale-[1.08] shadow-[0_1.5px_3px_rgba(0,0,0,0.03)] ${getKeyHeatmapStyle(
                           char
                         )}`}
                       >
                         {char.toUpperCase()}
                       </div>
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-max max-w-[150px] opacity-0 group-hover:opacity-100 pointer-events-none z-50 bg-surface/95 border border-border/15 backdrop-blur-xl px-2.5 py-1.5 rounded-lg text-[10px] text-text-secondary text-center shadow-lg leading-normal font-sans font-semibold">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[150px] opacity-0 group-hover:opacity-100 pointer-events-none z-50 bg-surface/95 border border-border/15 backdrop-blur-xl px-2.5 py-1.5 rounded-lg text-[10px] text-text-secondary text-center shadow-lg leading-normal font-sans font-semibold transition-all duration-150 transform scale-95 group-hover:scale-100">
                         {tooltipText}
                       </div>
                     </div>
@@ -281,6 +278,27 @@ function KeyboardHeatmapWithStats({
                 })}
               </div>
             ))}
+          </div>
+
+          {/* Heatmap Legend */}
+          <div className="flex items-center gap-4 mt-6 text-[10px] text-text-secondary font-semibold font-sans">
+            <span>Legend:</span>
+            <div className="flex items-center gap-1">
+              <div className="w-3.5 h-3.5 rounded-sm bg-neutral-200/60 dark:bg-neutral-800/40 border border-border/10" />
+              <span>0 errors</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3.5 h-3.5 rounded-sm bg-incorrect/15 border border-incorrect/30" />
+              <span>1 error</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3.5 h-3.5 rounded-sm bg-incorrect/30 border border-incorrect/50" />
+              <span>2 errors</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3.5 h-3.5 rounded-sm bg-incorrect/75 border border-incorrect" />
+              <span>3+ errors</span>
+            </div>
           </div>
         </div>
 
@@ -292,9 +310,9 @@ function KeyboardHeatmapWithStats({
               Strongest Keys
             </span>
             {strengthsAndWeaknesses.strongest.length === 0 ? (
-              <span className="text-xs text-text-muted">Not enough data.</span>
+              <span className="text-xs text-text-muted font-medium">Not enough data.</span>
             ) : (
-              <GroupedList>
+              <div className="divide-y divide-border/10 border border-border/10 rounded-lg overflow-hidden bg-surface/30">
                 {strengthsAndWeaknesses.strongest.map((item) => (
                   <GroupedListItem
                     key={item.key}
@@ -307,7 +325,7 @@ function KeyboardHeatmapWithStats({
                     }
                   />
                 ))}
-              </GroupedList>
+              </div>
             )}
           </div>
 
@@ -317,9 +335,9 @@ function KeyboardHeatmapWithStats({
               Weakest Keys
             </span>
             {strengthsAndWeaknesses.weakest.length === 0 ? (
-              <span className="text-xs text-text-muted">Not enough data.</span>
+              <span className="text-xs text-text-muted font-medium">Not enough data.</span>
             ) : (
-              <GroupedList>
+              <div className="divide-y divide-border/10 border border-border/10 rounded-lg overflow-hidden bg-surface/30">
                 {strengthsAndWeaknesses.weakest.map((item) => (
                   <GroupedListItem
                     key={item.key}
@@ -333,7 +351,7 @@ function KeyboardHeatmapWithStats({
                     }
                   />
                 ))}
-              </GroupedList>
+              </div>
             )}
           </div>
         </div>
@@ -345,12 +363,10 @@ function KeyboardHeatmapWithStats({
 function ActivityCalendar({ history }: { history: SessionResult[] }) {
   const days = useMemo(() => {
     const today = new Date()
-    today.setHours(12, 0, 0, 0) // Normalize to noon to avoid DST/timezone shift issues
+    today.setHours(12, 0, 0, 0)
     const endDate = new Date(today)
-    // Align to the Saturday of the current week
     endDate.setDate(today.getDate() + (6 - today.getDay()))
 
-    // Start date is Sunday of 26 weeks ago (endDate - 181 days)
     const startDate = new Date(endDate)
     startDate.setDate(endDate.getDate() - 181)
 
@@ -407,7 +423,6 @@ function ActivityCalendar({ history }: { history: SessionResult[] }) {
 
         {/* Grid and Day Labels */}
         <div className="flex gap-2.5">
-          {/* Day column */}
           <div className="grid grid-rows-7 text-[8px] font-bold text-text-tertiary/70 uppercase select-none pt-[2px] pb-[2px] pr-1.5 leading-none h-[90px] justify-between">
             <span>Sun</span>
             <span className="invisible">Mon</span>
@@ -418,14 +433,13 @@ function ActivityCalendar({ history }: { history: SessionResult[] }) {
             <span>Sat</span>
           </div>
 
-          {/* 7 rows by 26 columns grid */}
           <div className="grid grid-flow-col grid-rows-7 gap-1 h-[90px]">
             {days.map((day, idx) => {
               const dateStr = day.toDateString()
               const count = activityMap[dateStr] || 0
 
-              // Premium theme colors based on typing activity counts
-              let colorClass = "bg-text-muted/10 dark:bg-white/5 border border-transparent"
+              // Darker gray boxes in light mode for higher visibility
+              let colorClass = "bg-neutral-300 dark:bg-white/5 border border-transparent"
               if (count > 0 && count <= 2) colorClass = "bg-accent/25 border border-accent/10"
               else if (count > 2 && count <= 4) colorClass = "bg-accent/55 border border-accent/20"
               else if (count > 4) colorClass = "bg-accent border border-accent-hover/30"
@@ -439,7 +453,6 @@ function ActivityCalendar({ history }: { history: SessionResult[] }) {
                   <div
                     className={`w-[10px] h-[10px] rounded-[2px] transition-all duration-150 hover:scale-[1.15] ${colorClass}`}
                   />
-                  {/* Tooltip Popup using app-standard style */}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 w-max max-w-[200px] opacity-0 group-hover:opacity-100 pointer-events-none z-50 transform scale-95 group-hover:scale-100 transition-all duration-150 bg-surface/95 border border-border/15 backdrop-blur-xl px-2.5 py-1.5 rounded-xl text-[10px] text-text-secondary text-center shadow-lg leading-normal font-sans font-semibold">
                     {tooltipText}
                   </div>
@@ -452,7 +465,7 @@ function ActivityCalendar({ history }: { history: SessionResult[] }) {
         {/* Legend */}
         <div className="flex justify-end items-center gap-1.5 mt-2.5 text-[9px] text-text-tertiary font-bold uppercase tracking-wider pr-1">
           <span>Less</span>
-          <div className="w-[10px] h-[10px] rounded-[2px] bg-text-muted/10 dark:bg-white/5" />
+          <div className="w-[10px] h-[10px] rounded-[2px] bg-neutral-300 dark:bg-white/5" />
           <div className="w-[10px] h-[10px] rounded-[2px] bg-accent/25" />
           <div className="w-[10px] h-[10px] rounded-[2px] bg-accent/55" />
           <div className="w-[10px] h-[10px] rounded-[2px] bg-accent" />
@@ -471,6 +484,7 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false)
   const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false)
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false)
+  const [isButtonTextHidden, setIsButtonTextHidden] = useState(false)
 
   // Custom challenge modal settings state
   const [isChallengeModalOpen, setIsChallengeModalOpen] = useState(false)
@@ -618,10 +632,13 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-6 md:px-8 py-6 animate-fade-in font-sans select-none">
-      <WhiteCard>
-        {/* Main Profile Header / Info Card */}
+      
+      {/* Single continuous card */}
+      <div className="bg-surface-secondary/35 dark:bg-surface-secondary/20 border border-border/10 rounded-[20px] shadow-sm overflow-hidden">
+        
+        {/* 1. Header Profile */}
         <div
-          className="px-1 py-5 flex flex-col md:flex-row md:items-center justify-between border-b border-border/10 select-none gap-4 cursor-pointer hover:bg-surface-hover/30 transition-colors duration-150 rounded-t-[20px]"
+          className="px-6 py-6 flex flex-col md:flex-row md:items-center justify-between select-none gap-4 cursor-pointer hover:bg-surface-hover/30 transition-colors duration-150"
           onClick={() => {
             playClickSound("click")
             setIsEditDrawerOpen(true)
@@ -707,29 +724,34 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-          <div className="shrink-0 flex items-center">
-            <button
+          <div className="shrink-0 flex items-center min-h-[38px] px-6">
+            <Button
+              layoutId="edit-profile-card"
               onClick={() => {
                 playClickSound("click")
+                setIsButtonTextHidden(true)
                 setIsEditDrawerOpen(true)
               }}
-              className="px-4 py-2 rounded-[10px] border border-border/15 bg-surface-secondary/40 text-text-primary hover:bg-surface-hover transition-all duration-150 active:scale-[0.97] cursor-pointer text-xs font-semibold"
             >
-              Edit Profile
-            </button>
+              <span className={isButtonTextHidden ? "opacity-0" : "opacity-100 transition-opacity duration-150"}>
+                Edit Profile
+              </span>
+            </Button>
           </div>
         </div>
 
-        {/* Section 1: Personal Statistics */}
-        <div className="py-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
+        <div className="mx-6 border-t border-border/10" />
+        
+        {/* 2. Personal Statistics */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="text-[17px] font-bold text-text-primary select-none">
             Personal Statistics
           </div>
-          <GroupedList>
+          <div className="divide-y divide-border/10 border border-border/10 rounded-[10px] overflow-hidden bg-surface/30">
             <GroupedListItem
               title="Best Speed"
               rightElement={
-                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.bestWpm} WPM
                 </span>
               }
@@ -737,7 +759,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Average Speed"
               rightElement={
-                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.avgWpm} WPM
                 </span>
               }
@@ -745,7 +767,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Total Sessions"
               rightElement={
-                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.totalSessions} run{statsSummary.totalSessions !== 1 && "s"}
                 </span>
               }
@@ -753,7 +775,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Average Accuracy"
               rightElement={
-                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {statsSummary.avgAccuracy}%
                 </span>
               }
@@ -761,7 +783,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Leaderboard Rank"
               rightElement={
-                <span className="text-[16px] font-bold text-accent font-sans tabular-nums">
+                <span className="text-[15px] font-bold text-accent font-sans tabular-nums">
                   {rank !== null ? `#${rank}` : "Unranked"}
                 </span>
               }
@@ -769,7 +791,7 @@ export default function ProfilePage() {
             <GroupedListItem
               title="Account Created"
               rightElement={
-                <span className="text-[15px] font-bold text-accent font-sans">
+                <span className="text-[14px] font-bold text-accent font-sans">
                   {profileData?.createdAt
                     ? new Date(profileData.createdAt).toLocaleDateString(undefined, {
                         month: "long",
@@ -779,25 +801,27 @@ export default function ProfilePage() {
                 </span>
               }
             />
-          </GroupedList>
+          </div>
         </div>
 
-        {/* Section 1b: Friends & Social */}
-        <div className="py-4 border-t border-border/10 mt-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none flex justify-between items-center">
-            <span>Friends & Social</span>
-            <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-sans select-none">
+        <div className="mx-6 border-t border-border/10" />
+
+        {/* 3. Friends & Social */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="flex justify-between items-center select-none">
+            <span className="text-[17px] font-bold text-text-primary">Friends & Social</span>
+            <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider font-sans">
               {friends.length} friend{friends.length !== 1 && "s"}
             </span>
           </div>
 
           {/* Pending Requests */}
           {pendingRequests.length > 0 && (
-            <div className="mb-6">
-              <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider block mb-2 px-1 font-sans select-none">
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider block px-1 font-sans select-none">
                 Pending Requests ({pendingRequests.length})
               </span>
-              <GroupedList>
+              <div className="divide-y divide-border/10 border border-border/10 rounded-lg overflow-hidden bg-surface/30">
                 {pendingRequests.map((req) => (
                   <GroupedListItem
                     key={req.id}
@@ -830,24 +854,15 @@ export default function ProfilePage() {
                     }
                     rightElement={
                       <div className="flex gap-2">
-                        {/* Accept request button: Checkmark */}
                         <button
                           onClick={() => handleAcceptRequest(req.id)}
                           className="w-7 h-7 flex items-center justify-center rounded-full bg-[#34c759]/10 text-[#34c759] border border-[#34c759]/20 hover:bg-[#34c759]/20 transition-all duration-150 active:scale-[0.9] cursor-pointer"
                           title="Accept"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-3.5 h-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                             <polyline points="20 6 9 17 4 12" />
                           </svg>
                         </button>
-                        {/* Decline request button: Cross */}
                         <button
                           onClick={() =>
                             handleDeclineRequestPrompt(req.id, req.sender.name || req.sender.username || "this user")
@@ -855,14 +870,7 @@ export default function ProfilePage() {
                           className="w-7 h-7 flex items-center justify-center rounded-full bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20 hover:bg-[#ff3b30]/20 transition-all duration-150 active:scale-[0.9] cursor-pointer"
                           title="Decline"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="w-3.5 h-3.5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                             <line x1="18" y1="6" x2="6" y2="18" />
                             <line x1="6" y1="6" x2="18" y2="18" />
                           </svg>
@@ -871,17 +879,17 @@ export default function ProfilePage() {
                     }
                   />
                 ))}
-              </GroupedList>
+              </div>
             </div>
           )}
 
           {/* Friends List */}
           {friends.length === 0 ? (
-            <div className="w-full text-center py-6 text-text-muted text-xs bg-surface-secondary/10 border border-border/5 rounded-2xl font-sans">
+            <div className="w-full text-center py-8 text-text-muted text-xs bg-surface/20 border border-border/5 rounded-lg font-sans">
               You haven't added any friends yet.
             </div>
           ) : (
-            <GroupedList>
+            <div className="divide-y divide-border/10 border border-border/10 rounded-lg overflow-hidden bg-surface/30">
               {friends.map((friend) => {
                 const isOnline = onlineFriends.has(friend.id)
                 return (
@@ -916,7 +924,6 @@ export default function ProfilePage() {
                             </span>
                           )}
                         </div>
-                        {/* Online status indicator */}
                         <span
                           className={`absolute bottom-0 right-0 block h-2 w-2 rounded-full ring-[1.5px] ring-surface ${
                             isOnline ? "bg-[#34c759]" : "bg-text-tertiary/40"
@@ -926,11 +933,7 @@ export default function ProfilePage() {
                     }
                     rightElement={
                       <div className="flex items-center gap-3 font-sans select-none pr-1">
-                        <span
-                          className={`text-[11px] font-semibold ${
-                            isOnline ? "text-[#34c759]" : "text-text-tertiary"
-                          }`}
-                        >
+                        <span className={`text-[11px] font-semibold ${isOnline ? "text-[#34c759]" : "text-text-tertiary"}`}>
                           {isOnline ? "Online" : "Offline"}
                         </span>
                         {isOnline && (
@@ -946,21 +949,25 @@ export default function ProfilePage() {
                   />
                 )
               })}
-            </GroupedList>
+            </div>
           )}
         </div>
 
-        {/* Section 2: Performance Trends */}
-        <div className="py-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
+        <div className="mx-6 border-t border-border/10" />
+
+        {/* 4. Performance Trends */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="text-[17px] font-bold text-text-primary select-none">
             Performance Trends
           </div>
           <PerformanceTrendChart data={chartData} />
         </div>
 
-        {/* Section 3: Keyboard Heatmap */}
-        <div className="py-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
+        <div className="mx-6 border-t border-border/10" />
+
+        {/* 5. Keyboard Heatmap */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="text-[17px] font-bold text-text-primary select-none">
             Keyboard Heatmap
           </div>
           <KeyboardHeatmapWithStats 
@@ -969,54 +976,42 @@ export default function ProfilePage() {
           />
         </div>
 
-        {/* Section 4: Activity Logs */}
-        <div className="py-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
+        <div className="mx-6 border-t border-border/10" />
+
+        {/* 6. Activity Logs */}
+        <div className="px-6 py-5 space-y-4">
+          <div className="text-[17px] font-bold text-text-primary select-none">
             Activity Logs
           </div>
           <ActivityCalendar history={history} />
         </div>
 
-        {/* Section 5: Session History */}
-        <div className="py-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
-            Session History
-          </div>
-          <div className="[&>div:first-child]:mt-0 [&_.mb-6]:mb-4 [&_.border-b]:border-none [&_span.text-xs.font-semibold.text-text-secondary]:hidden">
-            <StatsHistory />
-          </div>
+        <div className="mx-6 border-t border-border/10" />
+
+        {/* 7. Session History */}
+        <div className="px-6 py-5">
+          <StatsHistory variant="dialog" showHeader={true} clearButtonStyle="red-button" />
         </div>
 
-        {/* Section 6: Account Actions */}
-        <div className="py-4 border-t border-border/10 mt-4">
-          <div className="px-1 pb-3 text-[17px] font-bold text-text-secondary select-none">
-            Account Options
-          </div>
-          <GroupedList>
-            <GroupedListItem
-              title="Sign Out"
-              destructive
+        <div className="mx-6 border-t border-border/10" />
+
+        {/* 8. Account Options — Sign Out */}
+        <div className="px-6 py-5">
+          <div className="flex justify-end">
+            <button
               onClick={() => setIsSignOutModalOpen(true)}
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-4 h-4"
-                >
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              }
-            />
-          </GroupedList>
+              className="px-5 py-2 rounded-[10px] font-sans text-xs font-bold tracking-wide transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none flex items-center justify-center gap-1.5 bg-[#ff3b30]/10 text-[#ff3b30] border border-[#ff3b30]/20 hover:bg-[#ff3b30]/20"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Sign Out
+            </button>
+          </div>
         </div>
-      </WhiteCard>
+      </div>
 
       {/* Confirmation Alert Modal */}
       <AlertModal
@@ -1067,7 +1062,12 @@ export default function ProfilePage() {
       {/* Profile Edit Drawer */}
       <EditProfileDrawer
         isOpen={isEditDrawerOpen}
-        onClose={() => setIsEditDrawerOpen(false)}
+        onClose={() => {
+          setIsEditDrawerOpen(false)
+          setTimeout(() => {
+            setIsButtonTextHidden(false)
+          }, 200)
+        }}
         initialUser={profileData}
         onSaveSuccess={loadProfile}
       />

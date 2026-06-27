@@ -8,8 +8,7 @@ import { getSeededBattleWords } from "@/lib/words/seeded"
 import { initializeWords } from "@/engine/typing-engine"
 import TypingArea from "@/components/typing/TypingArea"
 import StatsBar from "@/components/stats/StatsBar"
-import WhiteCard from "@/components/ui/WhiteCard"
-import Link from "next/link"
+import Container from "@/components/ui/Container"
 import { useTypingEngine } from "@/hooks/useTypingEngine"
 import { playClickSound } from "@/lib/audio"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -194,7 +193,7 @@ export default function LiveBattleView() {
   }
 
   return (
-    <div className="w-full flex-1 flex flex-col items-center justify-center font-sans select-none relative py-6">
+    <div className="w-full flex-1 flex flex-col font-sans select-none relative">
       
       {/* 3-2-1 Countdown screen */}
       {activeRoomStatus === "countdown" && countdownRemaining !== null && (
@@ -208,50 +207,55 @@ export default function LiveBattleView() {
         </div>
       )}
 
-      {/* Disconnected state alert overlay */}
+      {/* Status banners — centered, minimal */}
       {activeRoomStatus === "disconnected" && (
-        <div className="w-full max-w-2xl bg-[#ff9500]/10 border border-[#ff9500]/30 rounded-xl p-3 px-4 mb-4 flex items-center justify-center gap-2 animate-pulse text-[#ff9500]">
-          <span className="w-2 h-2 rounded-full bg-[#ff9500]" />
-          <span className="text-xs font-bold uppercase tracking-wider">Opponent disconnected! Waiting up to 30s for reconnection...</span>
-        </div>
-      )}
-
-      {/* Waiting for opponent banner */}
-      {waitingForOpponent && (activeRoomStatus === "active" || activeRoomStatus === "disconnected") && (
-        <div className="w-full max-w-2xl bg-surface-secondary/50 border border-border/10 rounded-xl p-3 px-4 mb-4 flex items-center justify-center gap-3 animate-pulse text-text-secondary">
-          <div className="w-4 h-4 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
-          <span className="text-xs font-bold uppercase tracking-wider">
-            Completed! Waiting for opponent to finish...
-          </span>
-        </div>
-      )}
-
-      {/* Active Battle Board */}
-      {(activeRoomStatus === "active" || activeRoomStatus === "disconnected" || activeRoomStatus === "countdown") && (
-        <div className="w-full max-w-5xl flex flex-col">
-          {/* Room details */}
-          <div className="flex justify-between items-center px-4 mb-4 select-none">
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider">Active Match</span>
-              <span className="text-sm font-semibold text-text-primary mt-0.5">Vs {opponent?.name || opponent?.username || "Friend"}</span>
-            </div>
-            <span className="text-[10px] font-mono bg-surface-secondary/40 border border-border/10 rounded px-2 py-0.5 text-text-tertiary">
-              ROOM: {activeRoomId.substring(0, 8)}
-            </span>
+        <Container className="pt-2">
+          <div className="w-full bg-[#ff9500]/10 border border-[#ff9500]/30 rounded-2xl p-3 flex items-center justify-center gap-2 animate-pulse text-[#ff9500]">
+            <span className="w-2 h-2 rounded-full bg-[#ff9500]" />
+            <span className="text-[13px] font-semibold">Opponent disconnected — waiting 30s for reconnection</span>
           </div>
+        </Container>
+      )}
 
-          <WhiteCard className="py-6 px-8 relative">
-            {/* The shared Typing Area */}
-            <TypingArea />
+      {waitingForOpponent && (activeRoomStatus === "active" || activeRoomStatus === "disconnected") && (
+        <Container className="pt-2">
+          <div className="w-full bg-surface-secondary/50 border border-border/10 rounded-2xl p-3 flex items-center justify-center gap-3 animate-pulse text-text-secondary">
+            <div className="w-4 h-4 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
+            <span className="text-[13px] font-semibold">Finished — waiting for opponent</span>
+          </div>
+        </Container>
+      )}
 
-            {/* Live stats */}
-            {(typingStatus === "running" || (typingStatus === "finished" && waitingForOpponent)) && (
-              <div className="mt-4">
-                <StatsBar wpm={wpm} accuracy={accuracy} time={null} mode="battle" />
+      {/* Active Battle — matches home page layout exactly */}
+      {(activeRoomStatus === "active" || activeRoomStatus === "disconnected" || activeRoomStatus === "countdown") && (
+        <>
+          {/* Opponent badge — subtle, top-right corner */}
+          <Container className="flex flex-col">
+            <div className={`flex items-center justify-end mb-2 transition-opacity duration-100 ${typingStatus === "running" ? "opacity-100" : "opacity-40"}`}>
+              <div className="flex items-center gap-2 bg-surface-secondary/60 border border-border/10 rounded-full px-3 py-1.5">
+                <span className="w-2 h-2 rounded-full bg-text-tertiary animate-pulse" />
+                <span className="text-[12px] font-semibold text-text-secondary">
+                  {opponent?.name || opponent?.username || "Opponent"}
+                </span>
+                <span className="text-[11px] font-medium text-text-tertiary tabular-nums">
+                  {Math.round(opponentProgress * 100)}%
+                </span>
               </div>
+            </div>
+          </Container>
+
+          {/* Full-width typing area — same as home page */}
+          <Container size="7xl" className="py-4 px-6 md:px-6">
+            <TypingArea />
+          </Container>
+
+          {/* Stats bar — same position as home page */}
+          <Container className="flex flex-col mt-4">
+            {(typingStatus === "running" || (typingStatus === "finished" && waitingForOpponent)) && (
+              <StatsBar wpm={wpm} accuracy={accuracy} time={null} mode="battle" />
             )}
-          </WhiteCard>
-        </div>
+          </Container>
+        </>
       )}
 
       {/* Finished / Abandoned stats overview */}

@@ -11,6 +11,8 @@ interface AnalysisDrawerProps {
   isOpen: boolean
   onClose: () => void
   result: SessionResult
+  variant?: "drawer" | "dialog"
+  layoutId?: string
 }
 
 function getPerformanceGrade(wpm: number, accuracy: number): { grade: string; label: string; color: string } {
@@ -50,7 +52,13 @@ function getAccuracyStyle(accuracy: number): { color: string; label?: string } {
   return { color: "text-incorrect", label: "Needs Work" }
 }
 
-export default function AnalysisDrawer({ isOpen, onClose, result }: AnalysisDrawerProps) {
+export default function AnalysisDrawer({
+  isOpen,
+  onClose,
+  result,
+  variant = "drawer",
+  layoutId,
+}: AnalysisDrawerProps) {
   const reducedMotion = useSettingsStore((s) => s.reducedMotion)
   const timeline = result.timeline ?? []
   const errorKeys = result.errorKeys ?? {}
@@ -95,12 +103,12 @@ export default function AnalysisDrawer({ isOpen, onClose, result }: AnalysisDraw
     return { key, prevAcc, currentAcc, diff }
   }) : []
 
-  // 1. Calculations for WPM Chart
+  // Calculations for WPM Chart
   const wpmPoints = timeline.map(t => t.wpm)
   const maxWpm = Math.max(80, ...wpmPoints, result.wpm)
   const minWpm = Math.min(10, ...wpmPoints)
   
-  // 2. Calculations for Accuracy Chart
+  // Calculations for Accuracy Chart
   const accPoints = timeline.map(t => t.accuracy)
   const maxAcc = 100
   const minAcc = Math.min(80, ...accPoints)
@@ -165,303 +173,503 @@ export default function AnalysisDrawer({ isOpen, onClose, result }: AnalysisDraw
 
   const gradeInfo = getPerformanceGrade(result.wpm, result.accuracy)
   const accStyle = getAccuracyStyle(result.accuracy)
+  const isDialog = variant === "dialog"
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-60 flex flex-col justify-end pointer-events-none">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 pointer-events-none select-none">
           {/* Backdrop Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-[3px] pointer-events-auto"
+            className="fixed inset-0 bg-black/40 backdrop-blur-[4px] pointer-events-auto"
             onClick={() => {
               playClickSound("click")
               onClose()
             }}
           />
 
-          {/* iOS Slide-up Analysis Drawer */}
-          <motion.div
-            initial={reducedMotion ? { y: 0, opacity: 0 } : { y: "100%" }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={reducedMotion ? { opacity: 0 } : { y: "100%" }}
-            transition={
-              reducedMotion
-                ? { duration: 0.15, ease: "easeOut" as const }
-                : { type: "spring" as const, damping: 28, stiffness: 250, mass: 0.9 }
-            }
-            className="relative w-full max-w-xl mx-auto bg-surface/90 border border-border border-b-0 backdrop-blur-[40px] rounded-t-[38px] p-6 pb-10 shadow-[0_-15px_50px_rgba(0,0,0,0.25)] pointer-events-auto flex flex-col max-h-[90vh] overflow-y-auto select-none"
-          >
-            {/* iOS Drag Handle */}
-            <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-5 mt-1 shrink-0" />
-
-            {/* Back/Close Button */}
-            <button
-              onClick={() => {
-                playClickSound("click")
-                onClose()
-              }}
-              className="absolute top-6 right-6 w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/15 dark:border-white/15 text-text-primary flex items-center justify-center transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
-              aria-label="Close"
+          {/* Morphing Dialog / iOS Drawer Container */}
+          {isDialog ? (
+            <motion.div
+              layoutId={layoutId}
+              className="relative w-full max-w-xl bg-neutral-100/95 dark:bg-neutral-900/95 border border-neutral-200/50 dark:border-neutral-800/50 backdrop-blur-xl rounded-[20px] shadow-[0_15px_50px_rgba(0,0,0,0.18)] pointer-events-auto flex flex-col max-h-[80vh] overflow-hidden"
+              style={{ borderRadius: "20px" }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              {/* FIXED Header & Close Button Area (non-scrollable to prevent shifting) */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.1, duration: 0.15 }}
+                className="relative z-20 px-6 pt-6 pb-2 shrink-0 flex justify-between items-start"
+              >
+                <div>
+                  <span className="text-[11px] font-bold tracking-wider text-accent font-sans block mb-1 uppercase">
+                    Diagnostic Analysis
+                  </span>
+                  <h3 className="text-[20px] font-sans font-bold text-neutral-800 dark:text-neutral-200">
+                    Session Breakdown
+                  </h3>
+                </div>
 
-            {/* Title */}
-            <div className="mb-4">
-              <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-0.5 uppercase">
-                Diagnostic Analysis
-              </span>
-              <h3 className="text-xl font-sans font-bold text-text-primary">
-                Session Breakdown
-              </h3>
-            </div>
+                {/* Close Button */}
+                <button
+                  onClick={() => {
+                    playClickSound("click")
+                    onClose()
+                  }}
+                  className="w-7 h-7 rounded-full bg-neutral-200/60 dark:bg-neutral-800/60 hover:bg-neutral-300/60 dark:hover:bg-neutral-700/60 border border-neutral-300/30 dark:border-neutral-700/30 text-neutral-800 dark:text-neutral-200 flex items-center justify-center transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
+                  aria-label="Close"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </motion.div>
 
-            {/* Hero stats layout - WPM & Performance Grade side-by-side */}
-            <div className="grid grid-cols-2 divide-x divide-border/10 my-4 font-sans shrink-0">
-              {/* Left Column: WPM */}
-              <div className="text-center">
-                <span className="text-[40px] font-sans font-bold text-text-primary leading-none tracking-tight">
-                  {result.wpm}
-                </span>
-                <span className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mt-1.5">
-                  Speed (WPM)
-                </span>
-              </div>
-
-              {/* Right Column: Grade */}
-              <div className="text-center">
-                <span className={`text-[40px] font-sans font-bold leading-none tracking-tight ${gradeInfo.color}`}>
-                  {gradeInfo.grade}
-                </span>
-                <span className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mt-1.5">
-                  Grade: {gradeInfo.label}
-                </span>
-              </div>
-            </div>
-
-            {/* Secondary stats list */}
-            <div className="w-full my-4 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans shrink-0">
-              {/* Accuracy Row */}
-              <div className="flex items-center justify-between px-4 py-3 text-[14px]">
-                <span className="text-text-secondary font-medium">Accuracy</span>
-                <div className="flex items-center gap-1.5 font-semibold tabular-nums">
-                  {accStyle.label && (
-                    <span className={`text-[9px] uppercase tracking-wider font-bold ${accStyle.color}`}>
-                      {accStyle.label}
+              {/* Scrollable Form Body Content */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.1, duration: 0.15 }}
+                className="relative z-10 px-6 pb-6 overflow-y-auto flex-1 min-h-0"
+              >
+                {/* Hero stats layout - WPM & Performance Grade side-by-side */}
+                <div className="grid grid-cols-2 divide-x divide-border/10 my-4 font-sans shrink-0">
+                  <div className="text-center">
+                    <span className="text-[40px] font-sans font-bold text-neutral-800 dark:text-neutral-200 leading-none tracking-tight">
+                      {result.wpm}
                     </span>
+                    <span className="block text-[10px] text-neutral-500 dark:text-neutral-400 font-semibold uppercase tracking-wider mt-1.5">
+                      Speed (WPM)
+                    </span>
+                  </div>
+                  <div className="text-center">
+                    <span className={`text-[40px] font-sans font-bold leading-none tracking-tight ${gradeInfo.color}`}>
+                      {gradeInfo.grade}
+                    </span>
+                    <span className="block text-[10px] text-neutral-500 dark:text-neutral-400 font-semibold uppercase tracking-wider mt-1.5">
+                      Grade: {gradeInfo.label}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Secondary stats list */}
+                <div className="w-full my-4 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans shrink-0">
+                  <div className="flex items-center justify-between px-4 py-3 text-[14px]">
+                    <span className="text-text-secondary font-medium">Accuracy</span>
+                    <div className="flex items-center gap-1.5 font-semibold tabular-nums">
+                      {accStyle.label && (
+                        <span className={`text-[9px] uppercase tracking-wider font-bold ${accStyle.color}`}>
+                          {accStyle.label}
+                        </span>
+                      )}
+                      <span className={accStyle.color}>{result.accuracy}%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3 text-[14px]">
+                    <span className="text-text-secondary font-medium">Time Taken</span>
+                    <span className="text-text-primary font-semibold tabular-nums">{result.duration.toFixed(1)}s</span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3 text-[14px]">
+                    <span className="text-text-secondary font-medium">Correct Keys</span>
+                    <span className="text-text-primary font-semibold tabular-nums">{result.correctKeystrokes} / {result.totalKeystrokes}</span>
+                  </div>
+                </div>
+
+                {/* Timeline Charts Section */}
+                <div className="space-y-6 flex-1 mt-4">
+                  {timeline.length >= 2 ? (
+                    <>
+                      {/* WPM Timeline */}
+                      <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                            WPM Timeline
+                          </span>
+                          <span className="text-sm font-bold text-accent font-sans tabular-nums">
+                            Peak: {Math.max(...wpmPoints)} WPM
+                          </span>
+                        </div>
+                        <div className="relative h-28 w-full mt-2">
+                          <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                            <defs>
+                              <linearGradient id="wpmGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.25" />
+                                <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.0" />
+                              </linearGradient>
+                            </defs>
+                            <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                            <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                            <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                            <path d={generateSvgAreaPath(wpmPoints, minWpm, maxWpm, 400, 100)} fill="url(#wpmGrad)" />
+                            <path d={generateSvgPath(wpmPoints, minWpm, maxWpm, 400, 100)} fill="none" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
+                          <span>Start</span>
+                          <span>{result.duration.toFixed(1)}s</span>
+                        </div>
+                      </div>
+
+                      {/* Accuracy Timeline */}
+                      <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                        <div className="flex justify-between items-center mb-3">
+                          <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                            Accuracy Timeline
+                          </span>
+                          <span className="text-sm font-bold text-correct font-sans tabular-nums">
+                            Current: {result.accuracy}%
+                          </span>
+                        </div>
+                        <div className="relative h-28 w-full mt-2">
+                          <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                            <defs>
+                              <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="var(--color-correct)" stopOpacity="0.25" />
+                                <stop offset="100%" stopColor="var(--color-correct)" stopOpacity="0.0" />
+                              </linearGradient>
+                            </defs>
+                            <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                            <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                            <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                            <path d={generateSvgAreaPath(accPoints, minAcc, maxAcc, 400, 100)} fill="url(#accGrad)" />
+                            <path d={generateSvgPath(accPoints, minAcc, maxAcc, 400, 100)} fill="none" stroke="var(--color-correct)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
+                          <span>Start</span>
+                          <span>{result.duration.toFixed(1)}s</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="bg-surface-secondary/30 border border-border/10 rounded-2xl p-8 text-center text-xs text-text-tertiary">
+                      Timeline data unavailable for this run duration.
+                    </div>
                   )}
-                  <span className={accStyle.color}>{result.accuracy}%</span>
-                </div>
-              </div>
-              {/* Time Duration Row */}
-              <div className="flex items-center justify-between px-4 py-3 text-[14px]">
-                <span className="text-text-secondary font-medium">Time Taken</span>
-                <span className="text-text-primary font-semibold tabular-nums">{result.duration.toFixed(1)}s</span>
-              </div>
-              {/* Characters Correctness Row */}
-              <div className="flex items-center justify-between px-4 py-3 text-[14px]">
-                <span className="text-text-secondary font-medium">Correct Keys</span>
-                <span className="text-text-primary font-semibold tabular-nums">{result.correctKeystrokes} / {result.totalKeystrokes}</span>
-              </div>
-            </div>
 
-            {/* Timeline Charts Section */}
-            <div className="space-y-6 flex-1 mt-4">
-              {timeline.length >= 2 ? (
-                <>
-                  {/* WPM Timeline */}
+                  {/* Error Heatmap */}
                   <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
-                        WPM Timeline
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block">
+                        Mistake Heatmap
                       </span>
-                      <span className="text-sm font-bold text-accent font-sans tabular-nums">
-                        Peak: {Math.max(...wpmPoints)} WPM
-                      </span>
-                    </div>
-
-                    <div className="relative h-28 w-full mt-2">
-                      <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-                        <defs>
-                          <linearGradient id="wpmGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-                        {/* Gridlines */}
-                        <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        
-                        {/* Area */}
-                        <path
-                          d={generateSvgAreaPath(wpmPoints, minWpm, maxWpm, 400, 100)}
-                          fill="url(#wpmGrad)"
-                        />
-                        
-                        {/* Line */}
-                        <path
-                          d={generateSvgPath(wpmPoints, minWpm, maxWpm, 400, 100)}
-                          fill="none"
-                          stroke="var(--color-accent)"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
-                      <span>Start</span>
-                      <span>{result.duration.toFixed(1)}s</span>
-                    </div>
-                  </div>
-
-                  {/* Accuracy Timeline */}
-                  <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
-                        Accuracy Timeline
-                      </span>
-                      <span className="text-sm font-bold text-correct font-sans tabular-nums">
-                        Current: {result.accuracy}%
+                      <span className="text-xs text-text-tertiary font-medium">
+                        {totalErrors} key errors logged
                       </span>
                     </div>
-
-                    <div className="relative h-28 w-full mt-2">
-                      <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-                        <defs>
-                          <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-correct)" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="var(--color-correct)" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-                        {/* Gridlines */}
-                        <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
-                        
-                        {/* Area */}
-                        <path
-                          d={generateSvgAreaPath(accPoints, minAcc, maxAcc, 400, 100)}
-                          fill="url(#accGrad)"
-                        />
-                        
-                        {/* Line */}
-                        <path
-                          d={generateSvgPath(accPoints, minAcc, maxAcc, 400, 100)}
-                          fill="none"
-                          stroke="var(--color-correct)"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
-                      <span>Start</span>
-                      <span>{result.duration.toFixed(1)}s</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="bg-surface-secondary/30 border border-border/10 rounded-2xl p-8 text-center text-xs text-text-tertiary">
-                  Timeline data unavailable for this run duration.
-                </div>
-              )}
-
-              {/* Error Heatmap */}
-              <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block">
-                    Mistake Heatmap
-                  </span>
-                  <span className="text-xs text-text-tertiary font-medium">
-                    {totalErrors} key errors logged
-                  </span>
-                </div>
-
-                {/* Keyboard layout view */}
-                <div className="flex flex-col gap-1 w-full max-w-sm mx-auto select-none mt-2">
-                  {keyboardRows.map((row, rIdx) => (
-                    <div key={rIdx} className="flex justify-center gap-1 w-full">
-                      {row.map((char) => (
-                        <div
-                          key={char}
-                          className={`w-7.5 h-7.5 rounded-md flex items-center justify-center text-[11px] font-sans border transition-colors ${getKeyHeatmapStyle(
-                            char
-                          )}`}
-                          title={errorKeys[char] ? `${errorKeys[char]} mistakes on ${char}` : `No mistakes on ${char}`}
-                        >
-                          {char.toUpperCase()}
+                    <div className="flex flex-col gap-1 w-full max-w-sm mx-auto select-none mt-2">
+                      {keyboardRows.map((row, rIdx) => (
+                        <div key={rIdx} className="flex justify-center gap-1 w-full">
+                          {row.map((char) => (
+                            <div
+                              key={char}
+                              className={`w-7.5 h-7.5 rounded-md flex items-center justify-center text-[11px] font-sans border transition-colors ${getKeyHeatmapStyle(
+                                char
+                              )}`}
+                              title={errorKeys[char] ? `${errorKeys[char]} mistakes on ${char}` : `No mistakes on ${char}`}
+                            >
+                              {char.toUpperCase()}
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Drill Focus Stats */}
+                  {isDrill && (focusKeys.length > 0 || focusBigrams.length > 0) && (
+                    <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5 text-left space-y-3 font-sans">
+                      <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block">
+                        Target Key Stats Post-Drill
+                      </span>
+                      <div className="grid grid-cols-2 gap-3 w-full">
+                        {focusKeysStats.map((item) => (
+                          <div key={item.key} className="bg-surface border border-border/10 rounded-[16px] p-3 flex flex-col gap-1 shadow-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[14px] text-text-primary">
+                                {item.key.toUpperCase()} <span className="text-[10px] font-medium text-text-secondary lowercase">mastery</span>
+                              </span>
+                              {item.diff !== 0 && (
+                                <span className={`text-[10px] font-bold ${item.diff > 0 ? "text-correct" : "text-incorrect"}`}>
+                                  {item.diff > 0 ? `+${item.diff}%` : `${item.diff}%`}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-baseline gap-1 text-[12px] text-text-secondary font-medium mt-0.5">
+                              <span className="tabular-nums font-semibold">{item.prevAcc}%</span>
+                              <span className="text-text-tertiary">&rarr;</span>
+                              <span className="tabular-nums font-bold text-accent">{item.currentAcc}%</span>
+                            </div>
+                          </div>
+                        ))}
+                        {focusBigrams.map((b) => (
+                          <div key={b} className="bg-surface border border-border/10 rounded-[16px] p-3 flex flex-col gap-1 shadow-sm justify-center">
+                            <span className="font-bold text-[14px] text-text-primary">
+                              {b.toUpperCase()} <span className="text-[10px] font-medium text-text-secondary lowercase">bigram</span>
+                            </span>
+                            <span className="text-[12px] text-text-tertiary mt-0.5 font-medium">Transition focused</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Done Button */}
+                <button
+                  onClick={() => {
+                    playClickSound("click")
+                    onClose()
+                  }}
+                  className="w-full h-11 rounded-full bg-[#007aff] dark:bg-[#0a84ff] hover:opacity-90 text-white font-sans text-xs font-bold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0 mt-6"
+                >
+                  Done
+                </button>
+              </motion.div>
+            </motion.div>
+          ) : (
+            /* Traditional iOS Slide-up Analysis Drawer */
+            <motion.div
+              initial={reducedMotion ? { y: 0, opacity: 0 } : { y: "100%" }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={reducedMotion ? { opacity: 0 } : { y: "100%" }}
+              transition={
+                reducedMotion
+                  ? { duration: 0.15, ease: "easeOut" as const }
+                  : { type: "spring" as const, damping: 28, stiffness: 250, mass: 0.9 }
+              }
+              className="relative w-full max-w-xl mx-auto bg-surface/90 border border-border border-b-0 backdrop-blur-[4px] rounded-t-[38px] p-6 pb-10 shadow-[0_-15px_50px_rgba(0,0,0,0.25)] pointer-events-auto flex flex-col max-h-[90vh] overflow-y-auto"
+            >
+              {/* iOS Drag Handle */}
+              <div className="w-10 h-[5px] rounded-full bg-text-tertiary/30 mx-auto mb-5 mt-1 shrink-0" />
+
+              {/* Back/Close Button */}
+              <button
+                onClick={() => {
+                  playClickSound("click")
+                  onClose()
+                }}
+                className="absolute top-6 right-6 w-8 h-8 rounded-full bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 border border-black/15 dark:border-white/15 text-text-primary flex items-center justify-center transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none"
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Title */}
+              <div className="mb-4">
+                <span className="text-[11px] font-semibold tracking-wide text-accent font-sans block mb-0.5 uppercase">
+                  Diagnostic Analysis
+                </span>
+                <h3 className="text-xl font-sans font-bold text-text-primary">
+                  Session Breakdown
+                </h3>
+              </div>
+
+              {/* Hero stats layout - WPM & Performance Grade side-by-side */}
+              <div className="grid grid-cols-2 divide-x divide-border/10 my-4 font-sans shrink-0">
+                <div className="text-center">
+                  <span className="text-[40px] font-sans font-bold text-text-primary leading-none tracking-tight">
+                    {result.wpm}
+                  </span>
+                  <span className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mt-1.5">
+                    Speed (WPM)
+                  </span>
+                </div>
+                <div className="text-center">
+                  <span className={`text-[40px] font-sans font-bold leading-none tracking-tight ${gradeInfo.color}`}>
+                    {gradeInfo.grade}
+                  </span>
+                  <span className="block text-[10px] text-text-secondary font-semibold uppercase tracking-wider mt-1.5">
+                    Grade: {gradeInfo.label}
+                  </span>
                 </div>
               </div>
 
-              {/* Drill focus keys stats inside Drawer */}
-              {isDrill && (focusKeys.length > 0 || focusBigrams.length > 0) && (
-                <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5 text-left space-y-3 font-sans">
-                  <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block">
-                    Target Key Stats Post-Drill
-                  </span>
-                  <div className="grid grid-cols-2 gap-3 w-full">
-                    {focusKeysStats.map((item) => (
-                      <div
-                        key={item.key}
-                        className="bg-surface border border-border/10 rounded-[16px] p-3 flex flex-col gap-1 shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-[14px] text-text-primary">
-                            {item.key.toUpperCase()} <span className="text-[10px] font-medium text-text-secondary lowercase">mastery</span>
-                          </span>
-                          {item.diff !== 0 && (
-                            <span className={`text-[10px] font-bold ${item.diff > 0 ? "text-correct" : "text-incorrect"}`}>
-                              {item.diff > 0 ? `+${item.diff}%` : `${item.diff}%`}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-baseline gap-1 text-[12px] text-text-secondary font-medium mt-0.5">
-                          <span className="tabular-nums font-semibold">{item.prevAcc}%</span>
-                          <span className="text-text-tertiary">&rarr;</span>
-                          <span className="tabular-nums font-bold text-accent">{item.currentAcc}%</span>
-                        </div>
-                      </div>
-                    ))}
-                    {focusBigrams.map((b) => (
-                      <div
-                        key={b}
-                        className="bg-surface border border-border/10 rounded-[16px] p-3 flex flex-col gap-1 shadow-sm justify-center"
-                      >
-                        <span className="font-bold text-[14px] text-text-primary">
-                          {b.toUpperCase()} <span className="text-[10px] font-medium text-text-secondary lowercase">bigram</span>
+              {/* Secondary stats list */}
+              <div className="w-full my-4 bg-surface-secondary/50 rounded-2xl border border-border/10 divide-y divide-border/10 overflow-hidden font-sans shrink-0">
+                <div className="flex items-center justify-between px-4 py-3 text-[14px]">
+                  <span className="text-text-secondary font-medium">Accuracy</span>
+                  <div className="flex items-center gap-1.5 font-semibold tabular-nums">
+                    {accStyle.label && (
+                      <span className={`text-[9px] uppercase tracking-wider font-bold ${accStyle.color}`}>
+                        {accStyle.label}
+                      </span>
+                    )}
+                    <span className={accStyle.color}>{result.accuracy}%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3 text-[14px]">
+                  <span className="text-text-secondary font-medium">Time Taken</span>
+                  <span className="text-text-primary font-semibold tabular-nums">{result.duration.toFixed(1)}s</span>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3 text-[14px]">
+                  <span className="text-text-secondary font-medium">Correct Keys</span>
+                  <span className="text-text-primary font-semibold tabular-nums">{result.correctKeystrokes} / {result.totalKeystrokes}</span>
+                </div>
+              </div>
+
+              {/* Timeline Charts Section */}
+              <div className="space-y-6 flex-1 mt-4">
+                {timeline.length >= 2 ? (
+                  <>
+                    {/* WPM Timeline */}
+                    <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                          WPM Timeline
                         </span>
-                        <span className="text-[12px] text-text-tertiary mt-0.5 font-medium">Transition focused</span>
+                        <span className="text-sm font-bold text-accent font-sans tabular-nums">
+                          Peak: {Math.max(...wpmPoints)} WPM
+                        </span>
+                      </div>
+                      <div className="relative h-28 w-full mt-2">
+                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                          <defs>
+                            <linearGradient id="wpmGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.25" />
+                              <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0.0" />
+                            </linearGradient>
+                          </defs>
+                          <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                          <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                          <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                          <path d={generateSvgAreaPath(wpmPoints, minWpm, maxWpm, 400, 100)} fill="url(#wpmGrad)" />
+                          <path d={generateSvgPath(wpmPoints, minWpm, maxWpm, 400, 100)} fill="none" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
+                        <span>Start</span>
+                        <span>{result.duration.toFixed(1)}s</span>
+                      </div>
+                    </div>
+
+                    {/* Accuracy Timeline */}
+                    <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider">
+                          Accuracy Timeline
+                        </span>
+                        <span className="text-sm font-bold text-correct font-sans tabular-nums">
+                          Current: {result.accuracy}%
+                        </span>
+                      </div>
+                      <div className="relative h-28 w-full mt-2">
+                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                          <defs>
+                            <linearGradient id="accGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="var(--color-correct)" stopOpacity="0.25" />
+                              <stop offset="100%" stopColor="var(--color-correct)" stopOpacity="0.0" />
+                            </linearGradient>
+                          </defs>
+                          <line x1="0" y1="0" x2="400" y2="0" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                          <line x1="0" y1="50" x2="400" y2="50" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                          <line x1="0" y1="100" x2="400" y2="100" stroke="var(--color-border)" strokeWidth="0.5" strokeDasharray="3,3" />
+                          <path d={generateSvgAreaPath(accPoints, minAcc, maxAcc, 400, 100)} fill="url(#accGrad)" />
+                          <path d={generateSvgPath(accPoints, minAcc, maxAcc, 400, 100)} fill="none" stroke="var(--color-correct)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div className="flex justify-between text-[10px] text-text-tertiary mt-2">
+                        <span>Start</span>
+                        <span>{result.duration.toFixed(1)}s</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-surface-secondary/30 border border-border/10 rounded-2xl p-8 text-center text-xs text-text-tertiary">
+                    Timeline data unavailable for this run duration.
+                  </div>
+                )}
+
+                {/* Error Heatmap */}
+                <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block">
+                      Mistake Heatmap
+                    </span>
+                    <span className="text-xs text-text-tertiary font-medium">
+                      {totalErrors} key errors logged
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 w-full max-w-sm mx-auto select-none mt-2">
+                    {keyboardRows.map((row, rIdx) => (
+                      <div key={rIdx} className="flex justify-center gap-1 w-full">
+                        {row.map((char) => (
+                          <div
+                            key={char}
+                            className={`w-7.5 h-7.5 rounded-md flex items-center justify-center text-[11px] font-sans border transition-colors ${getKeyHeatmapStyle(
+                              char
+                            )}`}
+                            title={errorKeys[char] ? `${errorKeys[char]} mistakes on ${char}` : `No mistakes on ${char}`}
+                          >
+                            {char.toUpperCase()}
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Done Button */}
-            <button
-              onClick={() => {
-                playClickSound("click")
-                onClose()
-              }}
-              className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 text-white font-sans text-sm font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0 mt-6"
-            >
-              Back to report
-            </button>
-          </motion.div>
+                {/* Drill focus stats */}
+                {isDrill && (focusKeys.length > 0 || focusBigrams.length > 0) && (
+                  <div className="bg-surface-secondary/50 border border-border/10 rounded-2xl p-4.5 text-left space-y-3 font-sans">
+                    <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block">
+                      Target Key Stats Post-Drill
+                    </span>
+                    <div className="grid grid-cols-2 gap-3 w-full">
+                      {focusKeysStats.map((item) => (
+                        <div key={item.key} className="bg-surface border border-border/10 rounded-[16px] p-3 flex flex-col gap-1 shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-[14px] text-text-primary">
+                              {item.key.toUpperCase()} <span className="text-[10px] font-medium text-text-secondary lowercase">mastery</span>
+                            </span>
+                            {item.diff !== 0 && (
+                              <span className={`text-[10px] font-bold ${item.diff > 0 ? "text-correct" : "text-incorrect"}`}>
+                                {item.diff > 0 ? `+${item.diff}%` : `${item.diff}%`}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-baseline gap-1 text-[12px] text-text-secondary font-medium mt-0.5">
+                            <span className="tabular-nums font-semibold">{item.prevAcc}%</span>
+                            <span className="text-text-tertiary">&rarr;</span>
+                            <span className="tabular-nums font-bold text-accent">{item.currentAcc}%</span>
+                          </div>
+                        </div>
+                      ))}
+                      {focusBigrams.map((b) => (
+                        <div key={b} className="bg-surface border border-border/10 rounded-[16px] p-3 flex flex-col gap-1 shadow-sm justify-center">
+                          <span className="font-bold text-[14px] text-text-primary">
+                            {b.toUpperCase()} <span className="text-[10px] font-medium text-text-secondary lowercase">bigram</span>
+                          </span>
+                          <span className="text-[12px] text-text-tertiary mt-0.5 font-medium">Transition focused</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Done Button */}
+              <button
+                onClick={() => {
+                  playClickSound("click")
+                  onClose()
+                }}
+                className="w-full h-12 rounded-2xl bg-accent hover:opacity-90 text-white font-sans text-sm font-semibold transition-all duration-150 active:scale-[0.97] cursor-pointer focus:outline-none shadow-sm shrink-0 mt-6"
+              >
+                Back to report
+              </button>
+            </motion.div>
+          )}
         </div>
       )}
     </AnimatePresence>

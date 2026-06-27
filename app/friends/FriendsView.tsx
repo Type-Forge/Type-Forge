@@ -215,7 +215,7 @@ export default function FriendsView() {
               <span className="text-[12px] font-bold text-text-secondary uppercase tracking-wider block px-1">
                 Add Friend
               </span>
-              <div className="flex items-center w-full bg-surface-secondary/40 border border-border/10 rounded-[10px] px-3 py-1.5 focus-within:border-accent/40 focus-within:bg-surface-secondary/60 transition-all duration-150">
+              <div className="flex items-center w-full bg-surface-secondary/50 border border-border/15 rounded-[10px] px-3 py-1.5 focus-within:border-accent/50 focus-within:bg-surface transition-all duration-150 shadow-[inset_0_1px_1px_rgba(0,0,0,0.02)]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-text-tertiary mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -224,7 +224,7 @@ export default function FriendsView() {
                   placeholder="Search users by name or @username..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full bg-transparent border-none outline-none focus:ring-0 text-sm text-text-primary placeholder-text-tertiary/70 font-sans"
+                  className="w-full bg-transparent border-none outline-none focus:ring-0 text-sm text-text-primary placeholder:text-text-secondary/50 font-sans"
                 />
               </div>
 
